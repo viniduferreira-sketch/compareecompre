@@ -33,6 +33,37 @@ type MeliItem = {
   shipping?: { free_shipping?: boolean };
 };
 
+let cachedToken: { value: string; expiresAt: number } | null = null;
+
+async function getMeliToken(): Promise<string | null> {
+  const clientId = process.env["ML_CLIENT_ID"];
+  const clientSecret = process.env["ML_CLIENT_SECRET"];
+  if (!clientId || !clientSecret) return null;
+  if (cachedToken && cachedToken.expiresAt > Date.now() + 30_000) return cachedToken.value;
+
+  try {
+    const res = await fetch("https://api.mercadolibre.com/oauth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+      body: new URLSearchParams({
+        grant_type: "client_credentials",
+        client_id: clientId,
+        client_secret: clientSecret,
+      }),
+    });
+    if (!res.ok) {
+      console.error("Mercado Livre token failed", res.status, await res.text());
+      return null;
+    }
+    const json = (await res.json()) as { access_token: string; expires_in: number };
+    cachedToken = { value: json.access_token, expiresAt: Date.now() + json.expires_in * 1000 };
+    return cachedToken.value;
+  } catch (error) {
+    console.error("Mercado Livre token error", error);
+    return null;
+  }
+}
+
 export const searchOffers = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z
@@ -45,9 +76,16 @@ export const searchOffers = createServerFn({ method: "POST" })
       data.query,
     )}&limit=${limit}`;
 
+    const token = await getMeliToken();
+
     let items: MeliItem[] = [];
     try {
-      const res = await fetch(endpoint, { headers: { Accept: "application/json" } });
+      const res = await fetch(endpoint, {
+        headers: {
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
       if (res.ok) {
         const json = (await res.json()) as { results?: MeliItem[] };
         items = json.results ?? [];
@@ -57,6 +95,7 @@ export const searchOffers = createServerFn({ method: "POST" })
     } catch (error) {
       console.error("Mercado Livre search error", error);
     }
+
 
     const offers: Offer[] = items
       .filter((item) => item && typeof item.price === "number")
