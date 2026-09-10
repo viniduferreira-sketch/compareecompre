@@ -163,49 +163,88 @@ export const searchOffers = createServerFn({ method: "POST" })
     const offers = collected.slice(0, limit).sort((a, b) => a.price - b.price);
     offerCache.set(cacheKey, { offers, expiresAt: Date.now() + 10 * 60 * 1000 });
 
+    if (offers.length === 0) return [];
 
-    if (offers.length > 0) {
-      try {
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        const { data: saved, error: productError } = await supabaseAdmin
-          .from("products")
-          .upsert(
-            offers.map((offer) => ({
-              external_id: offer.id,
-              title: offer.title,
-              image_url: offer.imageUrl,
-              category: offer.category,
-              updated_at: new Date().toISOString(),
-            })),
-            { onConflict: "external_id" },
-          )
-          .select("id, external_id");
+      const { data: saved, error: productError } = await supabaseAdmin
+        .from("products")
+        .upsert(
+          offers.map((offer) => ({
+            external_id: offer.id,
+            title: offer.title,
+            image_url: offer.imageUrl,
+            category: offer.category,
+            updated_at: new Date().toISOString(),
+          })),
+          { onConflict: "external_id" },
+        )
+        .select("id, external_id");
 
-        if (productError) throw productError;
+      if (productError) throw productError;
 
-        const idByExternal = new Map((saved ?? []).map((p) => [p.external_id, p.id]));
+      const idByExternal = new Map((saved ?? []).map((p) => [p.external_id, p.id]));
 
-        const { error: offerError } = await supabaseAdmin.from("offers").upsert(
-          offers
-            .filter((offer) => idByExternal.has(offer.id))
-            .map((offer) => ({
-              product_id: idByExternal.get(offer.id)!,
-              store: offer.store,
-              price: offer.price,
-              original_price: offer.originalPrice,
-              discount_percent: offer.discountPercent,
-              affiliate_url: offer.affiliateUrl,
-              free_shipping: offer.freeShipping,
-              updated_at: new Date().toISOString(),
-            })),
-          { onConflict: "product_id,store" },
-        );
+      const { error: offerError } = await supabaseAdmin.from("offers").upsert(
+        offers
+          .filter((offer) => idByExternal.has(offer.id))
+          .map((offer) => ({
+            product_id: idByExternal.get(offer.id)!,
+            store: offer.store,
+            price: offer.price,
+            original_price: offer.originalPrice,
+            discount_percent: offer.discountPercent,
+            affiliate_url: offer.affiliateUrl,
+            free_shipping: offer.freeShipping,
+            updated_at: new Date().toISOString(),
+          })),
+        { onConflict: "product_id,store" },
+      );
 
-        if (offerError) throw offerError;
-      } catch (error) {
-        console.error("Failed to persist offers", error);
+      if (offerError) throw offerError;
+
+      // Read back from the database so the UI always renders stored data.
+      const { data: stored, error: readError } = await supabaseAdmin
+        .from("offers")
+        .select(
+          "price, original_price, discount_percent, affiliate_url, free_shipping, store, products!inner(id, external_id, title, image_url, category)",
+        )
+        .in("product_id", [...idByExternal.values()])
+        .order("price", { ascending: true });
+
+      if (readError) throw readError;
+
+      const sellerCountByExternal = new Map(offers.map((offer) => [offer.id, offer.sellerCount]));
+
+      const fromDb: Offer[] = (stored ?? []).map((row) => {
+        const product = row.products as unknown as {
+          external_id: string;
+          title: string;
+          image_url: string | null;
+          category: string | null;
+        };
+        return {
+          id: product.external_id,
+          title: product.title,
+          imageUrl: product.image_url,
+          store: row.store,
+          price: Number(row.price),
+          originalPrice: row.original_price === null ? null : Number(row.original_price),
+          discountPercent: row.discount_percent,
+          freeShipping: row.free_shipping,
+          affiliateUrl: row.affiliate_url,
+          category: product.category,
+          sellerCount: sellerCountByExternal.get(product.external_id) ?? 1,
+        };
+      });
+
+      if (fromDb.length > 0) {
+        offerCache.set(cacheKey, { offers: fromDb, expiresAt: Date.now() + 10 * 60 * 1000 });
+        return fromDb;
       }
+    } catch (error) {
+      console.error("Failed to persist offers", error);
     }
 
     return offers;
