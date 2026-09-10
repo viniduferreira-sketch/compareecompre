@@ -240,7 +240,7 @@ export const searchOffers = createServerFn({ method: "POST" })
           id: product.external_id,
           title: product.title,
           imageUrl: product.image_url,
-          store: row.store,
+          store: row.store_name,
           price: Number(row.price),
           originalPrice: row.original_price === null ? null : Number(row.original_price),
           discountPercent: row.discount_percent,
