@@ -17,6 +17,14 @@ export type Offer = {
   sellerCount: number;
 };
 
+export type SearchOffersResult = {
+  offers: Offer[];
+  persistence: {
+    ok: boolean;
+    message: string;
+  };
+};
+
 function withAffiliate(url: string): string {
   const clean = url.split("#")[0] ?? url;
   const separator = clean.includes("?") ? "&" : "?";
@@ -38,7 +46,28 @@ type CatalogItem = {
 };
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
-const offerCache = new Map<string, { offers: Offer[]; expiresAt: number }>();
+const offerCache = new Map<string, { result: SearchOffersResult; expiresAt: number }>();
+
+function formatDatabaseError(table: "products" | "offers", error: unknown): string {
+  if (error && typeof error === "object") {
+    const value = error as {
+      code?: string;
+      message?: string;
+      details?: string;
+      hint?: string;
+    };
+    return [
+      `Erro ao salvar em ${table}`,
+      value.code ? `código: ${value.code}` : null,
+      value.message ? `mensagem: ${value.message}` : null,
+      value.details ? `detalhes: ${value.details}` : null,
+      value.hint ? `dica: ${value.hint}` : null,
+    ]
+      .filter(Boolean)
+      .join(" | ");
+  }
+  return `Erro ao salvar em ${table} | mensagem: ${String(error)}`;
+}
 
 async function getMeliToken(): Promise<string | null> {
   const clientId = process.env["ML_CLIENT_ID"];
@@ -98,14 +127,19 @@ export const searchOffers = createServerFn({ method: "POST" })
       .object({ query: z.string().min(1).max(120), limit: z.number().min(1).max(30).optional() })
       .parse(data),
   )
-  .handler(async ({ data }): Promise<Offer[]> => {
+  .handler(async ({ data }): Promise<SearchOffersResult> => {
     const limit = data.limit ?? 12;
     const cacheKey = `${data.query.toLowerCase()}|${limit}`;
     const cached = offerCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) return cached.offers;
+    if (cached && cached.expiresAt > Date.now()) return cached.result;
 
     const token = await getMeliToken();
-    if (!token) return [];
+    if (!token) {
+      return {
+        offers: [],
+        persistence: { ok: false, message: "Credenciais do Mercado Livre indisponíveis." },
+      };
+    }
 
     let products: CatalogProduct[] = [];
     try {
@@ -161,9 +195,9 @@ export const searchOffers = createServerFn({ method: "POST" })
     }
 
     const offers = collected.slice(0, limit).sort((a, b) => a.price - b.price);
-    offerCache.set(cacheKey, { offers, expiresAt: Date.now() + 10 * 60 * 1000 });
-
-    if (offers.length === 0) return [];
+    if (offers.length === 0) {
+      return { offers: [], persistence: { ok: true, message: "Nenhuma oferta para salvar." } };
+    }
 
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -183,36 +217,39 @@ export const searchOffers = createServerFn({ method: "POST" })
         .select("id, external_id");
 
       if (productError) {
-        console.error("[supabase] products upsert error", productError);
-        throw productError;
+        const message = formatDatabaseError("products", productError);
+        console.error(message, productError);
+        return { offers, persistence: { ok: false, message } };
       }
       console.log(`[supabase] products upsert ok: ${saved?.length ?? 0} rows`);
 
       const idByExternal = new Map((saved ?? []).map((p) => [p.external_id, p.id]));
 
+      const offerRows = offers.flatMap((offer) => {
+        const productId = idByExternal.get(offer.id);
+        if (!productId) return [];
+        return [{
+          product_id: productId,
+          store_name: "Mercado Livre",
+          external_id: offer.id,
+          price: offer.price,
+          original_price: offer.originalPrice,
+          discount_percent: offer.discountPercent,
+          affiliate_url: offer.affiliateUrl,
+          free_shipping: offer.freeShipping,
+          updated_at: new Date().toISOString(),
+        }];
+      });
+
       const { data: savedOffers, error: offerError } = await supabaseAdmin
         .from("offers")
-        .upsert(
-          offers
-            .filter((offer) => idByExternal.has(offer.id))
-            .map((offer) => ({
-              product_id: idByExternal.get(offer.id)!,
-              store_name: offer.store,
-              external_id: offer.id,
-              price: offer.price,
-              original_price: offer.originalPrice,
-              discount_percent: offer.discountPercent,
-              affiliate_url: offer.affiliateUrl,
-              free_shipping: offer.freeShipping,
-              updated_at: new Date().toISOString(),
-            })),
-          { onConflict: "product_id,store_name" },
-        )
+        .upsert(offerRows, { onConflict: "product_id,store_name" })
         .select("id");
 
       if (offerError) {
-        console.error("[supabase] offers upsert error", offerError);
-        throw offerError;
+        const message = formatDatabaseError("offers", offerError);
+        console.error(message, offerError);
+        return { offers, persistence: { ok: false, message } };
       }
       console.log(`[supabase] offers upsert ok: ${savedOffers?.length ?? 0} rows`);
 
@@ -252,12 +289,24 @@ export const searchOffers = createServerFn({ method: "POST" })
       });
 
       if (fromDb.length > 0) {
-        offerCache.set(cacheKey, { offers: fromDb, expiresAt: Date.now() + 10 * 60 * 1000 });
-        return fromDb;
+        const result: SearchOffersResult = {
+          offers: fromDb,
+          persistence: {
+            ok: true,
+            message: `${saved?.length ?? 0} produtos e ${savedOffers?.length ?? 0} ofertas gravados.`,
+          },
+        };
+        offerCache.set(cacheKey, { result, expiresAt: Date.now() + 10 * 60 * 1000 });
+        return result;
       }
     } catch (error) {
-      console.error("Failed to persist offers", error);
+      const message = formatDatabaseError("offers", error);
+      console.error(message, error);
+      return { offers, persistence: { ok: false, message } };
     }
 
-    return offers;
+    return {
+      offers,
+      persistence: { ok: false, message: "A gravação terminou, mas nenhum registro foi relido." },
+    };
   });

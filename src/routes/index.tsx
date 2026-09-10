@@ -2,7 +2,8 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, ShieldCheck, Sparkles, TrendingDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { CompareDialog } from "@/components/marketplace/CompareDialog";
 import { Header } from "@/components/marketplace/Header";
@@ -97,6 +98,22 @@ function Home() {
     queryFn: () => run({ data: { query: term, limit: 24 } }),
   });
 
+  const persistenceErrors = [
+    ...demo.map((result) => result.data?.persistence.ok === false ? result.data.persistence.message : null),
+    search.data?.persistence.ok === false ? search.data.persistence.message : null,
+  ].filter((message): message is string => Boolean(message));
+  const persistenceErrorKey = [...new Set(persistenceErrors)].join("\n");
+
+  useEffect(() => {
+    if (!persistenceErrorKey) return;
+    console.error("[Supabase] Falha de persistência:", persistenceErrorKey);
+    toast.error("Erro ao salvar ofertas", {
+      id: `persistence-${persistenceErrorKey}`,
+      description: persistenceErrorKey,
+      duration: 15_000,
+    });
+  }, [persistenceErrorKey]);
+
   return (
     <div className="min-h-screen bg-background">
       <Header onSearch={setTerm} initialTerm={term} />
@@ -129,7 +146,7 @@ function Home() {
           <OffersGrid
             title={`Resultados para "${term}"`}
             subtitle="Ordenado do menor para o maior preço"
-            offers={search.data ?? []}
+            offers={search.data?.offers ?? []}
             isLoading={search.isFetching}
             onCompare={setSelected}
           />
@@ -139,7 +156,7 @@ function Home() {
               key={query}
               title={query}
               subtitle="Destaques com o menor preço primeiro"
-              offers={demo[index]?.data ?? []}
+              offers={demo[index]?.data?.offers ?? []}
               isLoading={Boolean(demo[index]?.isLoading)}
               onCompare={setSelected}
             />
