@@ -14,6 +14,7 @@ export type Offer = {
   freeShipping: boolean;
   affiliateUrl: string;
   category: string | null;
+  sellerCount: number;
 };
 
 function withAffiliate(url: string): string {
@@ -22,14 +23,17 @@ function withAffiliate(url: string): string {
   return `${clean}${separator}${AFFILIATE_PARAMS}`;
 }
 
-type MeliItem = {
+type CatalogProduct = {
   id: string;
-  title: string;
+  name: string;
+  domain_id?: string;
+  pictures?: { url?: string }[];
+};
+
+type CatalogItem = {
+  item_id: string;
   price: number;
   original_price: number | null;
-  permalink: string;
-  thumbnail: string;
-  category_id?: string;
   shipping?: { free_shipping?: boolean };
 };
 
@@ -38,7 +42,10 @@ let cachedToken: { value: string; expiresAt: number } | null = null;
 async function getMeliToken(): Promise<string | null> {
   const clientId = process.env["ML_CLIENT_ID"];
   const clientSecret = process.env["ML_CLIENT_SECRET"];
-  if (!clientId || !clientSecret) return null;
+  if (!clientId || !clientSecret) {
+    console.error("Mercado Livre credentials are missing");
+    return null;
+  }
   if (cachedToken && cachedToken.expiresAt > Date.now() + 30_000) return cachedToken.value;
 
   try {
@@ -52,7 +59,7 @@ async function getMeliToken(): Promise<string | null> {
       }),
     });
     if (!res.ok) {
-      console.error("Mercado Livre token failed", res.status, await res.text());
+      console.error("Mercado Livre token failed", res.status);
       return null;
     }
     const json = (await res.json()) as { access_token: string; expires_in: number };
@@ -60,6 +67,26 @@ async function getMeliToken(): Promise<string | null> {
     return cachedToken.value;
   } catch (error) {
     console.error("Mercado Livre token error", error);
+    return null;
+  }
+}
+
+async function fetchCheapestItem(
+  productId: string,
+  token: string,
+): Promise<{ item: CatalogItem; sellerCount: number } | null> {
+  try {
+    const res = await fetch(
+      `https://api.mercadolibre.com/products/${productId}/items?limit=20`,
+      { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
+    );
+    if (!res.ok) return null;
+    const json = (await res.json()) as { results?: CatalogItem[] };
+    const items = (json.results ?? []).filter((item) => typeof item.price === "number");
+    if (items.length === 0) return null;
+    const cheapest = items.reduce((best, item) => (item.price < best.price ? item : best));
+    return { item: cheapest, sellerCount: items.length };
+  } catch {
     return null;
   }
 }
@@ -72,56 +99,63 @@ export const searchOffers = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }): Promise<Offer[]> => {
     const limit = data.limit ?? 12;
-    const endpoint = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(
-      data.query,
-    )}&limit=${limit}`;
-
     const token = await getMeliToken();
+    if (!token) return [];
 
-    let items: MeliItem[] = [];
+    let products: CatalogProduct[] = [];
     try {
-      const res = await fetch(endpoint, {
-        headers: {
-          Accept: "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      const res = await fetch(
+        `https://api.mercadolibre.com/products/search?status=active&site_id=MLB&q=${encodeURIComponent(
+          data.query,
+        )}&limit=${limit}`,
+        { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
+      );
       if (res.ok) {
-        const json = (await res.json()) as { results?: MeliItem[] };
-        items = json.results ?? [];
+        const json = (await res.json()) as { results?: CatalogProduct[] };
+        products = json.results ?? [];
       } else {
-        console.error("Mercado Livre search failed", res.status);
+        console.error("Mercado Livre catalog search failed", res.status);
       }
     } catch (error) {
-      console.error("Mercado Livre search error", error);
+      console.error("Mercado Livre catalog search error", error);
     }
 
-
-    const offers: Offer[] = items
-      .filter((item) => item && typeof item.price === "number")
-      .map((item) => {
+    const settled = await Promise.all(
+      products.slice(0, limit).map(async (product) => {
+        const cheapest = await fetchCheapestItem(product.id, token);
+        if (!cheapest) return null;
+        const { item, sellerCount } = cheapest;
         const original =
           item.original_price && item.original_price > item.price ? item.original_price : null;
-        return {
-          id: item.id,
-          title: item.title,
-          imageUrl: item.thumbnail ? item.thumbnail.replace(/^http:/, "https:").replace("-I.jpg", "-O.jpg") : null,
+
+        const offer: Offer = {
+          id: product.id,
+          title: product.name,
+          imageUrl: product.pictures?.[0]?.url ?? null,
           store: "Mercado Livre",
           price: item.price,
           originalPrice: original,
-          discountPercent: original ? Math.round(((original - item.price) / original) * 100) : null,
+          discountPercent: original
+            ? Math.round(((original - item.price) / original) * 100)
+            : null,
           freeShipping: Boolean(item.shipping?.free_shipping),
-          affiliateUrl: withAffiliate(item.permalink),
-          category: item.category_id ?? null,
+          affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
+          category: product.domain_id ?? null,
+          sellerCount,
         };
-      })
+        return offer;
+      }),
+    );
+
+    const offers = settled
+      .filter((offer): offer is Offer => offer !== null)
       .sort((a, b) => a.price - b.price);
 
     if (offers.length > 0) {
       try {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        const { data: products, error: productError } = await supabaseAdmin
+        const { data: saved, error: productError } = await supabaseAdmin
           .from("products")
           .upsert(
             offers.map((offer) => ({
@@ -137,7 +171,7 @@ export const searchOffers = createServerFn({ method: "POST" })
 
         if (productError) throw productError;
 
-        const idByExternal = new Map((products ?? []).map((p) => [p.external_id, p.id]));
+        const idByExternal = new Map((saved ?? []).map((p) => [p.external_id, p.id]));
 
         const { error: offerError } = await supabaseAdmin.from("offers").upsert(
           offers
