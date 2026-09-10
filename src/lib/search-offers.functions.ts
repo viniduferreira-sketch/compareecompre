@@ -17,7 +17,7 @@ export type Offer = {
 };
 
 function withAffiliate(url: string): string {
-  const clean = url.split("#")[0];
+  const clean = url.split("#")[0] ?? url;
   const separator = clean.includes("?") ? "&" : "?";
   return `${clean}${separator}${AFFILIATE_PARAMS}`;
 }
