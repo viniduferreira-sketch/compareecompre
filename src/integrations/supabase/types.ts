@@ -19,36 +19,39 @@ export type Database = {
           affiliate_url: string
           created_at: string
           discount_percent: number | null
+          external_id: string | null
           free_shipping: boolean
           id: string
           original_price: number | null
           price: number
           product_id: string
-          store: string
+          store_name: string
           updated_at: string
         }
         Insert: {
           affiliate_url: string
           created_at?: string
           discount_percent?: number | null
+          external_id?: string | null
           free_shipping?: boolean
           id?: string
           original_price?: number | null
           price: number
           product_id: string
-          store: string
+          store_name: string
           updated_at?: string
         }
         Update: {
           affiliate_url?: string
           created_at?: string
           discount_percent?: number | null
+          external_id?: string | null
           free_shipping?: boolean
           id?: string
           original_price?: number | null
           price?: number
           product_id?: string
-          store?: string
+          store_name?: string
           updated_at?: string
         }
         Relationships: [
