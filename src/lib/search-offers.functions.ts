@@ -182,33 +182,45 @@ export const searchOffers = createServerFn({ method: "POST" })
         )
         .select("id, external_id");
 
-      if (productError) throw productError;
+      if (productError) {
+        console.error("[supabase] products upsert error", productError);
+        throw productError;
+      }
+      console.log(`[supabase] products upsert ok: ${saved?.length ?? 0} rows`);
 
       const idByExternal = new Map((saved ?? []).map((p) => [p.external_id, p.id]));
 
-      const { error: offerError } = await supabaseAdmin.from("offers").upsert(
-        offers
-          .filter((offer) => idByExternal.has(offer.id))
-          .map((offer) => ({
-            product_id: idByExternal.get(offer.id)!,
-            store: offer.store,
-            price: offer.price,
-            original_price: offer.originalPrice,
-            discount_percent: offer.discountPercent,
-            affiliate_url: offer.affiliateUrl,
-            free_shipping: offer.freeShipping,
-            updated_at: new Date().toISOString(),
-          })),
-        { onConflict: "product_id,store" },
-      );
+      const { data: savedOffers, error: offerError } = await supabaseAdmin
+        .from("offers")
+        .upsert(
+          offers
+            .filter((offer) => idByExternal.has(offer.id))
+            .map((offer) => ({
+              product_id: idByExternal.get(offer.id)!,
+              store_name: offer.store,
+              external_id: offer.id,
+              price: offer.price,
+              original_price: offer.originalPrice,
+              discount_percent: offer.discountPercent,
+              affiliate_url: offer.affiliateUrl,
+              free_shipping: offer.freeShipping,
+              updated_at: new Date().toISOString(),
+            })),
+          { onConflict: "product_id,store_name" },
+        )
+        .select("id");
 
-      if (offerError) throw offerError;
+      if (offerError) {
+        console.error("[supabase] offers upsert error", offerError);
+        throw offerError;
+      }
+      console.log(`[supabase] offers upsert ok: ${savedOffers?.length ?? 0} rows`);
 
       // Read back from the database so the UI always renders stored data.
       const { data: stored, error: readError } = await supabaseAdmin
         .from("offers")
         .select(
-          "price, original_price, discount_percent, affiliate_url, free_shipping, store, products!inner(id, external_id, title, image_url, category)",
+          "price, original_price, discount_percent, affiliate_url, free_shipping, store_name, products!inner(id, external_id, title, image_url, category)",
         )
         .in("product_id", [...idByExternal.values()])
         .order("price", { ascending: true });
