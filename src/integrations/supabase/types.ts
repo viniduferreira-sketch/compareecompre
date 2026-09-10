@@ -14,7 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      offers: {
+        Row: {
+          affiliate_url: string
+          created_at: string
+          discount_percent: number | null
+          free_shipping: boolean
+          id: string
+          original_price: number | null
+          price: number
+          product_id: string
+          store: string
+          updated_at: string
+        }
+        Insert: {
+          affiliate_url: string
+          created_at?: string
+          discount_percent?: number | null
+          free_shipping?: boolean
+          id?: string
+          original_price?: number | null
+          price: number
+          product_id: string
+          store: string
+          updated_at?: string
+        }
+        Update: {
+          affiliate_url?: string
+          created_at?: string
+          discount_percent?: number | null
+          free_shipping?: boolean
+          id?: string
+          original_price?: number | null
+          price?: number
+          product_id?: string
+          store?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category: string | null
+          created_at: string
+          external_id: string
+          id: string
+          image_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          external_id: string
+          id?: string
+          image_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          external_id?: string
+          id?: string
+          image_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
