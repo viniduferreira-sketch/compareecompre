@@ -38,6 +38,7 @@ type CatalogItem = {
 };
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
+const offerCache = new Map<string, { offers: Offer[]; expiresAt: number }>();
 
 async function getMeliToken(): Promise<string | null> {
   const clientId = process.env["ML_CLIENT_ID"];
