@@ -26,11 +26,16 @@ export function CompareDialog({
     queryKey: ["compare", offer?.id],
     enabled: Boolean(offer),
     queryFn: () =>
-      run({ data: { query: offer!.title.split(" ").slice(0, 6).join(" "), limit: 8 } }),
+      run({
+        data: {
+          query: offer?.title.split(" ").slice(0, 6).join(" ") ?? "",
+          limit: 8,
+        },
+      }),
   });
 
-  const alternatives = (data ?? []).filter((item) => item.id !== offer?.id).slice(0, 5);
-  const best = data?.[0] ?? offer;
+  const alternatives = (data?.offers ?? []).filter((item) => item.id !== offer?.id).slice(0, 5);
+  const best = data?.offers[0] ?? offer;
 
   return (
     <Dialog open={Boolean(offer)} onOpenChange={onOpenChange}>
