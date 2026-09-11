@@ -85,7 +85,8 @@ function OffersGrid({
 
 function Home() {
   const run = useServerFn(searchOffers);
-  const [term, setTerm] = useState("");
+  const { q } = Route.useSearch();
+  const [term, setTerm] = useState(q ?? "");
   const [selected, setSelected] = useState<Offer | null>(null);
 
   const demo = useQueries({
