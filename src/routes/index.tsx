@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { CompareDialog } from "@/components/marketplace/CompareDialog";
 import { Header } from "@/components/marketplace/Header";
+import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import { OfferCard } from "@/components/marketplace/OfferCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { searchOffers, type Offer } from "@/lib/search-offers.functions";
@@ -119,6 +120,8 @@ function Home() {
       <Header onSearch={setTerm} initialTerm={term} />
 
       <main>
+        <HeroCarousel onSearch={setTerm} />
+
         <section className="bg-hero-gradient">
           <div className="mx-auto max-w-4xl px-4 py-16 text-center md:py-24">
             <span className="inline-flex items-center gap-2 rounded-full bg-ink-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-foreground">
