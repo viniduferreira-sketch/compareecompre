@@ -34,6 +34,8 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): { q?: string } =>
+    typeof search["q"] === "string" ? { q: search["q"] as string } : {},
   component: Home,
 });
 
@@ -83,7 +85,8 @@ function OffersGrid({
 
 function Home() {
   const run = useServerFn(searchOffers);
-  const [term, setTerm] = useState("");
+  const { q } = Route.useSearch();
+  const [term, setTerm] = useState(q ?? "");
   const [selected, setSelected] = useState<Offer | null>(null);
 
   const demo = useQueries({
