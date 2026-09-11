@@ -1,4 +1,6 @@
+import { Link } from "@tanstack/react-router";
 import { ExternalLink, Truck } from "lucide-react";
+
 
 import { Button } from "@/components/ui/button";
 import type { Offer } from "@/lib/search-offers.functions";
@@ -9,11 +11,11 @@ export const formatBRL = (value: number) =>
 export function OfferCard({ offer, onCompare }: { offer: Offer; onCompare: (offer: Offer) => void }) {
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lift">
-      <button
-        type="button"
-        onClick={() => onCompare(offer)}
+      <Link
+        to="/produto/$id"
+        params={{ id: offer.id }}
         className="relative block aspect-square w-full overflow-hidden bg-muted"
-        aria-label={`Comparar preços de ${offer.title}`}
+        aria-label={`Ver detalhes de ${offer.title}`}
       >
         {offer.imageUrl ? (
           <img
