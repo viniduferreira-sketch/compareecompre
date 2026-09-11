@@ -100,7 +100,7 @@ function ProductPage() {
         onSearch={(value) => navigate({ to: "/", search: { q: value } })}
       />
 
-      <main className="mx-auto max-w-7xl px-4 py-6">
+      <main className="mx-auto max-w-5xl px-5 py-8 text-sm sm:px-8 lg:px-12">
         {isLoading ? (
           <div className="space-y-6">
             <Skeleton className="h-6 w-64" />
@@ -129,31 +129,31 @@ function ProductPage() {
               <span className="text-foreground/70">{data.title.split(" ").slice(0, 4).join(" ")}</span>
             </nav>
 
-            <header className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 lg:flex lg:items-center lg:justify-between">
-              <h1 className="min-w-0 font-display text-2xl font-bold leading-tight text-foreground sm:text-3xl">
+            <header className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 lg:flex lg:items-center lg:justify-between">
+              <h1 className="min-w-0 font-display text-lg font-bold leading-tight text-foreground sm:text-xl">
                 {data.title}
               </h1>
 
-              <div className="flex shrink-0 items-center gap-2">
-                <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2">
-                  <BellRing className="size-4 text-muted-foreground" />
-                  <span className="hidden text-sm text-foreground sm:inline">Criar alerta de preço</span>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2.5 py-1.5">
+                  <BellRing className="size-3.5 text-muted-foreground" />
+                  <span className="hidden text-xs text-foreground sm:inline">Criar alerta de preço</span>
                   <Switch checked={alert} onCheckedChange={setAlert} aria-label="Criar alerta de preço" />
                 </div>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="rounded-full"
+                  className="size-8 rounded-full"
                   aria-pressed={favorite}
                   aria-label="Favoritar"
                   onClick={() => setFavorite((value) => !value)}
                 >
-                  <Heart className={cn("size-4", favorite && "fill-destructive text-destructive")} />
+                  <Heart className={cn("size-3.5", favorite && "fill-destructive text-destructive")} />
                 </Button>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="rounded-full"
+                  className="size-8 rounded-full"
                   aria-label="Compartilhar"
                   onClick={() => {
                     if (typeof navigator !== "undefined" && navigator.share) {
@@ -163,7 +163,7 @@ function ProductPage() {
                     }
                   }}
                 >
-                  <Share2 className="size-4" />
+                  <Share2 className="size-3.5" />
                 </Button>
               </div>
             </header>
