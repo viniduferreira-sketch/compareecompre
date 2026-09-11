@@ -37,16 +37,16 @@ export function OfferCard({ offer, onCompare }: { offer: Offer; onCompare: (offe
             -{offer.discountPercent}%
           </span>
         ) : null}
-      </button>
+      </Link>
 
       <div className="flex flex-1 flex-col gap-3 p-4">
-        <button
-          type="button"
-          onClick={() => onCompare(offer)}
+        <Link
+          to="/produto/$id"
+          params={{ id: offer.id }}
           className="line-clamp-2 text-left text-sm font-medium leading-snug text-foreground transition-colors hover:text-primary"
         >
           {offer.title}
-        </button>
+        </Link>
 
         <div className="mt-auto space-y-1">
           {offer.originalPrice ? (
