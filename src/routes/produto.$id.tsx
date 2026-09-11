@@ -72,6 +72,7 @@ function prettyCategory(domain: string | null) {
 
 function ProductPage() {
   const { id } = Route.useParams();
+  const navigate = Route.useNavigate();
   const run = useServerFn(getProductDetail);
   const [activeImage, setActiveImage] = useState(0);
   const [alert, setAlert] = useState(false);
@@ -94,7 +95,10 @@ function ProductPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onSearch={() => undefined} />
+      <Header
+        initialTerm=""
+        onSearch={(value) => navigate({ to: "/", search: { q: value } })}
+      />
 
       <main className="mx-auto max-w-7xl px-4 py-6">
         {isLoading ? (
