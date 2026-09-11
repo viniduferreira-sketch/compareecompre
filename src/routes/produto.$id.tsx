@@ -1,7 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { BellRing, ChevronRight, ExternalLink, Heart, Loader2, Minus, Plus, Share2, Truck } from "lucide-react";
+import {
+  BellRing,
+  ChevronRight,
+  ExternalLink,
+  Heart,
+  Minus,
+  Plus,
+  Share2,
+  ThumbsDown,
+  ThumbsUp,
+  Truck,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   Area,
@@ -14,6 +25,12 @@ import {
 } from "recharts";
 
 import { Header } from "@/components/marketplace/Header";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { formatBRL } from "@/components/marketplace/OfferCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,6 +59,33 @@ export const Route = createFileRoute("/produto/$id")({
   }),
   component: ProductPage,
 });
+
+const FAQ = [
+  {
+    q: "Tem boa qualidade de imagem?",
+    a: "Sim. O produto entrega uma imagem nítida e cores equilibradas para o uso do dia a dia, com bom desempenho tanto em ambientes claros quanto à noite.",
+  },
+  {
+    q: "É bom para jogos?",
+    a: "Atende bem jogos casuais e uso intenso. Para partidas competitivas, confira na ficha técnica a taxa de atualização e o tempo de resposta.",
+  },
+  {
+    q: "Vale a pena pelo preço atual?",
+    a: "Comparando com o histórico de preços mostrado acima, o valor atual está dentro da faixa considerada boa para este modelo.",
+  },
+  {
+    q: "Qual é o prazo de entrega?",
+    a: "O prazo é calculado pela loja parceira no momento da compra, de acordo com o seu CEP. Muitos anúncios contam com frete grátis.",
+  },
+  {
+    q: "A compra é segura?",
+    a: "Sim. Você é redirecionado para a página oficial do Mercado Livre, onde o pagamento e a garantia são feitos pela própria loja.",
+  },
+  {
+    q: "Tem garantia do fabricante?",
+    a: "A maioria dos anúncios oferece garantia do fabricante ou do vendedor. O prazo exato aparece na página da loja parceira.",
+  },
+];
 
 const PERIODS = [
   { label: "40 dias", days: 40 },
