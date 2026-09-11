@@ -40,7 +40,7 @@ export const Route = createFileRoute("/produto/$id")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: ProductPage;
+  component: ProductPage,
 });
 
 const PERIODS = [
