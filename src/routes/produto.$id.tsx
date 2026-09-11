@@ -248,30 +248,30 @@ function ProductPage() {
               </div>
             </section>
 
-            <Tabs defaultValue="pros" className="mt-10">
-              <TabsList className="flex w-full justify-start gap-1 overflow-x-auto rounded-xl bg-muted/60 p-1">
+            <Tabs defaultValue="pros" className="mt-8">
+              <TabsList className="flex w-full justify-start gap-1 overflow-x-auto rounded-lg bg-muted/60 p-1 text-xs">
                 <TabsTrigger value="pros">Prós e Contras</TabsTrigger>
                 <TabsTrigger value="specs">Ficha técnica</TabsTrigger>
                 <TabsTrigger value="history">Histórico de preços</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="pros" className="mt-4">
-                <div className="grid gap-6 rounded-2xl border border-border bg-card p-6 md:grid-cols-2">
+              <TabsContent value="pros" className="mt-3">
+                <div className="grid gap-5 rounded-xl border border-border bg-card p-5 md:grid-cols-2">
                   <div>
-                    <h2 className="flex items-center gap-2 font-display text-lg font-semibold">
-                      <Plus className="size-4 rounded-full bg-savings p-0.5 text-savings-foreground" /> Prós
+                    <h2 className="flex items-center gap-2 font-display text-sm font-semibold">
+                      <Plus className="size-3.5 rounded-full bg-savings p-0.5 text-savings-foreground" /> Prós
                     </h2>
-                    <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                    <ul className="mt-2 list-disc space-y-1.5 pl-5 text-xs text-muted-foreground">
                       {data.pros.map((item) => (
                         <li key={item}>{item}</li>
                       ))}
                     </ul>
                   </div>
                   <div>
-                    <h2 className="flex items-center gap-2 font-display text-lg font-semibold">
-                      <Minus className="size-4 rounded-full bg-primary p-0.5 text-primary-foreground" /> Contras
+                    <h2 className="flex items-center gap-2 font-display text-sm font-semibold">
+                      <Minus className="size-3.5 rounded-full bg-primary p-0.5 text-primary-foreground" /> Contras
                     </h2>
-                    <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                    <ul className="mt-2 list-disc space-y-1.5 pl-5 text-xs text-muted-foreground">
                       {data.cons.map((item) => (
                         <li key={item}>{item}</li>
                       ))}
@@ -280,8 +280,8 @@ function ProductPage() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="specs" className="mt-4">
-                <div className="grid gap-6 rounded-2xl border border-border bg-card p-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+              <TabsContent value="specs" className="mt-3">
+                <div className="grid gap-5 rounded-xl border border-border bg-card p-5 text-xs md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
                   <div className="overflow-x-auto">
                     <h2 className="mb-3 font-display text-lg font-semibold">Informações básicas</h2>
                     <table className="w-full min-w-[320px] overflow-hidden rounded-xl text-sm">
@@ -312,18 +312,18 @@ function ProductPage() {
                   </div>
 
                   <div>
-                    <h2 className="mb-3 font-display text-lg font-semibold">Descrição</h2>
-                    <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                    <h2 className="mb-2 font-display text-sm font-semibold">Descrição</h2>
+                    <p className="whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
                       {data.description}
                     </p>
                   </div>
                 </div>
               </TabsContent>
 
-              <TabsContent value="history" className="mt-4">
-                <div className="rounded-2xl border border-border bg-card p-6">
-                  <h2 className="font-display text-lg font-semibold">Histórico de preços</h2>
-                  <div className="mt-4 h-64 w-full">
+              <TabsContent value="history" className="mt-3">
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <h2 className="font-display text-sm font-semibold">Histórico de preços</h2>
+                  <div className="mt-3 h-52 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={history} margin={{ left: 4, right: 8, top: 8, bottom: 0 }}>
                         <defs>
@@ -380,6 +380,56 @@ function ProductPage() {
                 </div>
               </TabsContent>
             </Tabs>
+
+            <section className="mt-8">
+              <h2 className="font-display text-base font-semibold text-foreground">Perguntas &amp; Respostas</h2>
+              <Accordion type="single" collapsible className="mt-3 rounded-xl border border-border bg-card px-4">
+                {FAQ.map((item) => (
+                  <AccordionItem key={item.q} value={item.q}>
+                    <AccordionTrigger className="py-3 text-left text-sm font-medium hover:no-underline">
+                      {item.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-xs leading-relaxed text-muted-foreground">
+                      {item.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+                <p className="text-xs font-medium text-foreground">Esse conteúdo foi útil?</p>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant={helpful === true ? "ink" : "outline"}
+                    className="h-8 rounded-full px-3 text-xs"
+                    onClick={() => setHelpful(true)}
+                  >
+                    <ThumbsUp className="size-3.5" /> Sim
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={helpful === false ? "ink" : "outline"}
+                    className="h-8 rounded-full px-3 text-xs"
+                    onClick={() => setHelpful(false)}
+                  >
+                    <ThumbsDown className="size-3.5" /> Não
+                  </Button>
+                </div>
+                {helpful !== null ? (
+                  <span className="text-xs text-muted-foreground">Obrigado pelo seu retorno!</span>
+                ) : null}
+              </div>
+
+              <div className="mt-4 flex flex-col items-start gap-3 rounded-xl border border-border bg-muted/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-foreground sm:text-sm">
+                  Precisa de ajuda pra escolher? Nossos especialistas estão prontos para te atender!
+                </p>
+                <Button variant="ink" size="sm" className="h-9 shrink-0 rounded-full px-4 text-xs">
+                  Falar com o especialista
+                </Button>
+              </div>
+            </section>
           </>
         )}
       </main>
