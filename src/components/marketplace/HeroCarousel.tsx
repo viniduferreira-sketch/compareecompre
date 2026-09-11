@@ -37,9 +37,9 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
               <span className="inline-flex items-center gap-2 rounded-full bg-ink-foreground/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink-foreground">
                 <Sparkles className="size-3.5" /> Compare e Compre
               </span>
-              <h2 className="mt-4 max-w-2xl font-display text-3xl font-extrabold leading-tight text-ink-foreground md:text-5xl">
+              <h1 className="mt-4 max-w-2xl font-display text-3xl font-extrabold leading-tight text-ink-foreground md:text-5xl">
                 As melhores ofertas estão no Compare e Compre
-              </h2>
+              </h1>
               <p className="mt-3 max-w-xl text-sm text-ink-foreground/80 md:text-base">
                 Comparamos o mesmo produto em várias lojas e mostramos o menor preço primeiro.
               </p>

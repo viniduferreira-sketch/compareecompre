@@ -1,7 +1,7 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, ShieldCheck, Sparkles, TrendingDown } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -122,28 +122,6 @@ function Home() {
       <main>
         <HeroCarousel onSearch={setTerm} />
 
-        <section className="bg-hero-gradient">
-          <div className="mx-auto max-w-4xl px-4 py-16 text-center md:py-24">
-            <span className="inline-flex items-center gap-2 rounded-full bg-ink-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-foreground">
-              <Sparkles className="size-3.5" /> Ofertas atualizadas em tempo real
-            </span>
-            <h1 className="mt-6 font-display text-4xl font-bold leading-tight text-ink-foreground md:text-6xl">
-              Encontre a melhor oferta entre as maiores lojas do Brasil
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-base text-ink-foreground/80 md:text-lg">
-              Buscamos o mesmo produto em várias lojas, ordenamos do menor para o maior preço e
-              levamos você direto para a compra.
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-ink-foreground/80">
-              <span className="flex items-center gap-2">
-                <TrendingDown className="size-4" /> Menor preço primeiro
-              </span>
-              <span className="flex items-center gap-2">
-                <ShieldCheck className="size-4" /> Lojas parceiras confiáveis
-              </span>
-            </div>
-          </div>
-        </section>
 
         {term ? (
           <OffersGrid

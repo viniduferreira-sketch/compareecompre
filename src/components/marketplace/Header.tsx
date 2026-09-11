@@ -23,7 +23,7 @@ export function Header({
   const [term, setTerm] = useState(initialTerm);
 
   return (
-    <header className="sticky top-0 z-40 bg-primary-gradient shadow-glow">
+    <header className="relative z-40 bg-primary-gradient shadow-glow">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:gap-8">
         <a href="/" className="flex shrink-0 items-center gap-2">
           <span className="flex size-10 items-center justify-center rounded-2xl bg-primary-foreground/15 text-primary-foreground backdrop-blur">
