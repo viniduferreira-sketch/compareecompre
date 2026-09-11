@@ -168,7 +168,7 @@ function ProductPage() {
               </div>
             </header>
 
-            <section className="mt-6 grid gap-6 lg:grid-cols-2">
+            <section className="mt-6 grid items-start gap-6 lg:grid-cols-2">
               <div className="rounded-2xl border border-border bg-card p-4">
                 <div className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-muted/40">
                   {data.images[activeImage] ? (
