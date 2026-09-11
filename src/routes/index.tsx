@@ -9,6 +9,7 @@ import { CompareDialog } from "@/components/marketplace/CompareDialog";
 import { Header } from "@/components/marketplace/Header";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import { OfferCard } from "@/components/marketplace/OfferCard";
+import { PopularCategories } from "@/components/marketplace/PopularCategories";
 import { Skeleton } from "@/components/ui/skeleton";
 import { searchOffers, type Offer } from "@/lib/search-offers.functions";
 
@@ -121,6 +122,10 @@ function Home() {
 
       <main>
         <HeroCarousel onSearch={setTerm} />
+
+        <PopularCategories onSearch={setTerm} />
+
+
 
 
         {term ? (
