@@ -168,22 +168,22 @@ function ProductPage() {
               </div>
             </header>
 
-            <section className="mt-6 grid items-start gap-6 lg:grid-cols-2">
-              <div className="rounded-2xl border border-border bg-card p-4">
-                <div className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-muted/40">
+            <section className="mt-5 grid items-start gap-5 lg:grid-cols-2">
+              <div className="rounded-xl border border-border bg-card p-3">
+                <div className="mx-auto flex aspect-square max-w-[320px] items-center justify-center overflow-hidden rounded-lg bg-muted/40">
                   {data.images[activeImage] ? (
                     <img
                       src={data.images[activeImage]}
                       alt={data.title}
-                      className="h-full w-full object-contain p-6"
+                      className="h-full w-full object-contain p-4"
                     />
                   ) : (
-                    <span className="text-sm text-muted-foreground">Sem imagem</span>
+                    <span className="text-xs text-muted-foreground">Sem imagem</span>
                   )}
                 </div>
 
                 {data.images.length > 1 ? (
-                  <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+                  <div className="mt-3 flex justify-center gap-2 overflow-x-auto pb-1">
                     {data.images.map((image, index) => (
                       <button
                         key={image}
@@ -191,7 +191,7 @@ function ProductPage() {
                         onClick={() => setActiveImage(index)}
                         aria-label={`Ver imagem ${index + 1}`}
                         className={cn(
-                          "size-16 shrink-0 overflow-hidden rounded-xl border bg-card p-1 transition-colors",
+                          "size-11 shrink-0 overflow-hidden rounded-lg border bg-card p-1 transition-colors",
                           index === activeImage ? "border-primary" : "border-border hover:border-primary/50",
                         )}
                       >
@@ -202,45 +202,45 @@ function ProductPage() {
                 ) : null}
               </div>
 
-              <div className="rounded-2xl border-2 border-savings bg-card p-5">
-                <span className="inline-block rounded-md bg-savings px-2 py-1 text-[11px] font-semibold text-savings-foreground">
+              <div className="rounded-xl border border-savings bg-card p-4">
+                <span className="inline-block rounded-md bg-savings px-2 py-0.5 text-[10px] font-semibold text-savings-foreground">
                   Menor preço
                 </span>
 
-                <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     {data.originalPrice ? (
-                      <p className="text-sm text-muted-foreground line-through">
+                      <p className="text-xs text-muted-foreground line-through">
                         {formatBRL(data.originalPrice)}
                       </p>
                     ) : null}
-                    <p className="font-display text-4xl font-bold text-foreground sm:text-5xl">
+                    <p className="font-display text-2xl font-bold text-foreground">
                       {data.price ? formatBRL(data.price) : "Indisponível"}
                     </p>
                     {data.price ? (
-                      <p className="mt-1 text-sm text-muted-foreground">
+                      <p className="mt-0.5 text-xs text-muted-foreground">
                         ou 10x de {formatBRL(data.price / 10)} sem juros
                       </p>
                     ) : null}
                     {data.freeShipping ? (
-                      <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-savings">
-                        <Truck className="size-4" /> Frete grátis
+                      <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-savings">
+                        <Truck className="size-3.5" /> Frete grátis
                       </p>
                     ) : null}
                   </div>
 
-                  <p className="shrink-0 text-sm text-muted-foreground sm:text-right">
+                  <p className="shrink-0 text-xs text-muted-foreground sm:text-right">
                     Vendido por: <span className="font-semibold text-foreground">Mercado Livre</span>
                   </p>
                 </div>
 
-                <Button variant="ink" size="lg" className="mt-6 w-full" asChild>
+                <Button variant="ink" className="mt-4 h-10 w-full text-sm" asChild>
                   <a href={data.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">
-                    Ir à loja <ExternalLink className="size-4" />
+                    Ir à loja <ExternalLink className="size-3.5" />
                   </a>
                 </Button>
 
-                <p className="mt-3 text-center text-xs text-muted-foreground">
+                <p className="mt-2 text-center text-[11px] text-muted-foreground">
                   {data.sellerCount > 0
                     ? `${data.sellerCount} vendedor(es) anunciando este produto`
                     : "Preço acompanhado diariamente"}
