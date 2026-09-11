@@ -25,7 +25,7 @@ export type SearchOffersResult = {
   };
 };
 
-function withAffiliate(url: string): string {
+export function withAffiliate(url: string): string {
   const clean = url.split("#")[0] ?? url;
   const separator = clean.includes("?") ? "&" : "?";
   return `${clean}${separator}${AFFILIATE_PARAMS}`;
@@ -69,7 +69,7 @@ function formatDatabaseError(table: "products" | "offers", error: unknown): stri
   return `Erro ao salvar em ${table} | mensagem: ${String(error)}`;
 }
 
-async function getMeliToken(): Promise<string | null> {
+export async function getMeliToken(): Promise<string | null> {
   const clientId = process.env["ML_CLIENT_ID"];
   const clientSecret = process.env["ML_CLIENT_SECRET"];
   if (!clientId || !clientSecret) {
