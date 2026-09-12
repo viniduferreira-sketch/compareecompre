@@ -53,6 +53,12 @@ type CatalogProduct = {
   name: string;
   domain_id?: string;
   pictures?: Array<{ url?: string }>;
+  attributes?: Array<{
+    id?: string;
+    name?: string;
+    value_id?: string;
+    value_name?: string;
+  }>;
 };
 
 type CatalogItem = {
@@ -141,18 +147,45 @@ async function searchCatalog(
     paging?: { total?: number; offset?: number; limit?: number };
   };
   const products = json.results ?? [];
-  const offers = (
-    await Promise.all(
-      products.map(async (product): Promise<Offer | null> => {
+  const offers = await Promise.all(
+      products.map(async (product): Promise<Offer> => {
         try {
           const itemsResponse = await fetch(
             `https://api.mercadolibre.com/products/${encodeURIComponent(product.id)}/items?limit=20`,
             { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
           );
-          if (!itemsResponse.ok) return null;
+          if (!itemsResponse.ok) {
+            return {
+              id: product.id,
+              title: product.name,
+              imageUrl: product.pictures?.[0]?.url ?? null,
+              store: "Mercado Livre",
+              price: 0,
+              originalPrice: null,
+              discountPercent: null,
+              freeShipping: false,
+              affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
+              category: product.domain_id ?? null,
+              sellerCount: 0,
+            };
+          }
           const itemsJson = (await itemsResponse.json()) as { results?: CatalogItem[] };
           const items = (itemsJson.results ?? []).filter((item) => typeof item.price === "number");
-          if (items.length === 0) return null;
+          if (items.length === 0) {
+            return {
+              id: product.id,
+              title: product.name,
+              imageUrl: product.pictures?.[0]?.url ?? null,
+              store: "Mercado Livre",
+              price: 0,
+              originalPrice: null,
+              discountPercent: null,
+              freeShipping: false,
+              affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
+              category: product.domain_id ?? null,
+              sellerCount: 0,
+            };
+          }
           const cheapest = items.reduce((best, item) => (item.price < best.price ? item : best));
           const original = cheapest.original_price && cheapest.original_price > cheapest.price
             ? cheapest.original_price
@@ -174,18 +207,46 @@ async function searchCatalog(
           };
         } catch (error) {
           console.error("Mercado Livre catalog item failed", product.id, error);
-          return null;
+          return {
+            id: product.id,
+            title: product.name,
+            imageUrl: product.pictures?.[0]?.url ?? null,
+            store: "Mercado Livre",
+            price: 0,
+            originalPrice: null,
+            discountPercent: null,
+            freeShipping: false,
+            affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
+            category: product.domain_id ?? null,
+            sellerCount: 0,
+          };
         }
       }),
-    )
-  ).filter((offer): offer is Offer => offer !== null);
+    );
+
+  const filterGroups = new Map<string, OfferFilter>();
+  for (const product of products) {
+    for (const attribute of product.attributes ?? []) {
+      if (!attribute.id || !attribute.name || !attribute.value_name) continue;
+      const valueId = attribute.value_id ?? attribute.value_name;
+      const group = filterGroups.get(attribute.id) ?? {
+        id: attribute.id,
+        name: attribute.name,
+        values: [],
+      };
+      const existing = group.values.find((value) => value.id === valueId);
+      if (existing) existing.results += 1;
+      else group.values.push({ id: valueId, name: attribute.value_name, results: 1 });
+      filterGroups.set(attribute.id, group);
+    }
+  }
 
   if (sort === "price_asc") offers.sort((a, b) => a.price - b.price);
   if (sort === "price_desc") offers.sort((a, b) => b.price - a.price);
 
   return {
     offers,
-    availableFilters: [],
+    availableFilters: [...filterGroups.values()],
     paging: {
       total: json.paging?.total ?? offers.length,
       offset: json.paging?.offset ?? offset,
@@ -207,7 +268,7 @@ export const searchOffers = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }): Promise<SearchOffersResult> => {
-    const limit = 40;
+    const limit = data.limit ?? 40;
     const offset = data.offset ?? 0;
     const sort = data.sort ?? "relevance";
     const selectedFilters = data.filters ?? [];
