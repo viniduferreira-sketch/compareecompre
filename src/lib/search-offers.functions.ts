@@ -39,11 +39,11 @@ export function withAffiliate(url: string): string {
 
 type SearchItem = {
   id: string;
-  title: string;
+  title?: string;
   thumbnail?: string;
-  price: number;
+  price?: number;
   original_price?: number | null;
-  permalink: string;
+  permalink?: string;
   category_id?: string;
   shipping?: { free_shipping?: boolean };
 };
@@ -207,7 +207,7 @@ export const searchOffers = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }): Promise<SearchOffersResult> => {
-    const limit = data.limit ?? 40;
+    const limit = 40;
     const offset = data.offset ?? 0;
     const sort = data.sort ?? "relevance";
     const selectedFilters = data.filters ?? [];
@@ -239,24 +239,25 @@ export const searchOffers = createServerFn({ method: "POST" })
     }
 
     const json = (await response.json()) as MercadoLivreSearchResponse;
-    const offers = (json.results ?? [])
-      .filter((item) => typeof item.price === "number" && Boolean(item.permalink))
-      .map((item) => {
-        const original = item.original_price && item.original_price > item.price
+    const offers = (json.results ?? []).map((item) => {
+        const price = typeof item.price === "number" ? item.price : 0;
+        const original = item.original_price && item.original_price > price
           ? item.original_price
           : null;
         return {
           id: item.id,
-          title: item.title,
+          title: item.title ?? "Produto Mercado Livre",
           imageUrl: improveThumbnail(item.thumbnail),
           store: "Mercado Livre",
-          price: item.price,
+          price,
           originalPrice: original,
           discountPercent: original
-            ? Math.round(((original - item.price) / original) * 100)
+            ? Math.round(((original - price) / original) * 100)
             : null,
           freeShipping: Boolean(item.shipping?.free_shipping),
-          affiliateUrl: withAffiliate(item.permalink),
+          affiliateUrl: withAffiliate(
+            item.permalink ?? `https://produto.mercadolivre.com.br/${encodeURIComponent(item.id)}`,
+          ),
           category: item.category_id ?? null,
           sellerCount: 1,
         } satisfies Offer;

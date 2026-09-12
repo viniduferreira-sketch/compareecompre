@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 
 import { CompareDialog } from "@/components/marketplace/CompareDialog";
@@ -53,14 +53,10 @@ const PAGE_SIZE = 40;
 
 function FilterSidebar({
   filters,
-  selected,
   isLoading,
-  onToggle,
 }: {
   filters: OfferFilter[];
-  selected: Array<{ id: string; value: string }>;
   isLoading: boolean;
-  onToggle: (id: string, value: string) => void;
 }) {
   if (isLoading) {
     return (
@@ -87,23 +83,11 @@ function FilterSidebar({
         <section key={filter.id} className="border-b border-border pb-5">
           <h3 className="mb-2.5 text-sm font-bold">{filter.name}</h3>
           <ul className="space-y-2">
-            {filter.values.slice(0, 8).map((value) => {
-              const checked = selected.some((item) => item.id === filter.id && item.value === value.id);
-              return (
-                <li key={value.id}>
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground transition-colors hover:text-primary">
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => onToggle(filter.id, value.id)}
-                      className="size-4 rounded border-input accent-primary"
-                    />
-                    <span className="min-w-0 flex-1 truncate">{value.name}</span>
-                    <span className="text-xs tabular-nums text-muted-foreground">({value.results})</span>
-                  </label>
-                </li>
-              );
-            })}
+            {filter.values.slice(0, 8).map((value) => (
+              <li key={value.id} className="text-sm text-foreground">
+                {value.name} <span className="text-xs tabular-nums text-muted-foreground">({value.results})</span>
+              </li>
+            ))}
           </ul>
         </section>
       ))}
@@ -111,8 +95,18 @@ function FilterSidebar({
   );
 }
 
-function Pagination({ page, total, onChange }: { page: number; total: number; onChange: (page: number) => void }) {
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+function Pagination({
+  page,
+  total,
+  pageSize,
+  onChange,
+}: {
+  page: number;
+  total: number;
+  pageSize: number;
+  onChange: (page: number) => void;
+}) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   if (totalPages <= 1) return null;
   const pages = [...new Set([1, page - 1, page, page + 1, totalPages])].filter(
     (value) => value >= 1 && value <= totalPages,
@@ -148,29 +142,25 @@ function SearchResults({
   term,
   offers,
   filters,
-  selectedFilters,
   sort,
   page,
   total,
+  pageSize,
   isLoading,
   onCompare,
   onSort,
-  onFilter,
-  onClearFilters,
   onPage,
 }: {
   term: string;
   offers: Offer[];
   filters: OfferFilter[];
-  selectedFilters: Array<{ id: string; value: string }>;
   sort: OfferSort;
   page: number;
   total: number;
+  pageSize: number;
   isLoading: boolean;
   onCompare: (offer: Offer) => void;
   onSort: (sort: OfferSort) => void;
-  onFilter: (id: string, value: string) => void;
-  onClearFilters: () => void;
   onPage: (page: number) => void;
 }) {
   return (
@@ -194,15 +184,8 @@ function SearchResults({
         </div>
       </div>
 
-      {selectedFilters.length > 0 ? (
-        <div className="mb-5 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-muted-foreground">Filtros ativos: {selectedFilters.length}</span>
-          <Button variant="ghost" size="sm" onClick={onClearFilters}>Limpar filtros <X /></Button>
-        </div>
-      ) : null}
-
       <div className="grid items-start gap-7 md:grid-cols-[210px_minmax(0,1fr)] lg:grid-cols-[230px_minmax(0,1fr)]">
-        <FilterSidebar filters={filters} selected={selectedFilters} isLoading={isLoading} onToggle={onFilter} />
+        <FilterSidebar filters={filters} isLoading={isLoading} />
         <div className="min-w-0">
           {isLoading ? (
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
@@ -218,7 +201,9 @@ function SearchResults({
               {offers.map((offer) => <OfferCard key={`${offer.store}-${offer.id}`} offer={offer} onCompare={onCompare} />)}
             </div>
           )}
-          {!isLoading && offers.length > 0 ? <Pagination page={page} total={total} onChange={onPage} /> : null}
+          {!isLoading && offers.length > 0 ? (
+            <Pagination page={page} total={total} pageSize={pageSize} onChange={onPage} />
+          ) : null}
         </div>
       </div>
     </section>
@@ -232,20 +217,17 @@ function Home() {
   const [selected, setSelected] = useState<Offer | null>(null);
   const [sort, setSort] = useState<OfferSort>("relevance");
   const [page, setPage] = useState(1);
-  const [selectedFilters, setSelectedFilters] = useState<Array<{ id: string; value: string }>>([]);
 
   const startSearch = (nextTerm: string) => {
     setTerm(nextTerm);
     setPage(1);
-    setSelectedFilters([]);
   };
 
   const search = useQuery({
-    queryKey: ["offers", "search", term, sort, page, selectedFilters],
+    queryKey: ["offers", "search", term, sort, page],
     enabled: term.length > 0,
-    placeholderData: (previous) => previous,
     queryFn: () => run({
-      data: { query: term, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, sort, filters: selectedFilters },
+      data: { query: term, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, sort },
     }),
   });
 
@@ -259,21 +241,13 @@ function Home() {
             term={term}
             offers={search.data?.offers ?? []}
             filters={search.data?.availableFilters ?? []}
-            selectedFilters={selectedFilters}
             sort={sort}
             page={page}
             total={search.data?.paging.total ?? 0}
+            pageSize={search.data?.paging.limit ?? PAGE_SIZE}
             isLoading={search.isFetching}
             onCompare={setSelected}
             onSort={(value) => { setSort(value); setPage(1); }}
-            onFilter={(id, value) => {
-              setSelectedFilters((current) => {
-                const exists = current.some((item) => item.id === id && item.value === value);
-                return exists ? current.filter((item) => !(item.id === id && item.value === value)) : [...current.filter((item) => item.id !== id), { id, value }];
-              });
-              setPage(1);
-            }}
-            onClearFilters={() => { setSelectedFilters([]); setPage(1); }}
             onPage={(value) => { setPage(value); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           />
         ) : (
