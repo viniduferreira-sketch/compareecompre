@@ -189,7 +189,7 @@ export const searchOffers = createServerFn({ method: "POST" })
       return {
         offers: validOffers,
         availableFilters: facetsToFilters(response.facets),
-        paging: { total: response.nbHits, offset: page * limit, limit },
+        paging: { total: response.nbHits ?? validOffers.length, offset: page * limit, limit },
       };
     } catch (error) {
       console.error("Algolia search failed", error);
