@@ -17,8 +17,18 @@ export type Offer = {
   sellerCount: number;
 };
 
+export type OfferFilter = {
+  id: string;
+  name: string;
+  values: Array<{ id: string; name: string; results: number }>;
+};
+
+export type OfferSort = "relevance" | "price_asc" | "price_desc";
+
 export type SearchOffersResult = {
   offers: Offer[];
+  availableFilters: OfferFilter[];
+  paging: { total: number; offset: number; limit: number };
   persistence: {
     ok: boolean;
     message: string;
@@ -54,6 +64,16 @@ type SearchItem = {
   permalink: string;
   category_id?: string;
   shipping?: { free_shipping?: boolean };
+};
+
+type MercadoLivreSearchResponse = {
+  results?: SearchItem[];
+  paging?: { total?: number; offset?: number; limit?: number };
+  available_filters?: Array<{
+    id?: string;
+    name?: string;
+    values?: Array<{ id?: string; name?: string; results?: number }>;
+  }>;
 };
 
 function improveThumbnail(url?: string): string | null {
@@ -140,12 +160,21 @@ async function fetchCheapestItem(
 export const searchOffers = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z
-      .object({ query: z.string().min(1).max(120), limit: z.number().min(1).max(50).optional() })
+      .object({
+        query: z.string().min(1).max(120),
+        limit: z.number().int().min(1).max(50).optional(),
+        offset: z.number().int().min(0).max(10_000).optional(),
+        sort: z.enum(["relevance", "price_asc", "price_desc"]).optional(),
+        filters: z.array(z.object({ id: z.string().min(1).max(80), value: z.string().min(1).max(160) })).max(12).optional(),
+      })
       .parse(data),
   )
   .handler(async ({ data }): Promise<SearchOffersResult> => {
-    const limit = data.limit ?? 50;
-    const cacheKey = `${data.query.toLowerCase()}|${limit}`;
+    const limit = data.limit ?? 40;
+    const offset = data.offset ?? 0;
+    const sort = data.sort ?? "relevance";
+    const selectedFilters = data.filters ?? [];
+    const cacheKey = JSON.stringify([data.query.toLowerCase(), limit, offset, sort, selectedFilters]);
     const cached = offerCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) return cached.result;
 
@@ -153,20 +182,39 @@ export const searchOffers = createServerFn({ method: "POST" })
     if (!token) {
       return {
         offers: [],
+        availableFilters: [],
+        paging: { total: 0, offset, limit },
         persistence: { ok: false, message: "Credenciais do Mercado Livre indisponíveis." },
       };
     }
 
     let offers: Offer[] = [];
+    let availableFilters: OfferFilter[] = [];
+    let paging = { total: 0, offset, limit };
     try {
+      const params = new URLSearchParams({ q: data.query, limit: String(limit), offset: String(offset) });
+      if (sort !== "relevance") params.set("sort", sort);
+      for (const filter of selectedFilters) params.append(filter.id, filter.value);
       const res = await fetch(
-        `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(
-          data.query,
-        )}&limit=${limit}`,
+        `https://api.mercadolibre.com/sites/MLB/search?${params.toString()}`,
         { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
       );
       if (res.ok) {
-        const json = (await res.json()) as { results?: SearchItem[] };
+        const json = (await res.json()) as MercadoLivreSearchResponse;
+        paging = {
+          total: json.paging?.total ?? 0,
+          offset: json.paging?.offset ?? offset,
+          limit: json.paging?.limit ?? limit,
+        };
+        availableFilters = (json.available_filters ?? []).flatMap((filter) => {
+          if (!filter.id || !filter.name) return [];
+          const values = (filter.values ?? []).flatMap((value) =>
+            value.id && value.name
+              ? [{ id: value.id, name: value.name, results: value.results ?? 0 }]
+              : [],
+          );
+          return values.length > 0 ? [{ id: filter.id, name: filter.name, values }] : [];
+        });
         offers = (json.results ?? [])
           .filter((item) => typeof item.price === "number" && Boolean(item.permalink))
           .map((item) => {
@@ -204,7 +252,7 @@ export const searchOffers = createServerFn({ method: "POST" })
         const res = await fetch(
           `https://api.mercadolibre.com/products/search?status=active&site_id=MLB&q=${encodeURIComponent(
             data.query,
-          )}&limit=50`,
+          )}&limit=${limit}&offset=${offset}`,
           { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
         );
         if (res.ok) {
@@ -245,11 +293,19 @@ export const searchOffers = createServerFn({ method: "POST" })
         for (const offer of results) if (offer) collected.push(offer);
       }
       offers = collected;
+      if (sort === "price_asc") offers.sort((a, b) => a.price - b.price);
+      if (sort === "price_desc") offers.sort((a, b) => b.price - a.price);
+      paging = { total: offers.length, offset, limit };
     }
 
-    offers = offers.slice(0, limit).sort((a, b) => a.price - b.price);
+    offers = offers.slice(0, limit);
     if (offers.length === 0) {
-      return { offers: [], persistence: { ok: true, message: "Nenhuma oferta para salvar." } };
+      return {
+        offers: [],
+        availableFilters,
+        paging,
+        persistence: { ok: true, message: "Nenhuma oferta para salvar." },
+      };
     }
 
     try {
@@ -272,7 +328,7 @@ export const searchOffers = createServerFn({ method: "POST" })
       if (productError) {
         const message = formatDatabaseError("products", productError);
         console.error(message, productError);
-        return { offers, persistence: { ok: false, message } };
+        return { offers, availableFilters, paging, persistence: { ok: false, message } };
       }
       console.log(`[supabase] products upsert ok: ${saved?.length ?? 0} rows`);
 
@@ -302,7 +358,7 @@ export const searchOffers = createServerFn({ method: "POST" })
       if (offerError) {
         const message = formatDatabaseError("offers", offerError);
         console.error(message, offerError);
-        return { offers, persistence: { ok: false, message } };
+        return { offers, availableFilters, paging, persistence: { ok: false, message } };
       }
       console.log(`[supabase] offers upsert ok: ${savedOffers?.length ?? 0} rows`);
 
@@ -313,11 +369,12 @@ export const searchOffers = createServerFn({ method: "POST" })
           "price, original_price, discount_percent, affiliate_url, free_shipping, store_name, products!inner(id, external_id, title, image_url, category)",
         )
         .in("product_id", [...idByExternal.values()])
-        .order("price", { ascending: true });
+        .in("external_id", offers.map((offer) => offer.id));
 
       if (readError) throw readError;
 
       const sellerCountByExternal = new Map(offers.map((offer) => [offer.id, offer.sellerCount]));
+      const sourceOrder = new Map(offers.map((offer, index) => [offer.id, index]));
 
       const fromDb: Offer[] = (stored ?? []).map((row) => {
         const product = row.products as unknown as {
@@ -339,11 +396,13 @@ export const searchOffers = createServerFn({ method: "POST" })
           category: product.category,
           sellerCount: sellerCountByExternal.get(product.external_id) ?? 1,
         };
-      });
+      }).sort((a, b) => (sourceOrder.get(a.id) ?? 0) - (sourceOrder.get(b.id) ?? 0));
 
       if (fromDb.length > 0) {
         const result: SearchOffersResult = {
           offers: fromDb,
+          availableFilters,
+          paging,
           persistence: {
             ok: true,
             message: `${saved?.length ?? 0} produtos e ${savedOffers?.length ?? 0} ofertas gravados.`,
@@ -355,11 +414,13 @@ export const searchOffers = createServerFn({ method: "POST" })
     } catch (error) {
       const message = formatDatabaseError("offers", error);
       console.error(message, error);
-      return { offers, persistence: { ok: false, message } };
+      return { offers, availableFilters, paging, persistence: { ok: false, message } };
     }
 
     return {
       offers,
+      availableFilters,
+      paging,
       persistence: { ok: false, message: "A gravação terminou, mas nenhum registro foi relido." },
     };
   });
