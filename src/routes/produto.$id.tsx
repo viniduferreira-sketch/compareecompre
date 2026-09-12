@@ -121,6 +121,7 @@ function ProductPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [alert, setAlert] = useState(false);
   const [favorite, setFavorite] = useState(false);
+  const [helpful, setHelpful] = useState<boolean | null>(null);
   const [period, setPeriod] = useState(PERIODS[0]!.days);
 
   const { data, isLoading } = useQuery({
