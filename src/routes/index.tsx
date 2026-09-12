@@ -2,8 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useState } from "react";
 
 import { CompareDialog } from "@/components/marketplace/CompareDialog";
 import { Header } from "@/components/marketplace/Header";
@@ -249,21 +248,6 @@ function Home() {
       data: { query: term, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, sort, filters: selectedFilters },
     }),
   });
-
-  const persistenceErrors = [
-    search.data?.persistence.ok === false ? search.data.persistence.message : null,
-  ].filter((message): message is string => Boolean(message));
-  const persistenceErrorKey = [...new Set(persistenceErrors)].join("\n");
-
-  useEffect(() => {
-    if (!persistenceErrorKey) return;
-    console.error("[Supabase] Falha de persistência:", persistenceErrorKey);
-    toast.error("Erro ao salvar ofertas", {
-      id: `persistence-${persistenceErrorKey}`,
-      description: persistenceErrorKey,
-      duration: 15_000,
-    });
-  }, [persistenceErrorKey]);
 
   return (
     <div className="min-h-screen bg-background">

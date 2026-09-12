@@ -29,10 +29,6 @@ export type SearchOffersResult = {
   offers: Offer[];
   availableFilters: OfferFilter[];
   paging: { total: number; offset: number; limit: number };
-  persistence: {
-    ok: boolean;
-    message: string;
-  };
 };
 
 export function withAffiliate(url: string): string {
@@ -40,20 +36,6 @@ export function withAffiliate(url: string): string {
   const separator = clean.includes("?") ? "&" : "?";
   return `${clean}${separator}${AFFILIATE_PARAMS}`;
 }
-
-type CatalogProduct = {
-  id: string;
-  name: string;
-  domain_id?: string;
-  pictures?: { url?: string }[];
-};
-
-type CatalogItem = {
-  item_id: string;
-  price: number;
-  original_price: number | null;
-  shipping?: { free_shipping?: boolean };
-};
 
 type SearchItem = {
   id: string;
@@ -82,28 +64,6 @@ function improveThumbnail(url?: string): string | null {
 }
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
-const offerCache = new Map<string, { result: SearchOffersResult; expiresAt: number }>();
-
-function formatDatabaseError(table: "products" | "offers", error: unknown): string {
-  if (error && typeof error === "object") {
-    const value = error as {
-      code?: string;
-      message?: string;
-      details?: string;
-      hint?: string;
-    };
-    return [
-      `Erro ao salvar em ${table}`,
-      value.code ? `código: ${value.code}` : null,
-      value.message ? `mensagem: ${value.message}` : null,
-      value.details ? `detalhes: ${value.details}` : null,
-      value.hint ? `dica: ${value.hint}` : null,
-    ]
-      .filter(Boolean)
-      .join(" | ");
-  }
-  return `Erro ao salvar em ${table} | mensagem: ${String(error)}`;
-}
 
 export async function getMeliToken(): Promise<string | null> {
   const clientId = process.env["ML_CLIENT_ID"];
@@ -137,26 +97,6 @@ export async function getMeliToken(): Promise<string | null> {
   }
 }
 
-async function fetchCheapestItem(
-  productId: string,
-  token: string,
-): Promise<{ item: CatalogItem; sellerCount: number } | null> {
-  try {
-    const res = await fetch(
-      `https://api.mercadolibre.com/products/${productId}/items?limit=20`,
-      { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
-    );
-    if (!res.ok) return null;
-    const json = (await res.json()) as { results?: CatalogItem[] };
-    const items = (json.results ?? []).filter((item) => typeof item.price === "number");
-    if (items.length === 0) return null;
-    const cheapest = items.reduce((best, item) => (item.price < best.price ? item : best));
-    return { item: cheapest, sellerCount: items.length };
-  } catch {
-    return null;
-  }
-}
-
 export const searchOffers = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z
@@ -174,253 +114,65 @@ export const searchOffers = createServerFn({ method: "POST" })
     const offset = data.offset ?? 0;
     const sort = data.sort ?? "relevance";
     const selectedFilters = data.filters ?? [];
-    const cacheKey = JSON.stringify([data.query.toLowerCase(), limit, offset, sort, selectedFilters]);
-    const cached = offerCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) return cached.result;
+    const params = new URLSearchParams({
+      q: data.query,
+      limit: String(limit),
+      offset: String(offset),
+    });
+    if (sort !== "relevance") params.set("sort", sort);
+    for (const filter of selectedFilters) params.append(filter.id, filter.value);
 
-    const token = await getMeliToken();
-    if (!token) {
-      return {
-        offers: [],
-        availableFilters: [],
-        paging: { total: 0, offset, limit },
-        persistence: { ok: false, message: "Credenciais do Mercado Livre indisponíveis." },
-      };
+    const response = await fetch(
+      `https://api.mercadolibre.com/sites/MLB/search?${params.toString()}`,
+      { headers: { Accept: "application/json" } },
+    );
+
+    if (!response.ok) {
+      console.error("Mercado Livre public search failed", response.status);
+      throw new Error(`A busca do Mercado Livre falhou com status ${response.status}.`);
     }
 
-    let offers: Offer[] = [];
-    let availableFilters: OfferFilter[] = [];
-    let paging = { total: 0, offset, limit };
-    try {
-      const params = new URLSearchParams({ q: data.query, limit: String(limit), offset: String(offset) });
-      if (sort !== "relevance") params.set("sort", sort);
-      for (const filter of selectedFilters) params.append(filter.id, filter.value);
-      const res = await fetch(
-        `https://api.mercadolibre.com/sites/MLB/search?${params.toString()}`,
-        { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
-      );
-      if (res.ok) {
-        const json = (await res.json()) as MercadoLivreSearchResponse;
-        paging = {
-          total: json.paging?.total ?? 0,
-          offset: json.paging?.offset ?? offset,
-          limit: json.paging?.limit ?? limit,
-        };
-        availableFilters = (json.available_filters ?? []).flatMap((filter) => {
-          if (!filter.id || !filter.name) return [];
-          const values = (filter.values ?? []).flatMap((value) =>
-            value.id && value.name
-              ? [{ id: value.id, name: value.name, results: value.results ?? 0 }]
-              : [],
-          );
-          return values.length > 0 ? [{ id: filter.id, name: filter.name, values }] : [];
-        });
-        offers = (json.results ?? [])
-          .filter((item) => typeof item.price === "number" && Boolean(item.permalink))
-          .map((item) => {
-            const original = item.original_price && item.original_price > item.price
-              ? item.original_price
-              : null;
-            return {
-              id: item.id,
-              title: item.title,
-              imageUrl: improveThumbnail(item.thumbnail),
-              store: "Mercado Livre",
-              price: item.price,
-              originalPrice: original,
-              discountPercent: original
-                ? Math.round(((original - item.price) / original) * 100)
-                : null,
-              freeShipping: Boolean(item.shipping?.free_shipping),
-              affiliateUrl: withAffiliate(item.permalink),
-              category: item.category_id ?? null,
-              sellerCount: 1,
-            };
-          });
-      } else {
-        console.error("Mercado Livre public search failed", res.status);
-      }
-    } catch (error) {
-      console.error("Mercado Livre public search error", error);
-    }
-
-    // The listing endpoint can be restricted for some Mercado Livre applications.
-    // Keep the real catalog API as a fallback so searches continue to return live inventory.
-    if (offers.length === 0) {
-      let products: CatalogProduct[] = [];
-      try {
-        const res = await fetch(
-          `https://api.mercadolibre.com/products/search?status=active&site_id=MLB&q=${encodeURIComponent(
-            data.query,
-          )}&limit=${limit}&offset=${offset}`,
-          { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
-        );
-        if (res.ok) {
-          const json = (await res.json()) as { results?: CatalogProduct[] };
-          products = json.results ?? [];
-        }
-      } catch (error) {
-        console.error("Mercado Livre catalog fallback error", error);
-      }
-
-      const collected: Offer[] = [];
-      const batchSize = 10;
-      for (let index = 0; index < products.length && collected.length < limit; index += batchSize) {
-        const batch = products.slice(index, index + batchSize);
-        const results = await Promise.all(batch.map(async (product) => {
-          const cheapest = await fetchCheapestItem(product.id, token);
-          if (!cheapest) return null;
-          const { item, sellerCount } = cheapest;
-          const original = item.original_price && item.original_price > item.price
-            ? item.original_price
-            : null;
-          return {
-            id: product.id,
-            title: product.name,
-            imageUrl: product.pictures?.[0]?.url ?? null,
-            store: "Mercado Livre",
-            price: item.price,
-            originalPrice: original,
-            discountPercent: original
-              ? Math.round(((original - item.price) / original) * 100)
-              : null,
-            freeShipping: Boolean(item.shipping?.free_shipping),
-            affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
-            category: product.domain_id ?? null,
-            sellerCount,
-          } satisfies Offer;
-        }));
-        for (const offer of results) if (offer) collected.push(offer);
-      }
-      offers = collected;
-      if (sort === "price_asc") offers.sort((a, b) => a.price - b.price);
-      if (sort === "price_desc") offers.sort((a, b) => b.price - a.price);
-      paging = { total: offers.length, offset, limit };
-    }
-
-    offers = offers.slice(0, limit);
-    if (offers.length === 0) {
-      return {
-        offers: [],
-        availableFilters,
-        paging,
-        persistence: { ok: true, message: "Nenhuma oferta para salvar." },
-      };
-    }
-
-    try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-      const { data: saved, error: productError } = await supabaseAdmin
-        .from("products")
-        .upsert(
-          offers.map((offer) => ({
-            external_id: offer.id,
-            title: offer.title,
-            image_url: offer.imageUrl,
-            category: offer.category,
-            updated_at: new Date().toISOString(),
-          })),
-          { onConflict: "external_id" },
-        )
-        .select("id, external_id");
-
-      if (productError) {
-        const message = formatDatabaseError("products", productError);
-        console.error(message, productError);
-        return { offers, availableFilters, paging, persistence: { ok: false, message } };
-      }
-      console.log(`[supabase] products upsert ok: ${saved?.length ?? 0} rows`);
-
-      const idByExternal = new Map((saved ?? []).map((p) => [p.external_id, p.id]));
-
-      const offerRows = offers.flatMap((offer) => {
-        const productId = idByExternal.get(offer.id);
-        if (!productId) return [];
-        return [{
-          product_id: productId,
-          store_name: "Mercado Livre",
-          external_id: offer.id,
-          price: offer.price,
-          original_price: offer.originalPrice,
-          discount_percent: offer.discountPercent,
-          affiliate_url: offer.affiliateUrl,
-          free_shipping: offer.freeShipping,
-          updated_at: new Date().toISOString(),
-        }];
+    const json = (await response.json()) as MercadoLivreSearchResponse;
+    const offers = (json.results ?? [])
+      .filter((item) => typeof item.price === "number" && Boolean(item.permalink))
+      .map((item) => {
+        const original = item.original_price && item.original_price > item.price
+          ? item.original_price
+          : null;
+        return {
+          id: item.id,
+          title: item.title,
+          imageUrl: improveThumbnail(item.thumbnail),
+          store: "Mercado Livre",
+          price: item.price,
+          originalPrice: original,
+          discountPercent: original
+            ? Math.round(((original - item.price) / original) * 100)
+            : null,
+          freeShipping: Boolean(item.shipping?.free_shipping),
+          affiliateUrl: withAffiliate(item.permalink),
+          category: item.category_id ?? null,
+          sellerCount: 1,
+        } satisfies Offer;
       });
 
-      const { data: savedOffers, error: offerError } = await supabaseAdmin
-        .from("offers")
-        .upsert(offerRows, { onConflict: "product_id,store_name" })
-        .select("id");
-
-      if (offerError) {
-        const message = formatDatabaseError("offers", offerError);
-        console.error(message, offerError);
-        return { offers, availableFilters, paging, persistence: { ok: false, message } };
-      }
-      console.log(`[supabase] offers upsert ok: ${savedOffers?.length ?? 0} rows`);
-
-      // Read back from the database so the UI always renders stored data.
-      const { data: stored, error: readError } = await supabaseAdmin
-        .from("offers")
-        .select(
-          "price, original_price, discount_percent, affiliate_url, free_shipping, store_name, products!inner(id, external_id, title, image_url, category)",
-        )
-        .in("product_id", [...idByExternal.values()])
-        .in("external_id", offers.map((offer) => offer.id));
-
-      if (readError) throw readError;
-
-      const sellerCountByExternal = new Map(offers.map((offer) => [offer.id, offer.sellerCount]));
-      const sourceOrder = new Map(offers.map((offer, index) => [offer.id, index]));
-
-      const fromDb: Offer[] = (stored ?? []).map((row) => {
-        const product = row.products as unknown as {
-          external_id: string;
-          title: string;
-          image_url: string | null;
-          category: string | null;
-        };
-        return {
-          id: product.external_id,
-          title: product.title,
-          imageUrl: product.image_url,
-          store: row.store_name,
-          price: Number(row.price),
-          originalPrice: row.original_price === null ? null : Number(row.original_price),
-          discountPercent: row.discount_percent,
-          freeShipping: row.free_shipping,
-          affiliateUrl: row.affiliate_url,
-          category: product.category,
-          sellerCount: sellerCountByExternal.get(product.external_id) ?? 1,
-        };
-      }).sort((a, b) => (sourceOrder.get(a.id) ?? 0) - (sourceOrder.get(b.id) ?? 0));
-
-      if (fromDb.length > 0) {
-        const result: SearchOffersResult = {
-          offers: fromDb,
-          availableFilters,
-          paging,
-          persistence: {
-            ok: true,
-            message: `${saved?.length ?? 0} produtos e ${savedOffers?.length ?? 0} ofertas gravados.`,
-          },
-        };
-        offerCache.set(cacheKey, { result, expiresAt: Date.now() + 10 * 60 * 1000 });
-        return result;
-      }
-    } catch (error) {
-      const message = formatDatabaseError("offers", error);
-      console.error(message, error);
-      return { offers, availableFilters, paging, persistence: { ok: false, message } };
-    }
+    const availableFilters = (json.available_filters ?? []).flatMap((filter) => {
+      if (!filter.id || !filter.name) return [];
+      const values = (filter.values ?? []).flatMap((value) =>
+        value.id && value.name
+          ? [{ id: value.id, name: value.name, results: value.results ?? 0 }]
+          : [],
+      );
+      return values.length > 0 ? [{ id: filter.id, name: filter.name, values }] : [];
+    });
 
     return {
       offers,
       availableFilters,
-      paging,
-      persistence: { ok: false, message: "A gravação terminou, mas nenhum registro foi relido." },
+      paging: {
+        total: json.paging?.total ?? 0,
+        offset: json.paging?.offset ?? offset,
+        limit: json.paging?.limit ?? limit,
+      },
     };
   });
