@@ -230,6 +230,10 @@ function Home() {
       data: { query: term, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, sort },
     }),
   });
+  const validOffers = (search.data?.offers ?? []).filter(
+    (offer) => Number.isFinite(offer.price) && offer.price > 0,
+  );
+  const isSearchLoading = search.isPending || search.isFetching;
 
   return (
     <div className="min-h-screen bg-background">
@@ -239,13 +243,13 @@ function Home() {
         {term ? (
           <SearchResults
             term={term}
-            offers={search.data?.offers ?? []}
+            offers={validOffers}
             filters={search.data?.availableFilters ?? []}
             sort={sort}
             page={page}
             total={search.data?.paging.total ?? 0}
             pageSize={search.data?.paging.limit ?? PAGE_SIZE}
-            isLoading={search.isFetching}
+            isLoading={isSearchLoading}
             onCompare={setSelected}
             onSort={(value) => { setSort(value); setPage(1); }}
             onPage={(value) => { setPage(value); window.scrollTo({ top: 0, behavior: "smooth" }); }}

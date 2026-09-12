@@ -170,7 +170,9 @@ async function searchCatalog(
             };
           }
           const itemsJson = (await itemsResponse.json()) as { results?: CatalogItem[] };
-          const items = (itemsJson.results ?? []).filter((item) => typeof item.price === "number");
+          const items = (itemsJson.results ?? []).filter(
+            (item) => typeof item.price === "number" && Number.isFinite(item.price) && item.price > 0,
+          );
           if (items.length === 0) {
             return {
               id: product.id,
@@ -241,11 +243,15 @@ async function searchCatalog(
     }
   }
 
-  if (sort === "price_asc") offers.sort((a, b) => a.price - b.price);
-  if (sort === "price_desc") offers.sort((a, b) => b.price - a.price);
+  const validOffers = offers.filter(
+    (offer) => Number.isFinite(offer.price) && offer.price > 0,
+  );
+
+  if (sort === "price_asc") validOffers.sort((a, b) => a.price - b.price);
+  if (sort === "price_desc") validOffers.sort((a, b) => b.price - a.price);
 
   return {
-    offers,
+    offers: validOffers,
     availableFilters: [...filterGroups.values()],
     paging: {
       total: json.paging?.total ?? offers.length,
@@ -268,7 +274,7 @@ export const searchOffers = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }): Promise<SearchOffersResult> => {
-    const limit = data.limit ?? 40;
+    const limit = 40;
     const offset = data.offset ?? 0;
     const sort = data.sort ?? "relevance";
     const selectedFilters = data.filters ?? [];
@@ -300,12 +306,15 @@ export const searchOffers = createServerFn({ method: "POST" })
     }
 
     const json = (await response.json()) as MercadoLivreSearchResponse;
-    const offers = (json.results ?? []).map((item) => {
-        const price = typeof item.price === "number" ? item.price : 0;
+    const offers = (json.results ?? []).flatMap((item) => {
+        if (typeof item.price !== "number" || !Number.isFinite(item.price) || item.price <= 0) {
+          return [];
+        }
+        const price = item.price;
         const original = item.original_price && item.original_price > price
           ? item.original_price
           : null;
-        return {
+        return [{
           id: item.id,
           title: item.title ?? "Produto Mercado Livre",
           imageUrl: improveThumbnail(item.thumbnail),
@@ -321,7 +330,7 @@ export const searchOffers = createServerFn({ method: "POST" })
           ),
           category: item.category_id ?? null,
           sellerCount: 1,
-        } satisfies Offer;
+        } satisfies Offer];
       });
 
     const availableFilters = (json.available_filters ?? []).flatMap((filter) => {
