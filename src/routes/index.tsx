@@ -126,7 +126,7 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
       </Button>
       {pages.map((value, index) => (
         <div key={value} className="flex items-center gap-1.5">
-          {index > 0 && value - pages[index - 1] > 1 ? <span className="px-1 text-muted-foreground">…</span> : null}
+          {index > 0 && value - (pages[index - 1] ?? value) > 1 ? <span className="px-1 text-muted-foreground">…</span> : null}
           <Button
             variant={value === page ? "default" : "outline"}
             size="sm"
