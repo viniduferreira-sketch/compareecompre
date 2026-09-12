@@ -48,6 +48,19 @@ type SearchItem = {
   shipping?: { free_shipping?: boolean };
 };
 
+type CatalogProduct = {
+  id: string;
+  name: string;
+  domain_id?: string;
+  pictures?: Array<{ url?: string }>;
+};
+
+type CatalogItem = {
+  price: number;
+  original_price?: number | null;
+  shipping?: { free_shipping?: boolean };
+};
+
 type MercadoLivreSearchResponse = {
   results?: SearchItem[];
   paging?: { total?: number; offset?: number; limit?: number };
@@ -97,6 +110,90 @@ export async function getMeliToken(): Promise<string | null> {
   }
 }
 
+async function searchCatalog(
+  query: string,
+  limit: number,
+  offset: number,
+  sort: OfferSort,
+): Promise<SearchOffersResult> {
+  const token = await getMeliToken();
+  if (!token) {
+    return { offers: [], availableFilters: [], paging: { total: 0, offset, limit } };
+  }
+
+  const params = new URLSearchParams({
+    status: "active",
+    site_id: "MLB",
+    q: query,
+    limit: String(limit),
+    offset: String(offset),
+  });
+  const response = await fetch(`https://api.mercadolibre.com/products/search?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+  });
+  if (!response.ok) {
+    console.error("Mercado Livre catalog search failed", response.status);
+    return { offers: [], availableFilters: [], paging: { total: 0, offset, limit } };
+  }
+
+  const json = (await response.json()) as {
+    results?: CatalogProduct[];
+    paging?: { total?: number; offset?: number; limit?: number };
+  };
+  const products = json.results ?? [];
+  const offers = (
+    await Promise.all(
+      products.map(async (product): Promise<Offer | null> => {
+        try {
+          const itemsResponse = await fetch(
+            `https://api.mercadolibre.com/products/${encodeURIComponent(product.id)}/items?limit=20`,
+            { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
+          );
+          if (!itemsResponse.ok) return null;
+          const itemsJson = (await itemsResponse.json()) as { results?: CatalogItem[] };
+          const items = (itemsJson.results ?? []).filter((item) => typeof item.price === "number");
+          if (items.length === 0) return null;
+          const cheapest = items.reduce((best, item) => (item.price < best.price ? item : best));
+          const original = cheapest.original_price && cheapest.original_price > cheapest.price
+            ? cheapest.original_price
+            : null;
+          return {
+            id: product.id,
+            title: product.name,
+            imageUrl: product.pictures?.[0]?.url ?? null,
+            store: "Mercado Livre",
+            price: cheapest.price,
+            originalPrice: original,
+            discountPercent: original
+              ? Math.round(((original - cheapest.price) / original) * 100)
+              : null,
+            freeShipping: Boolean(cheapest.shipping?.free_shipping),
+            affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
+            category: product.domain_id ?? null,
+            sellerCount: items.length,
+          };
+        } catch (error) {
+          console.error("Mercado Livre catalog item failed", product.id, error);
+          return null;
+        }
+      }),
+    )
+  ).filter((offer): offer is Offer => offer !== null);
+
+  if (sort === "price_asc") offers.sort((a, b) => a.price - b.price);
+  if (sort === "price_desc") offers.sort((a, b) => b.price - a.price);
+
+  return {
+    offers,
+    availableFilters: [],
+    paging: {
+      total: json.paging?.total ?? offers.length,
+      offset: json.paging?.offset ?? offset,
+      limit: json.paging?.limit ?? limit,
+    },
+  };
+}
+
 export const searchOffers = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z
@@ -122,14 +219,23 @@ export const searchOffers = createServerFn({ method: "POST" })
     if (sort !== "relevance") params.set("sort", sort);
     for (const filter of selectedFilters) params.append(filter.id, filter.value);
 
-    const response = await fetch(
-      `https://api.mercadolibre.com/sites/MLB/search?${params.toString()}`,
-      { headers: { Accept: "application/json" } },
-    );
+    let response: Response;
+    try {
+      response = await fetch(
+        `https://api.mercadolibre.com/sites/MLB/search?${params.toString()}`,
+        { headers: { Accept: "application/json" } },
+      );
+    } catch (error) {
+      console.error("Mercado Livre public search request failed", error);
+      return searchCatalog(data.query, limit, offset, sort);
+    }
 
     if (!response.ok) {
       console.error("Mercado Livre public search failed", response.status);
-      throw new Error(`A busca do Mercado Livre falhou com status ${response.status}.`);
+      if (response.status === 401 || response.status === 403) {
+        return searchCatalog(data.query, limit, offset, sort);
+      }
+      return { offers: [], availableFilters: [], paging: { total: 0, offset, limit } };
     }
 
     const json = (await response.json()) as MercadoLivreSearchResponse;
