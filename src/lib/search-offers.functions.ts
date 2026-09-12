@@ -1,5 +1,8 @@
+import { algoliasearch } from "algoliasearch";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 
@@ -31,21 +34,20 @@ export type SearchOffersResult = {
   paging: { total: number; offset: number; limit: number };
 };
 
-export function withAffiliate(url: string): string {
-  const clean = url.split("#")[0] ?? url;
-  const separator = clean.includes("?") ? "&" : "?";
-  return `${clean}${separator}${AFFILIATE_PARAMS}`;
-}
-
-type SearchItem = {
-  id: string;
-  title?: string;
-  thumbnail?: string;
-  price?: number;
-  original_price?: number | null;
-  permalink?: string;
-  category_id?: string;
-  shipping?: { free_shipping?: boolean };
+type AlgoliaOffer = {
+  objectID: string;
+  title: string;
+  imageUrl: string | null;
+  store: string;
+  price: number;
+  originalPrice: number | null;
+  discountPercent: number | null;
+  freeShipping: boolean;
+  affiliateUrl: string;
+  category: string | null;
+  categoryName: string | null;
+  brand: string | null;
+  sellerCount: number;
 };
 
 type CatalogProduct = {
@@ -53,33 +55,25 @@ type CatalogProduct = {
   name: string;
   domain_id?: string;
   pictures?: Array<{ url?: string }>;
-  attributes?: Array<{
-    id?: string;
-    name?: string;
-    value_id?: string;
-    value_name?: string;
-  }>;
+  attributes?: Array<{ id?: string; value_name?: string }>;
 };
 
 type CatalogItem = {
-  price: number;
+  item_id?: string;
+  price?: number;
   original_price?: number | null;
+  category_id?: string;
   shipping?: { free_shipping?: boolean };
+  permalink?: string;
 };
 
-type MercadoLivreSearchResponse = {
-  results?: SearchItem[];
-  paging?: { total?: number; offset?: number; limit?: number };
-  available_filters?: Array<{
-    id?: string;
-    name?: string;
-    values?: Array<{ id?: string; name?: string; results?: number }>;
-  }>;
-};
+const INDEX_NAME = "produtos_mercado_livre";
+const RESULTS_PER_PAGE = 40;
 
-function improveThumbnail(url?: string): string | null {
-  if (!url) return null;
-  return url.replace(/-I\.jpg(?=\?|$)/i, "-O.jpg");
+export function withAffiliate(url: string): string {
+  const clean = url.split("#")[0] ?? url;
+  const separator = clean.includes("?") ? "&" : "?";
+  return `${clean}${separator}${AFFILIATE_PARAMS}`;
 }
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
@@ -94,7 +88,7 @@ export async function getMeliToken(): Promise<string | null> {
   if (cachedToken && cachedToken.expiresAt > Date.now() + 30_000) return cachedToken.value;
 
   try {
-    const res = await fetch("https://api.mercadolibre.com/oauth/token", {
+    const response = await fetch("https://api.mercadolibre.com/oauth/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
       body: new URLSearchParams({
@@ -103,11 +97,11 @@ export async function getMeliToken(): Promise<string | null> {
         client_secret: clientSecret,
       }),
     });
-    if (!res.ok) {
-      console.error("Mercado Livre token failed", res.status);
+    if (!response.ok) {
+      console.error("Mercado Livre token failed", response.status, await response.text());
       return null;
     }
-    const json = (await res.json()) as { access_token: string; expires_in: number };
+    const json = (await response.json()) as { access_token: string; expires_in: number };
     cachedToken = { value: json.access_token, expiresAt: Date.now() + json.expires_in * 1000 };
     return cachedToken.value;
   } catch (error) {
@@ -116,240 +110,203 @@ export async function getMeliToken(): Promise<string | null> {
   }
 }
 
-async function searchCatalog(
-  query: string,
-  limit: number,
-  offset: number,
-  sort: OfferSort,
-): Promise<SearchOffersResult> {
-  const token = await getMeliToken();
-  if (!token) {
-    return { offers: [], availableFilters: [], paging: { total: 0, offset, limit } };
-  }
+function getAlgoliaConfig() {
+  const applicationId = process.env["ALGOLIA_APPLICATION_ID"];
+  const apiKey = process.env["ALGOLIA_API_KEY"];
+  const indexName = process.env["ALGOLIA_INDEX_NAME"] ?? INDEX_NAME;
+  if (!applicationId || !apiKey) throw new Error("A busca inteligente não está configurada.");
+  return { client: algoliasearch(applicationId, apiKey), indexName };
+}
 
-  const params = new URLSearchParams({
-    status: "active",
-    site_id: "MLB",
-    q: query,
-    limit: String(limit),
-    offset: String(offset),
-  });
-  const response = await fetch(`https://api.mercadolibre.com/products/search?${params.toString()}`, {
-    headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-  });
-  if (!response.ok) {
-    console.error("Mercado Livre catalog search failed", response.status);
-    return { offers: [], availableFilters: [], paging: { total: 0, offset, limit } };
-  }
+function emptyResult(offset: number, limit = RESULTS_PER_PAGE): SearchOffersResult {
+  return { offers: [], availableFilters: [], paging: { total: 0, offset, limit } };
+}
 
-  const json = (await response.json()) as {
-    results?: CatalogProduct[];
-    paging?: { total?: number; offset?: number; limit?: number };
+function facetsToFilters(facets?: Record<string, Record<string, number>>): OfferFilter[] {
+  const labels: Record<string, string> = {
+    categoryName: "Categoria",
+    brand: "Marca",
+    freeShipping: "Frete grátis",
   };
-  const products = json.results ?? [];
-  const offers = await Promise.all(
-      products.map(async (product): Promise<Offer> => {
-        try {
-          const itemsResponse = await fetch(
-            `https://api.mercadolibre.com/products/${encodeURIComponent(product.id)}/items?limit=20`,
-            { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
-          );
-          if (!itemsResponse.ok) {
-            return {
-              id: product.id,
-              title: product.name,
-              imageUrl: product.pictures?.[0]?.url ?? null,
-              store: "Mercado Livre",
-              price: 0,
-              originalPrice: null,
-              discountPercent: null,
-              freeShipping: false,
-              affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
-              category: product.domain_id ?? null,
-              sellerCount: 0,
-            };
-          }
-          const itemsJson = (await itemsResponse.json()) as { results?: CatalogItem[] };
-          const items = (itemsJson.results ?? []).filter(
-            (item) => typeof item.price === "number" && Number.isFinite(item.price) && item.price > 0,
-          );
-          if (items.length === 0) {
-            return {
-              id: product.id,
-              title: product.name,
-              imageUrl: product.pictures?.[0]?.url ?? null,
-              store: "Mercado Livre",
-              price: 0,
-              originalPrice: null,
-              discountPercent: null,
-              freeShipping: false,
-              affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
-              category: product.domain_id ?? null,
-              sellerCount: 0,
-            };
-          }
-          const cheapest = items.reduce((best, item) => (item.price < best.price ? item : best));
-          const original = cheapest.original_price && cheapest.original_price > cheapest.price
-            ? cheapest.original_price
-            : null;
-          return {
-            id: product.id,
-            title: product.name,
-            imageUrl: product.pictures?.[0]?.url ?? null,
-            store: "Mercado Livre",
-            price: cheapest.price,
-            originalPrice: original,
-            discountPercent: original
-              ? Math.round(((original - cheapest.price) / original) * 100)
-              : null,
-            freeShipping: Boolean(cheapest.shipping?.free_shipping),
-            affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
-            category: product.domain_id ?? null,
-            sellerCount: items.length,
-          };
-        } catch (error) {
-          console.error("Mercado Livre catalog item failed", product.id, error);
-          return {
-            id: product.id,
-            title: product.name,
-            imageUrl: product.pictures?.[0]?.url ?? null,
-            store: "Mercado Livre",
-            price: 0,
-            originalPrice: null,
-            discountPercent: null,
-            freeShipping: false,
-            affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
-            category: product.domain_id ?? null,
-            sellerCount: 0,
-          };
-        }
-      }),
-    );
-
-  const filterGroups = new Map<string, OfferFilter>();
-  for (const product of products) {
-    for (const attribute of product.attributes ?? []) {
-      if (!attribute.id || !attribute.name || !attribute.value_name) continue;
-      const valueId = attribute.value_id ?? attribute.value_name;
-      const group = filterGroups.get(attribute.id) ?? {
-        id: attribute.id,
-        name: attribute.name,
-        values: [],
-      };
-      const existing = group.values.find((value) => value.id === valueId);
-      if (existing) existing.results += 1;
-      else group.values.push({ id: valueId, name: attribute.value_name, results: 1 });
-      filterGroups.set(attribute.id, group);
-    }
-  }
-
-  const validOffers = offers.filter(
-    (offer) => Number.isFinite(offer.price) && offer.price > 0,
-  );
-
-  if (sort === "price_asc") validOffers.sort((a, b) => a.price - b.price);
-  if (sort === "price_desc") validOffers.sort((a, b) => b.price - a.price);
-
-  return {
-    offers: validOffers,
-    availableFilters: [...filterGroups.values()],
-    paging: {
-      total: json.paging?.total ?? offers.length,
-      offset: json.paging?.offset ?? offset,
-      limit: json.paging?.limit ?? limit,
-    },
-  };
+  return Object.entries(facets ?? {}).flatMap(([id, values]) => {
+    const mappedValues = Object.entries(values)
+      .filter(([name]) => name && name !== "null")
+      .sort(([, left], [, right]) => right - left)
+      .slice(0, 12)
+      .map(([name, results]) => ({ id: name, name: name === "true" ? "Sim" : name, results }));
+    return mappedValues.length > 0
+      ? [{ id, name: labels[id] ?? id, values: mappedValues }]
+      : [];
+  });
 }
 
 export const searchOffers = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z
-      .object({
-        query: z.string().min(1).max(120),
-        limit: z.number().int().min(1).max(50).optional(),
-        offset: z.number().int().min(0).max(10_000).optional(),
-        sort: z.enum(["relevance", "price_asc", "price_desc"]).optional(),
-        filters: z.array(z.object({ id: z.string().min(1).max(80), value: z.string().min(1).max(160) })).max(12).optional(),
-      })
-      .parse(data),
+    z.object({
+      query: z.string().min(1).max(120),
+      limit: z.number().int().min(1).max(50).optional(),
+      offset: z.number().int().min(0).max(10_000).optional(),
+      sort: z.enum(["relevance", "price_asc", "price_desc"]).optional(),
+      filters: z.array(z.object({ id: z.string(), value: z.string() })).optional(),
+    }).parse(data),
   )
   .handler(async ({ data }): Promise<SearchOffersResult> => {
-    const limit = 40;
+    const limit = RESULTS_PER_PAGE;
     const offset = data.offset ?? 0;
-    const sort = data.sort ?? "relevance";
-    const selectedFilters = data.filters ?? [];
-    const params = new URLSearchParams({
-      q: data.query,
-      limit: String(limit),
-      offset: String(offset),
-    });
-    if (sort !== "relevance") params.set("sort", sort);
-    for (const filter of selectedFilters) params.append(filter.id, filter.value);
-
-    let response: Response;
+    const page = Math.floor(offset / limit);
     try {
-      response = await fetch(
-        `https://api.mercadolibre.com/sites/MLB/search?${params.toString()}`,
-        { headers: { Accept: "application/json" } },
-      );
-    } catch (error) {
-      console.error("Mercado Livre public search request failed", error);
-      return searchCatalog(data.query, limit, offset, sort);
-    }
-
-    if (!response.ok) {
-      console.error("Mercado Livre public search failed", response.status);
-      if (response.status === 401 || response.status === 403) {
-        return searchCatalog(data.query, limit, offset, sort);
-      }
-      return { offers: [], availableFilters: [], paging: { total: 0, offset, limit } };
-    }
-
-    const json = (await response.json()) as MercadoLivreSearchResponse;
-    const offers = (json.results ?? []).flatMap((item) => {
-        if (typeof item.price !== "number" || !Number.isFinite(item.price) || item.price <= 0) {
-          return [];
-        }
-        const price = item.price;
-        const original = item.original_price && item.original_price > price
-          ? item.original_price
-          : null;
-        return [{
-          id: item.id,
-          title: item.title ?? "Produto Mercado Livre",
-          imageUrl: improveThumbnail(item.thumbnail),
-          store: "Mercado Livre",
-          price,
-          originalPrice: original,
-          discountPercent: original
-            ? Math.round(((original - price) / original) * 100)
-            : null,
-          freeShipping: Boolean(item.shipping?.free_shipping),
-          affiliateUrl: withAffiliate(
-            item.permalink ?? `https://produto.mercadolivre.com.br/${encodeURIComponent(item.id)}`,
-          ),
-          category: item.category_id ?? null,
-          sellerCount: 1,
-        } satisfies Offer];
+      const { client, indexName } = getAlgoliaConfig();
+      const searchIndex = data.sort === "price_asc"
+        ? `${indexName}_price_asc`
+        : data.sort === "price_desc"
+          ? `${indexName}_price_desc`
+          : indexName;
+      const response = await client.searchSingleIndex<AlgoliaOffer>({
+        indexName: searchIndex,
+        searchParams: {
+          query: data.query,
+          page,
+          hitsPerPage: limit,
+          facets: ["categoryName", "brand", "freeShipping"],
+          typoTolerance: true,
+          attributesToRetrieve: [
+            "objectID", "title", "imageUrl", "store", "price", "originalPrice",
+            "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount",
+          ],
+        },
       });
+      const validOffers = response.hits.flatMap((hit) => {
+        if (!Number.isFinite(hit.price) || hit.price <= 0) return [];
+        return [{
+          id: hit.objectID,
+          title: hit.title,
+          imageUrl: hit.imageUrl,
+          store: hit.store,
+          price: hit.price,
+          originalPrice: hit.originalPrice,
+          discountPercent: hit.discountPercent,
+          freeShipping: Boolean(hit.freeShipping),
+          affiliateUrl: hit.affiliateUrl,
+          category: hit.category,
+          sellerCount: hit.sellerCount,
+        }];
+      });
+      return {
+        offers: validOffers,
+        availableFilters: facetsToFilters(response.facets),
+        paging: { total: response.nbHits ?? validOffers.length, offset: page * limit, limit },
+      };
+    } catch (error) {
+      console.error("Algolia search failed", error);
+      return emptyResult(offset, limit);
+    }
+  });
 
-    const availableFilters = (json.available_filters ?? []).flatMap((filter) => {
-      if (!filter.id || !filter.name) return [];
-      const values = (filter.values ?? []).flatMap((value) =>
-        value.id && value.name
-          ? [{ id: value.id, name: value.name, results: value.results ?? 0 }]
-          : [],
-      );
-      return values.length > 0 ? [{ id: filter.id, name: filter.name, values }] : [];
-    });
+const syncInput = z.object({
+  queries: z.array(z.string().min(2).max(60)).min(1).max(20).optional(),
+  recordsPerQuery: z.number().int().min(10).max(100).optional(),
+});
 
-    return {
-      offers,
-      availableFilters,
-      paging: {
-        total: json.paging?.total ?? 0,
-        offset: json.paging?.offset ?? offset,
-        limit: json.paging?.limit ?? limit,
+export const syncOffersToAlgolia = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => syncInput.parse(data))
+  .handler(async ({ data }): Promise<{ indexed: number; skipped: number; message: string }> => {
+    const token = await getMeliToken();
+    if (!token) throw new Error("Não foi possível autenticar a sincronização do Mercado Livre.");
+    const { client, indexName } = getAlgoliaConfig();
+    const queries = data.queries ?? [
+      "celular", "notebook", "smart tv", "air fryer", "geladeira", "fone bluetooth",
+      "video game", "máquina de lavar", "aspirador", "cafeteira",
+    ];
+    const limit = data.recordsPerQuery ?? 40;
+    const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
+    const products = new Map<string, CatalogProduct>();
+
+    for (const query of queries) {
+      const params = new URLSearchParams({ status: "active", site_id: "MLB", q: query, limit: String(limit) });
+      const response = await fetch(`https://api.mercadolibre.com/products/search?${params}`, { headers });
+      if (!response.ok) {
+        console.error("Mercado Livre sync search failed", query, response.status, await response.text());
+        continue;
+      }
+      const json = (await response.json()) as { results?: CatalogProduct[] };
+      for (const product of json.results ?? []) products.set(product.id, product);
+    }
+
+    const records: AlgoliaOffer[] = [];
+    let skipped = 0;
+    const productList = [...products.values()];
+    for (let position = 0; position < productList.length; position += 10) {
+      const group = productList.slice(position, position + 10);
+      const mapped = await Promise.all(group.map(async (product): Promise<AlgoliaOffer | null> => {
+        try {
+          const response = await fetch(
+            `https://api.mercadolibre.com/products/${encodeURIComponent(product.id)}/items?limit=20`,
+            { headers },
+          );
+          if (!response.ok) return null;
+          const json = (await response.json()) as { results?: CatalogItem[] };
+          const items = (json.results ?? []).filter(
+            (item) => typeof item.price === "number" && Number.isFinite(item.price) && item.price > 0,
+          );
+          if (items.length === 0) return null;
+          const cheapest = items.reduce((best, item) => (Number(item.price) < Number(best.price) ? item : best));
+          const price = Number(cheapest.price);
+          const originalPrice = cheapest.original_price && cheapest.original_price > price
+            ? cheapest.original_price
+            : null;
+          const brand = product.attributes?.find((attribute) => attribute.id === "BRAND")?.value_name ?? null;
+          const categoryName = product.domain_id?.replace(/^MLB-/, "").replaceAll("-", " ") ?? null;
+          return {
+            objectID: product.id,
+            title: product.name,
+            imageUrl: product.pictures?.[0]?.url ?? null,
+            store: "Mercado Livre",
+            price,
+            originalPrice,
+            discountPercent: originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : null,
+            freeShipping: Boolean(cheapest.shipping?.free_shipping),
+            affiliateUrl: withAffiliate(
+              cheapest.permalink ?? `https://www.mercadolivre.com.br/p/${product.id}`,
+            ),
+            category: cheapest.category_id ?? product.domain_id ?? null,
+            categoryName,
+            brand,
+            sellerCount: items.length,
+          };
+        } catch (error) {
+          console.error("Mercado Livre sync item failed", product.id, error);
+          return null;
+        }
+      }));
+      for (const record of mapped) {
+        if (record) records.push(record);
+        else skipped += 1;
+      }
+    }
+
+    if (records.length === 0) throw new Error("A sincronização não encontrou ofertas com preço válido.");
+    await client.setSettings({
+      indexName,
+      indexSettings: {
+        searchableAttributes: ["title", "brand", "categoryName"],
+        attributesForFaceting: ["searchable(categoryName)", "searchable(brand)", "freeShipping"],
+        typoTolerance: true,
+        removeStopWords: ["pt"],
+        ignorePlurals: ["pt"],
+        replicas: [`${indexName}_price_asc`, `${indexName}_price_desc`],
       },
-    };
+    });
+    await client.saveObjects({ indexName, objects: records, batchSize: 500, waitForTasks: true });
+    await Promise.all([
+      client.setSettings({
+        indexName: `${indexName}_price_asc`,
+        indexSettings: { ranking: ["asc(price)", "typo", "geo", "words", "filters", "proximity", "attribute", "exact", "custom"] },
+      }),
+      client.setSettings({
+        indexName: `${indexName}_price_desc`,
+        indexSettings: { ranking: ["desc(price)", "typo", "geo", "words", "filters", "proximity", "attribute", "exact", "custom"] },
+      }),
+    ]);
+    return { indexed: records.length, skipped, message: `${records.length} ofertas sincronizadas.` };
   });
