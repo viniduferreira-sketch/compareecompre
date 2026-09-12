@@ -99,7 +99,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      configure_algolia_sync_job: {
+        Args: { _cron_secret: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

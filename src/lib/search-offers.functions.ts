@@ -2,8 +2,6 @@ import { algoliasearch } from "algoliasearch";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
 export const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 
 export type Offer = {
@@ -48,23 +46,6 @@ type AlgoliaOffer = {
   categoryName: string | null;
   brand: string | null;
   sellerCount: number;
-};
-
-type CatalogProduct = {
-  id: string;
-  name: string;
-  domain_id?: string;
-  pictures?: Array<{ url?: string }>;
-  attributes?: Array<{ id?: string; value_name?: string }>;
-};
-
-type CatalogItem = {
-  item_id?: string;
-  price?: number;
-  original_price?: number | null;
-  category_id?: string;
-  shipping?: { free_shipping?: boolean };
-  permalink?: string;
 };
 
 const INDEX_NAME = "produtos_mercado_livre";
@@ -200,151 +181,4 @@ export const searchOffers = createServerFn({ method: "POST" })
       console.error("Algolia search failed", error);
       return emptyResult(offset, limit);
     }
-  });
-
-const syncInput = z.object({
-  queries: z.array(z.string().min(2).max(60)).min(1).max(20).optional(),
-  recordsPerQuery: z.number().int().min(10).max(100).optional(),
-  maxProducts: z.number().int().min(100).max(1_000).optional(),
-});
-
-const DEFAULT_SYNC_QUERIES = [
-  "celulares",
-  "eletrônicos",
-  "informática",
-  "notebooks",
-  "smart tv",
-  "áudio e fones",
-  "games e consoles",
-  "eletrodomésticos",
-  "casa inteligente",
-  "câmeras",
-];
-
-const DEFAULT_SYNC_PRODUCT_LIMIT = 800;
-const MAX_SEARCH_PAGES = 10;
-
-export const syncOffersToAlgolia = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => syncInput.parse(data))
-  .handler(async ({ data }): Promise<{ indexed: number; skipped: number; message: string }> => {
-    const token = await getMeliToken();
-    if (!token) throw new Error("Não foi possível autenticar a sincronização do Mercado Livre.");
-    const { client, indexName } = getAlgoliaConfig();
-    const queries = data.queries ?? DEFAULT_SYNC_QUERIES;
-    const pageSize = Math.min(data.recordsPerQuery ?? 50, 100);
-    const maxProducts = data.maxProducts ?? DEFAULT_SYNC_PRODUCT_LIMIT;
-    const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
-    const products = new Map<string, CatalogProduct>();
-    const exhaustedQueries = new Set<string>();
-
-    // Pagina as categorias em rodadas para compor um catálogo amplo e equilibrado,
-    // sem permitir que a primeira categoria consuma todo o limite da sincronização.
-    for (let page = 0; page < MAX_SEARCH_PAGES && products.size < maxProducts; page += 1) {
-      for (const query of queries) {
-        if (products.size >= maxProducts) break;
-        if (exhaustedQueries.has(query)) continue;
-        const params = new URLSearchParams({
-          status: "active",
-          site_id: "MLB",
-          q: query,
-          limit: String(pageSize),
-          offset: String(page * pageSize),
-        });
-        const response = await fetch(`https://api.mercadolibre.com/products/search?${params}`, { headers });
-        if (!response.ok) {
-          console.error("Mercado Livre sync search failed", query, page, response.status, await response.text());
-          exhaustedQueries.add(query);
-          continue;
-        }
-        const json = (await response.json()) as { results?: CatalogProduct[] };
-        const pageProducts = json.results ?? [];
-        if (pageProducts.length < pageSize) exhaustedQueries.add(query);
-        for (const product of pageProducts) {
-          if (products.size >= maxProducts) break;
-          if (product.id && product.name) products.set(product.id, product);
-        }
-      }
-    }
-
-    const records: AlgoliaOffer[] = [];
-    let skipped = 0;
-    const productList = [...products.values()];
-    for (let position = 0; position < productList.length; position += 20) {
-      const group = productList.slice(position, position + 20);
-      const mapped = await Promise.all(group.map(async (product): Promise<AlgoliaOffer | null> => {
-        try {
-          const response = await fetch(
-            `https://api.mercadolibre.com/products/${encodeURIComponent(product.id)}/items?limit=20`,
-            { headers },
-          );
-          if (!response.ok) return null;
-          const json = (await response.json()) as { results?: CatalogItem[] };
-          const items = (json.results ?? []).filter(
-            (item) => typeof item.price === "number" && Number.isFinite(item.price) && item.price > 0,
-          );
-          if (items.length === 0) return null;
-          const cheapest = items.reduce((best, item) => (Number(item.price) < Number(best.price) ? item : best));
-          const price = Number(cheapest.price);
-          const originalPrice = cheapest.original_price && cheapest.original_price > price
-            ? cheapest.original_price
-            : null;
-          const brand = product.attributes?.find((attribute) => attribute.id === "BRAND")?.value_name ?? null;
-          const categoryName = product.domain_id?.replace(/^MLB-/, "").replaceAll("-", " ") ?? null;
-          return {
-            objectID: product.id,
-            title: product.name,
-            imageUrl: product.pictures?.[0]?.url ?? null,
-            store: "Mercado Livre",
-            price,
-            originalPrice,
-            discountPercent: originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : null,
-            freeShipping: Boolean(cheapest.shipping?.free_shipping),
-            affiliateUrl: withAffiliate(
-              cheapest.permalink ?? `https://www.mercadolivre.com.br/p/${product.id}`,
-            ),
-            category: cheapest.category_id ?? product.domain_id ?? null,
-            categoryName,
-            brand,
-            sellerCount: items.length,
-          };
-        } catch (error) {
-          console.error("Mercado Livre sync item failed", product.id, error);
-          return null;
-        }
-      }));
-      for (const record of mapped) {
-        if (record) records.push(record);
-        else skipped += 1;
-      }
-    }
-
-    if (records.length === 0) throw new Error("A sincronização não encontrou ofertas com preço válido.");
-    await client.setSettings({
-      indexName,
-      indexSettings: {
-        searchableAttributes: ["title", "brand", "categoryName"],
-        attributesForFaceting: ["searchable(categoryName)", "searchable(brand)", "freeShipping"],
-        typoTolerance: true,
-        removeStopWords: ["pt"],
-        ignorePlurals: ["pt"],
-        replicas: [`${indexName}_price_asc`, `${indexName}_price_desc`],
-      },
-    });
-    await client.saveObjects({ indexName, objects: records, batchSize: 500, waitForTasks: true });
-    await Promise.all([
-      client.setSettings({
-        indexName: `${indexName}_price_asc`,
-        indexSettings: { ranking: ["asc(price)", "typo", "geo", "words", "filters", "proximity", "attribute", "exact", "custom"] },
-      }),
-      client.setSettings({
-        indexName: `${indexName}_price_desc`,
-        indexSettings: { ranking: ["desc(price)", "typo", "geo", "words", "filters", "proximity", "attribute", "exact", "custom"] },
-      }),
-    ]);
-    return {
-      indexed: records.length,
-      skipped,
-      message: `${records.length} ofertas sincronizadas de ${productList.length} produtos encontrados.`,
-    };
   });

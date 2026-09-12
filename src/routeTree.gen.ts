@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProdutoIdRouteImport } from './routes/produto.$id'
+import { Route as ApiPublicHooksSyncAlgoliaRouteImport } from './routes/api/public/hooks/sync-algolia'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,41 @@ const ProdutoIdRoute = ProdutoIdRouteImport.update({
   path: '/produto/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksSyncAlgoliaRoute =
+  ApiPublicHooksSyncAlgoliaRouteImport.update({
+    id: '/api/public/hooks/sync-algolia',
+    path: '/api/public/hooks/sync-algolia',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/produto/$id'
+  fullPaths: '/' | '/produto/$id' | '/api/public/hooks/sync-algolia'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/produto/$id'
-  id: '__root__' | '/' | '/produto/$id'
+  to: '/' | '/produto/$id' | '/api/public/hooks/sync-algolia'
+  id: '__root__' | '/' | '/produto/$id' | '/api/public/hooks/sync-algolia'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProdutoIdRoute: typeof ProdutoIdRoute
+  ApiPublicHooksSyncAlgoliaRoute: typeof ApiPublicHooksSyncAlgoliaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +76,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProdutoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/sync-algolia': {
+      id: '/api/public/hooks/sync-algolia'
+      path: '/api/public/hooks/sync-algolia'
+      fullPath: '/api/public/hooks/sync-algolia'
+      preLoaderRoute: typeof ApiPublicHooksSyncAlgoliaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProdutoIdRoute: ProdutoIdRoute,
+  ApiPublicHooksSyncAlgoliaRoute: ApiPublicHooksSyncAlgoliaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
