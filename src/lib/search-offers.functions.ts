@@ -45,6 +45,22 @@ type CatalogItem = {
   shipping?: { free_shipping?: boolean };
 };
 
+type SearchItem = {
+  id: string;
+  title: string;
+  thumbnail?: string;
+  price: number;
+  original_price?: number | null;
+  permalink: string;
+  category_id?: string;
+  shipping?: { free_shipping?: boolean };
+};
+
+function improveThumbnail(url?: string): string | null {
+  if (!url) return null;
+  return url.replace(/-I\.jpg(?=\?|$)/i, "-O.jpg");
+}
+
 let cachedToken: { value: string; expiresAt: number } | null = null;
 const offerCache = new Map<string, { result: SearchOffersResult; expiresAt: number }>();
 
@@ -124,11 +140,11 @@ async function fetchCheapestItem(
 export const searchOffers = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z
-      .object({ query: z.string().min(1).max(120), limit: z.number().min(1).max(30).optional() })
+      .object({ query: z.string().min(1).max(120), limit: z.number().min(1).max(50).optional() })
       .parse(data),
   )
   .handler(async ({ data }): Promise<SearchOffersResult> => {
-    const limit = data.limit ?? 12;
+    const limit = data.limit ?? 50;
     const cacheKey = `${data.query.toLowerCase()}|${limit}`;
     const cached = offerCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) return cached.result;
@@ -141,39 +157,76 @@ export const searchOffers = createServerFn({ method: "POST" })
       };
     }
 
-    let products: CatalogProduct[] = [];
+    let offers: Offer[] = [];
     try {
       const res = await fetch(
-        `https://api.mercadolibre.com/products/search?status=active&site_id=MLB&q=${encodeURIComponent(
+        `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(
           data.query,
-        )}&limit=50`,
+        )}&limit=${limit}`,
         { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
       );
       if (res.ok) {
-        const json = (await res.json()) as { results?: CatalogProduct[] };
-        products = json.results ?? [];
+        const json = (await res.json()) as { results?: SearchItem[] };
+        offers = (json.results ?? [])
+          .filter((item) => typeof item.price === "number" && Boolean(item.permalink))
+          .map((item) => {
+            const original = item.original_price && item.original_price > item.price
+              ? item.original_price
+              : null;
+            return {
+              id: item.id,
+              title: item.title,
+              imageUrl: improveThumbnail(item.thumbnail),
+              store: "Mercado Livre",
+              price: item.price,
+              originalPrice: original,
+              discountPercent: original
+                ? Math.round(((original - item.price) / original) * 100)
+                : null,
+              freeShipping: Boolean(item.shipping?.free_shipping),
+              affiliateUrl: withAffiliate(item.permalink),
+              category: item.category_id ?? null,
+              sellerCount: 1,
+            };
+          });
       } else {
-        console.error("Mercado Livre catalog search failed", res.status);
+        console.error("Mercado Livre public search failed", res.status);
       }
     } catch (error) {
-      console.error("Mercado Livre catalog search error", error);
+      console.error("Mercado Livre public search error", error);
     }
 
-    // Many catalog products have no active listing, so walk them in batches
-    // until we collect enough priced offers.
-    const collected: Offer[] = [];
-    const batchSize = 10;
-    for (let index = 0; index < products.length && collected.length < limit; index += batchSize) {
-      const batch = products.slice(index, index + batchSize);
-      const results = await Promise.all(
-        batch.map(async (product) => {
+    // The listing endpoint can be restricted for some Mercado Livre applications.
+    // Keep the real catalog API as a fallback so searches continue to return live inventory.
+    if (offers.length === 0) {
+      let products: CatalogProduct[] = [];
+      try {
+        const res = await fetch(
+          `https://api.mercadolibre.com/products/search?status=active&site_id=MLB&q=${encodeURIComponent(
+            data.query,
+          )}&limit=50`,
+          { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
+        );
+        if (res.ok) {
+          const json = (await res.json()) as { results?: CatalogProduct[] };
+          products = json.results ?? [];
+        }
+      } catch (error) {
+        console.error("Mercado Livre catalog fallback error", error);
+      }
+
+      const collected: Offer[] = [];
+      const batchSize = 10;
+      for (let index = 0; index < products.length && collected.length < limit; index += batchSize) {
+        const batch = products.slice(index, index + batchSize);
+        const results = await Promise.all(batch.map(async (product) => {
           const cheapest = await fetchCheapestItem(product.id, token);
           if (!cheapest) return null;
           const { item, sellerCount } = cheapest;
-          const original =
-            item.original_price && item.original_price > item.price ? item.original_price : null;
-
-          const offer: Offer = {
+          const original = item.original_price && item.original_price > item.price
+            ? item.original_price
+            : null;
+          return {
             id: product.id,
             title: product.name,
             imageUrl: product.pictures?.[0]?.url ?? null,
@@ -187,14 +240,14 @@ export const searchOffers = createServerFn({ method: "POST" })
             affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
             category: product.domain_id ?? null,
             sellerCount,
-          };
-          return offer;
-        }),
-      );
-      for (const offer of results) if (offer) collected.push(offer);
+          } satisfies Offer;
+        }));
+        for (const offer of results) if (offer) collected.push(offer);
+      }
+      offers = collected;
     }
 
-    const offers = collected.slice(0, limit).sort((a, b) => a.price - b.price);
+    offers = offers.slice(0, limit).sort((a, b) => a.price - b.price);
     if (offers.length === 0) {
       return { offers: [], persistence: { ok: true, message: "Nenhuma oferta para salvar." } };
     }

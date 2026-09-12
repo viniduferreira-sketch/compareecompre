@@ -1,4 +1,4 @@
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2 } from "lucide-react";
@@ -12,8 +12,6 @@ import { OfferCard } from "@/components/marketplace/OfferCard";
 import { PopularCategories } from "@/components/marketplace/PopularCategories";
 import { Skeleton } from "@/components/ui/skeleton";
 import { searchOffers, type Offer } from "@/lib/search-offers.functions";
-
-const DEMO_QUERIES = ["iPhone", "Smart TV", "Air Fryer"];
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -89,22 +87,13 @@ function Home() {
   const [term, setTerm] = useState(q ?? "");
   const [selected, setSelected] = useState<Offer | null>(null);
 
-  const demo = useQueries({
-    queries: DEMO_QUERIES.map((query) => ({
-      queryKey: ["offers", query],
-      queryFn: () => run({ data: { query, limit: 8 } }),
-      staleTime: 5 * 60 * 1000,
-    })),
-  });
-
   const search = useQuery({
     queryKey: ["offers", "search", term],
     enabled: term.length > 0,
-    queryFn: () => run({ data: { query: term, limit: 24 } }),
+    queryFn: () => run({ data: { query: term, limit: 50 } }),
   });
 
   const persistenceErrors = [
-    ...demo.map((result) => result.data?.persistence.ok === false ? result.data.persistence.message : null),
     search.data?.persistence.ok === false ? search.data.persistence.message : null,
   ].filter((message): message is string => Boolean(message));
   const persistenceErrorKey = [...new Set(persistenceErrors)].join("\n");
@@ -140,16 +129,12 @@ function Home() {
             onCompare={setSelected}
           />
         ) : (
-          DEMO_QUERIES.map((query, index) => (
-            <OffersGrid
-              key={query}
-              title={query}
-              subtitle="Destaques com o menor preço primeiro"
-              offers={demo[index]?.data?.offers ?? []}
-              isLoading={Boolean(demo[index]?.isLoading)}
-              onCompare={setSelected}
-            />
-          ))
+          <section className="mx-auto max-w-7xl px-4 py-10 text-center">
+            <h2 className="font-display text-2xl font-bold">O que você está procurando?</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Digite um produto na busca para ver ofertas atuais do Mercado Livre.
+            </p>
+          </section>
         )}
       </main>
 
