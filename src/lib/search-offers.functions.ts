@@ -2,6 +2,8 @@ import { algoliasearch } from "algoliasearch";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 export const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 
 export type Offer = {
@@ -154,8 +156,13 @@ export const searchOffers = createServerFn({ method: "POST" })
     const page = Math.floor(offset / limit);
     try {
       const { client, indexName } = getAlgoliaConfig();
+      const searchIndex = data.sort === "price_asc"
+        ? `${indexName}_price_asc`
+        : data.sort === "price_desc"
+          ? `${indexName}_price_desc`
+          : indexName;
       const response = await client.searchSingleIndex<AlgoliaOffer>({
-        indexName,
+        indexName: searchIndex,
         searchParams: {
           query: data.query,
           page,
@@ -184,8 +191,6 @@ export const searchOffers = createServerFn({ method: "POST" })
           sellerCount: hit.sellerCount,
         }];
       });
-      if (data.sort === "price_asc") validOffers.sort((left, right) => left.price - right.price);
-      if (data.sort === "price_desc") validOffers.sort((left, right) => right.price - left.price);
       return {
         offers: validOffers,
         availableFilters: facetsToFilters(response.facets),
@@ -203,6 +208,7 @@ const syncInput = z.object({
 });
 
 export const syncOffersToAlgolia = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => syncInput.parse(data))
   .handler(async ({ data }): Promise<{ indexed: number; skipped: number; message: string }> => {
     const token = await getMeliToken();
@@ -284,13 +290,23 @@ export const syncOffersToAlgolia = createServerFn({ method: "POST" })
       indexName,
       indexSettings: {
         searchableAttributes: ["title", "brand", "categoryName"],
-        attributesForFaceting: ["searchable(categoryName)", "searchable(brand)", "filterOnly(freeShipping)"],
-        customRanking: ["asc(price)"],
+        attributesForFaceting: ["searchable(categoryName)", "searchable(brand)", "freeShipping"],
         typoTolerance: true,
         removeStopWords: ["pt"],
         ignorePlurals: ["pt"],
+        replicas: [`${indexName}_price_asc`, `${indexName}_price_desc`],
       },
     });
     await client.saveObjects({ indexName, objects: records, batchSize: 500, waitForTasks: true });
+    await Promise.all([
+      client.setSettings({
+        indexName: `${indexName}_price_asc`,
+        indexSettings: { ranking: ["asc(price)", "typo", "geo", "words", "filters", "proximity", "attribute", "exact", "custom"] },
+      }),
+      client.setSettings({
+        indexName: `${indexName}_price_desc`,
+        indexSettings: { ranking: ["desc(price)", "typo", "geo", "words", "filters", "proximity", "attribute", "exact", "custom"] },
+      }),
+    ]);
     return { indexed: records.length, skipped, message: `${records.length} ofertas sincronizadas.` };
   });
