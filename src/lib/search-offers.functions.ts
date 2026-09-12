@@ -205,7 +205,24 @@ export const searchOffers = createServerFn({ method: "POST" })
 const syncInput = z.object({
   queries: z.array(z.string().min(2).max(60)).min(1).max(20).optional(),
   recordsPerQuery: z.number().int().min(10).max(100).optional(),
+  maxProducts: z.number().int().min(100).max(1_000).optional(),
 });
+
+const DEFAULT_SYNC_QUERIES = [
+  "celulares",
+  "eletrônicos",
+  "informática",
+  "notebooks",
+  "smart tv",
+  "áudio e fones",
+  "games e consoles",
+  "eletrodomésticos",
+  "casa inteligente",
+  "câmeras",
+];
+
+const DEFAULT_SYNC_PRODUCT_LIMIT = 800;
+const MAX_SEARCH_PAGES = 10;
 
 export const syncOffersToAlgolia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -214,30 +231,46 @@ export const syncOffersToAlgolia = createServerFn({ method: "POST" })
     const token = await getMeliToken();
     if (!token) throw new Error("Não foi possível autenticar a sincronização do Mercado Livre.");
     const { client, indexName } = getAlgoliaConfig();
-    const queries = data.queries ?? [
-      "celular", "notebook", "smart tv", "air fryer", "geladeira", "fone bluetooth",
-      "video game", "máquina de lavar", "aspirador", "cafeteira",
-    ];
-    const limit = data.recordsPerQuery ?? 40;
+    const queries = data.queries ?? DEFAULT_SYNC_QUERIES;
+    const pageSize = Math.min(data.recordsPerQuery ?? 50, 100);
+    const maxProducts = data.maxProducts ?? DEFAULT_SYNC_PRODUCT_LIMIT;
     const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
     const products = new Map<string, CatalogProduct>();
+    const exhaustedQueries = new Set<string>();
 
-    for (const query of queries) {
-      const params = new URLSearchParams({ status: "active", site_id: "MLB", q: query, limit: String(limit) });
-      const response = await fetch(`https://api.mercadolibre.com/products/search?${params}`, { headers });
-      if (!response.ok) {
-        console.error("Mercado Livre sync search failed", query, response.status, await response.text());
-        continue;
+    // Pagina as categorias em rodadas para compor um catálogo amplo e equilibrado,
+    // sem permitir que a primeira categoria consuma todo o limite da sincronização.
+    for (let page = 0; page < MAX_SEARCH_PAGES && products.size < maxProducts; page += 1) {
+      for (const query of queries) {
+        if (products.size >= maxProducts || exhaustedQueries.has(query)) break;
+        const params = new URLSearchParams({
+          status: "active",
+          site_id: "MLB",
+          q: query,
+          limit: String(pageSize),
+          offset: String(page * pageSize),
+        });
+        const response = await fetch(`https://api.mercadolibre.com/products/search?${params}`, { headers });
+        if (!response.ok) {
+          console.error("Mercado Livre sync search failed", query, page, response.status, await response.text());
+          exhaustedQueries.add(query);
+          continue;
+        }
+        const json = (await response.json()) as { results?: CatalogProduct[] };
+        const pageProducts = json.results ?? [];
+        if (pageProducts.length < pageSize) exhaustedQueries.add(query);
+        for (const product of pageProducts) {
+          if (products.size >= maxProducts) break;
+          if (product.id && product.name) products.set(product.id, product);
+        }
       }
-      const json = (await response.json()) as { results?: CatalogProduct[] };
-      for (const product of json.results ?? []) products.set(product.id, product);
     }
 
     const records: AlgoliaOffer[] = [];
     let skipped = 0;
     const productList = [...products.values()];
-    for (let position = 0; position < productList.length; position += 10) {
-      const group = productList.slice(position, position + 10);
+    for (let position = 0; position < productList.length; position += 20) {
+      const group = productList.slice(position, position + 20);
       const mapped = await Promise.all(group.map(async (product): Promise<AlgoliaOffer | null> => {
         try {
           const response = await fetch(
@@ -308,5 +341,9 @@ export const syncOffersToAlgolia = createServerFn({ method: "POST" })
         indexSettings: { ranking: ["desc(price)", "typo", "geo", "words", "filters", "proximity", "attribute", "exact", "custom"] },
       }),
     ]);
-    return { indexed: records.length, skipped, message: `${records.length} ofertas sincronizadas.` };
+    return {
+      indexed: records.length,
+      skipped,
+      message: `${records.length} ofertas sincronizadas de ${productList.length} produtos encontrados.`,
+    };
   });
