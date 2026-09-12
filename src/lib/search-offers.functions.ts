@@ -242,7 +242,8 @@ export const syncOffersToAlgolia = createServerFn({ method: "POST" })
     // sem permitir que a primeira categoria consuma todo o limite da sincronização.
     for (let page = 0; page < MAX_SEARCH_PAGES && products.size < maxProducts; page += 1) {
       for (const query of queries) {
-        if (products.size >= maxProducts || exhaustedQueries.has(query)) break;
+        if (products.size >= maxProducts) break;
+        if (exhaustedQueries.has(query)) continue;
         const params = new URLSearchParams({
           status: "active",
           site_id: "MLB",
