@@ -29,7 +29,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Compare e Compre | Melhores ofertas das maiores lojas do Brasil" },
+      { title: "Compare e Compre | Ofertas do Mercado Livre" },
       {
         name: "description",
         content:
@@ -63,7 +63,7 @@ function FilterSidebar({
   isLoading: boolean;
   onToggle: (id: string, value: string) => void;
 }) {
-  if (isLoading && filters.length === 0) {
+  if (isLoading) {
     return (
       <aside className="space-y-5" aria-label="Carregando filtros">
         {Array.from({ length: 4 }).map((_, index) => (
@@ -207,7 +207,7 @@ function SearchResults({
         <div className="min-w-0">
           {isLoading ? (
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-              {Array.from({ length: 9 }).map((_, index) => <Skeleton key={index} className="h-80 rounded-xl" />)}
+              {Array.from({ length: 9 }).map((_, index) => <Skeleton key={index} className="h-80 rounded-lg" />)}
             </div>
           ) : offers.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-card px-6 py-16 text-center">
