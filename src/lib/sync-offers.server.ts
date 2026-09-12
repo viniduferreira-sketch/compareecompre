@@ -33,6 +33,8 @@ export type SyncOffersResult = {
   message: string;
 };
 
+let cronConfigured = false;
+
 type CatalogProduct = {
   id: string;
   name: string;
@@ -233,4 +235,20 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
   };
   console.info("Algolia sync completed", { ...result, durationMs: Date.now() - startedAt });
   return result;
+}
+
+export async function configureDailyAlgoliaSync(): Promise<void> {
+  if (cronConfigured) return;
+  const cronSecret = process.env["LOVABLE_CRON_SECRET"];
+  if (!cronSecret) throw new Error("O segredo da tarefa agendada não está configurado.");
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin.rpc("configure_algolia_sync_job", {
+    _cron_secret: cronSecret,
+  });
+  if (error) {
+    console.error("Algolia cron configuration failed", error);
+    throw new Error("Não foi possível configurar a tarefa diária.");
+  }
+  cronConfigured = true;
 }

@@ -9,7 +9,8 @@ export const Route = createFileRoute("/api/public/hooks/sync-algolia")({
         if (authError) return authError;
 
         try {
-          const { syncOffersToAlgolia } = await import("@/lib/sync-offers.server");
+          const { configureDailyAlgoliaSync, syncOffersToAlgolia } = await import("@/lib/sync-offers.server");
+          await configureDailyAlgoliaSync();
           const result = await syncOffersToAlgolia({ maxProducts: 800 });
           return Response.json({ success: true, ...result });
         } catch (error) {
