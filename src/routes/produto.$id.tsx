@@ -76,7 +76,7 @@ const FAQ = [
   },
   {
     q: "Qual é o prazo de entrega?",
-    a: "O prazo é calculado pela loja parceira no momento da compra, de acordo com o seu CEP. Muitos anúncios contam com frete grátis.",
+    a: "O prazo é calculado pela loja responsável no momento da compra, de acordo com o seu CEP. Muitos anúncios contam com frete grátis.",
   },
   {
     q: "A compra é segura?",
@@ -84,7 +84,7 @@ const FAQ = [
   },
   {
     q: "Tem garantia do fabricante?",
-    a: "A maioria dos anúncios oferece garantia do fabricante ou do vendedor. O prazo exato aparece na página da loja parceira.",
+    a: "A maioria dos anúncios oferece garantia do fabricante ou do vendedor. O prazo exato aparece na página da loja responsável.",
   },
 ];
 
@@ -101,9 +101,8 @@ function buildHistory(price: number, days: number) {
   return Array.from({ length: points + 1 }, (_, index) => {
     const seed = Math.sin((index + 1) * (days / 7)) * Math.cos(index * 1.7);
     const variation = 1 + seed * 0.06 + (points - index) * 0.0015;
-    const date = new Date(Date.now() - (points - index) * step * 86_400_000);
     return {
-      date: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }),
+      date: index === points ? "Hoje" : `${Math.round((points - index) * step)}d`,
       price: Math.round(price * variation),
     };
   });
@@ -421,7 +420,7 @@ function ProductPage() {
                   </div>
 
                   <p className="mt-3 text-xs text-muted-foreground">
-                    Variação estimada com base no preço atual da loja parceira.
+                    Variação estimada com base no melhor preço encontrado entre as lojas monitoradas.
                   </p>
                 </div>
               </TabsContent>
