@@ -44,6 +44,11 @@
   --color-savings-foreground: var(--savings-foreground);
   --color-store: var(--store);
   --color-store-foreground: var(--store-foreground);
+  --color-footer: var(--footer);
+  --color-footer-foreground: var(--footer-foreground);
+  --color-footer-muted: var(--footer-muted);
+  --color-footer-accent: var(--footer-accent);
+  --color-footer-border: var(--footer-border);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -91,6 +96,11 @@
   --savings-foreground: oklch(0.99 0.01 150);
   --store: oklch(0.9 0.13 95);
   --store-foreground: oklch(0.3 0.06 70);
+  --footer: oklch(0.18 0.025 260);
+  --footer-foreground: oklch(0.97 0.008 85);
+  --footer-muted: oklch(0.73 0.02 85);
+  --footer-accent: oklch(0.82 0.15 85);
+  --footer-border: oklch(1 0 0 / 12%);
   --chart-1: oklch(0.68 0.19 45);
   --chart-2: oklch(0.66 0.16 150);
   --chart-3: oklch(0.24 0.045 260);
@@ -107,6 +117,7 @@
 
   --gradient-hero: linear-gradient(135deg, oklch(0.24 0.045 260) 0%, oklch(0.32 0.08 285) 55%, oklch(0.45 0.15 35) 100%);
   --gradient-primary: linear-gradient(100deg, oklch(0.72 0.18 60) 0%, oklch(0.65 0.2 35) 100%);
+  --gradient-hero-scrim: linear-gradient(90deg, oklch(0.985 0.008 85 / 0.98) 0%, oklch(0.985 0.008 85 / 0.92) 38%, oklch(0.985 0.008 85 / 0.12) 72%);
 }
 
 .dark {
@@ -171,6 +182,10 @@
 
 @utility bg-primary-gradient {
   background-image: var(--gradient-primary);
+}
+
+@utility bg-hero-scrim {
+  background-image: var(--gradient-hero-scrim);
 }
 
 @utility shadow-card {

@@ -13,7 +13,8 @@ const CATEGORIES: { name: string; term: string; Icon: LucideIcon }[] = [
 export function PopularCategories({ onSearch }: { onSearch: (term: string) => void }) {
   return (
     <section className="mx-auto max-w-7xl px-4 pt-9 sm:px-6 lg:px-8">
-      <h2 className="mb-5 font-display text-2xl font-extrabold">Categorias populares</h2>
+      <p className="text-xs font-bold uppercase text-primary">Atalhos para economizar</p>
+      <h2 className="mb-5 mt-1 font-display text-2xl font-extrabold">O que você está procurando?</h2>
 
       <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-7 md:gap-4 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
         {CATEGORIES.map(({ name, term, Icon }) => (

@@ -80,7 +80,7 @@ const FAQ = [
   },
   {
     q: "A compra é segura?",
-    a: "Sim. Você é redirecionado para a página oficial do Mercado Livre, onde o pagamento e a garantia são feitos pela própria loja.",
+    a: "Sim. Você é redirecionado para a página oficial da loja responsável, onde confere o pagamento, a entrega e as condições de garantia.",
   },
   {
     q: "Tem garantia do fabricante?",
@@ -276,13 +276,13 @@ function ProductPage() {
                   </div>
 
                   <p className="shrink-0 text-xs text-muted-foreground sm:text-right">
-                    Vendido por: <span className="font-semibold text-foreground">Mercado Livre</span>
+                    Melhor oferta em: <span className="font-semibold text-foreground">loja verificada</span>
                   </p>
                 </div>
 
                 <Button variant="ink" className="mt-4 h-10 w-full text-sm" asChild>
                   <a href={data.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">
-                    Ir à loja <ExternalLink className="size-3.5" />
+                    Ver melhor oferta <ExternalLink className="size-3.5" />
                   </a>
                 </Button>
 

@@ -11,6 +11,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
+import heroImage from "@/assets/home-commerce-hero.jpg";
 
 export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void }) {
   const [api, setApi] = useState<CarouselApi>();
@@ -29,46 +30,50 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
   }, [api]);
 
   return (
-    <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+    <section className="mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:px-8">
       <Carousel setApi={setApi} opts={{ loop: true }}>
         <CarouselContent>
           <CarouselItem>
-            <div className="relative min-h-[300px] overflow-hidden rounded-2xl bg-store px-6 py-10 md:min-h-[360px] md:px-14 md:py-16">
-              <span className="inline-flex items-center gap-2 rounded-full bg-card/70 px-3 py-1 text-xs font-semibold uppercase text-store-foreground">
-                <Sparkles className="size-3.5" /> Parceiro oficial
+            <div className="relative min-h-[390px] overflow-hidden rounded-xl bg-card px-6 py-11 md:min-h-[440px] md:px-14 md:py-16">
+              <img src={heroImage} alt="Produtos de tecnologia e casa comparados pelo Compare e Compre" width={1600} height={900} className="absolute inset-0 h-full w-full object-cover object-center" />
+              <div className="absolute inset-0 bg-hero-scrim" />
+              <div className="relative max-w-2xl">
+              <span className="inline-flex items-center gap-2 rounded-md bg-card/90 px-3 py-1.5 text-xs font-bold uppercase text-foreground shadow-card">
+                <Sparkles className="size-3.5 text-primary" /> Escolha inteligente
               </span>
-              <h1 className="mt-4 max-w-2xl font-display text-3xl font-extrabold leading-tight text-store-foreground md:text-5xl">
-                As melhores ofertas do Mercado Livre estão aqui!
+              <h1 className="mt-5 max-w-2xl font-display text-3xl font-extrabold leading-tight text-foreground md:text-5xl">
+                Não compre antes de comparar.
               </h1>
-              <p className="mt-3 max-w-xl text-sm text-store-foreground/80 md:text-base">
-                Encontre produtos selecionados, descontos e opções com frete grátis.
+              <p className="mt-4 max-w-xl text-base font-medium leading-7 text-foreground/75 md:text-lg">
+                Encontramos o menor preço nas melhores lojas do Brasil.
               </p>
               <Button
                 variant="hero"
                 className="mt-6 rounded-full px-6"
-                onClick={() => onSearch("ofertas")}
+                onClick={() => onSearch("ofertas do dia")}
               >
-                Explorar ofertas <ArrowRight className="size-4" />
+                Comparar preços <ArrowRight className="size-4" />
               </Button>
+              </div>
             </div>
           </CarouselItem>
 
           <CarouselItem>
-            <div className="relative min-h-[300px] overflow-hidden rounded-2xl bg-hero-gradient px-6 py-10 md:min-h-[360px] md:px-14 md:py-16">
+            <div className="relative min-h-[390px] overflow-hidden rounded-xl bg-hero-gradient px-6 py-11 md:min-h-[440px] md:px-14 md:py-16">
               <span className="inline-flex items-center gap-2 rounded-full bg-ink-foreground/15 px-3 py-1 text-xs font-semibold uppercase text-ink-foreground">
                 <Tag className="size-3.5" /> Compare e Compre
               </span>
               <h2 className="mt-4 max-w-2xl font-display text-3xl font-extrabold leading-tight text-ink-foreground md:text-5xl">
-                As melhores ofertas estão no Compare e Compre
+                Buscamos em grandes lojas. Você escolhe a melhor oferta.
               </h2>
               <p className="mt-3 max-w-xl text-sm text-ink-foreground/80 md:text-base">
-                Busque o que precisa e encontre preços que cabem no seu bolso.
+                Menos tempo procurando, mais confiança para decidir e economia para aproveitar.
               </p>
               <Button
                 className="mt-6 rounded-full bg-ink px-6 text-ink-foreground hover:bg-ink/90"
                 onClick={() => onSearch("Smart TV")}
               >
-                Aproveitar agora <ArrowRight className="size-4" />
+                Encontrar menor preço <ArrowRight className="size-4" />
               </Button>
             </div>
           </CarouselItem>
