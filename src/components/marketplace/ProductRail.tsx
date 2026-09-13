@@ -11,11 +11,15 @@ export function ProductRail({
   description,
   offers,
   isLoading,
+  ranked = false,
+  eyebrow,
 }: {
   title: string;
   description: string;
   offers: Offer[];
   isLoading: boolean;
+  ranked?: boolean;
+  eyebrow?: string;
 }) {
   const railRef = useRef<HTMLDivElement>(null);
   const scroll = (direction: -1 | 1) => {
@@ -29,6 +33,7 @@ export function ProductRail({
     <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
+          {eyebrow ? <p className="mb-1 text-xs font-bold uppercase text-primary">{eyebrow}</p> : null}
           <h2 className="font-display text-2xl font-extrabold text-foreground md:text-3xl">{title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
@@ -50,9 +55,9 @@ export function ProductRail({
           ? Array.from({ length: 5 }).map((_, index) => (
               <Skeleton key={index} className="h-[400px] w-[250px] shrink-0 rounded-lg sm:w-[270px]" />
             ))
-          : offers.map((offer) => (
+          : offers.map((offer, index) => (
               <div key={offer.id} className="w-[250px] shrink-0 snap-start sm:w-[270px]">
-                <OfferCard offer={offer} />
+                <OfferCard offer={offer} {...(ranked ? { rank: index + 1 } : {})} />
               </div>
             ))}
       </div>

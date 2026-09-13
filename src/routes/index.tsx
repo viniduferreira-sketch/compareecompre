@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronLeft, ChevronRight, ShieldCheck, SlidersHorizontal, Truck } from "lucide-react";
+import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 
 import { Header } from "@/components/marketplace/Header";
@@ -10,6 +10,7 @@ import { OfferCard } from "@/components/marketplace/OfferCard";
 import { PopularCategories } from "@/components/marketplace/PopularCategories";
 import { ProductRail } from "@/components/marketplace/ProductRail";
 import { SiteFooter } from "@/components/marketplace/SiteFooter";
+import { MonitoredStores, PriceAlertSignup, TrustBanner } from "@/components/marketplace/HomeExperience";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,17 +31,17 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Compare e Compre | Ofertas do Mercado Livre" },
+      { title: "Compare e Compre | Compare preços online" },
       {
         name: "description",
         content:
           "Compare preços de iPhone, Smart TV, Air Fryer e milhares de produtos entre as maiores lojas do Brasil e compre pela melhor oferta.",
       },
-      { property: "og:title", content: "Compare e Compre | Melhores ofertas do Brasil" },
+      { property: "og:title", content: "Compare e Compre | O menor preço nas melhores lojas" },
       {
         property: "og:description",
         content:
-          "Busque um produto e veja na hora qual loja tem o menor preço. Ofertas atualizadas do Mercado Livre.",
+          "Buscamos nas melhores lojas da internet para você encontrar o menor preço com rapidez e segurança.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -264,35 +265,30 @@ function Home() {
             <HeroCarousel onSearch={startSearch} />
             <PopularCategories onSearch={startSearch} />
             <ProductRail
-              title="Ofertas Imperdíveis"
-              description="Preços selecionados para você aproveitar agora"
-              offers={homeOffers.data?.deals ?? []}
+              eyebrow="Urgência"
+              title="Ofertas que acabam rápido"
+              description="Descontos em destaque para decidir antes que o preço mude"
+              offers={homeOffers.data?.urgent ?? []}
               isLoading={homeOffers.isPending}
             />
-
-            <section className="bg-ink text-ink-foreground">
-              <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-                <div className="flex items-start gap-4">
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                    <ShieldCheck className="size-6" />
-                  </span>
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Compra Garantida e Frete Rápido</h2>
-                    <p className="mt-1 text-sm text-ink-foreground/70">Confira a seleção oficial Mercado Livre e valide as condições na página de cada oferta.</p>
-                  </div>
-                </div>
-                <Button variant="hero" className="shrink-0" onClick={() => startSearch("frete grátis")}>
-                  <Truck className="size-4" /> Conferir seleção
-                </Button>
-              </div>
-            </section>
-
             <ProductRail
-              title="Os Mais Buscados"
-              description="Eletrônicos e smartphones que estão em alta"
+              eyebrow="Oportunidade do dia"
+              title="Baixaram de preço hoje"
+              description="Veja a diferença entre o preço anterior e a melhor oferta atual"
+              offers={homeOffers.data?.priceDrops ?? []}
+              isLoading={homeOffers.isPending}
+            />
+            <TrustBanner />
+            <MonitoredStores />
+            <ProductRail
+              eyebrow="Escolha de quem pesquisa"
+              title="Os mais buscados da semana"
+              description="Produtos que estão concentrando a atenção dos consumidores"
               offers={homeOffers.data?.popular ?? []}
               isLoading={homeOffers.isPending}
+              ranked
             />
+            <PriceAlertSignup />
           </>
         )}
       </main>

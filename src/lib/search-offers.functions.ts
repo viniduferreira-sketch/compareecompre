@@ -184,10 +184,19 @@ export const searchOffers = createServerFn({ method: "POST" })
   });
 
 export const getHomeOffers = createServerFn({ method: "GET" }).handler(
-  async (): Promise<{ deals: Offer[]; popular: Offer[] }> => {
+  async (): Promise<{ urgent: Offer[]; priceDrops: Offer[]; popular: Offer[] }> => {
     try {
       const { client, indexName } = getAlgoliaConfig();
-      const [dealsResponse, popularResponse] = await Promise.all([
+      const [urgentResponse, priceDropsResponse, popularResponse] = await Promise.all([
+        client.searchSingleIndex<AlgoliaOffer>({
+          indexName,
+          searchParams: {
+            query: "",
+            hitsPerPage: 14,
+            filters: "price > 0 AND discountPercent >= 10",
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
+          },
+        }),
         client.searchSingleIndex<AlgoliaOffer>({
           indexName: `${indexName}_price_asc`,
           searchParams: {
@@ -225,10 +234,10 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
         }];
       });
 
-      return { deals: mapHits(dealsResponse.hits), popular: mapHits(popularResponse.hits) };
+      return { urgent: mapHits(urgentResponse.hits), priceDrops: mapHits(priceDropsResponse.hits), popular: mapHits(popularResponse.hits) };
     } catch (error) {
       console.error("Homepage offers failed", error);
-      return { deals: [], popular: [] };
+      return { urgent: [], priceDrops: [], popular: [] };
     }
   },
 );

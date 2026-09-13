@@ -45,7 +45,7 @@ export function CompareDialog({
             <DialogHeader>
               <DialogTitle className="text-left text-lg leading-snug">{offer.title}</DialogTitle>
               <DialogDescription className="text-left">
-                Compare os preços encontrados e compre na loja parceira.
+                Compare os preços encontrados e escolha a melhor oferta entre as lojas monitoradas.
               </DialogDescription>
             </DialogHeader>
 
@@ -74,7 +74,7 @@ export function CompareDialog({
                       target="_blank"
                       rel="noopener noreferrer sponsored"
                     >
-                      Comprar na loja <ExternalLink className="size-4" />
+                      Ver melhor oferta <ExternalLink className="size-4" />
                     </a>
                   </Button>
                 </div>
