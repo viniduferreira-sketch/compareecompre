@@ -3,18 +3,18 @@ import { algoliasearch } from "algoliasearch";
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 const DEFAULT_INDEX_NAME = "produtos_mercado_livre";
 const TARGET_OFFERS_PER_CATEGORY = 100;
-const MAX_SEARCH_PAGES_PER_CATEGORY = 30;
+const MAX_SEARCH_PAGES_PER_QUERY = 10;
 const SEARCH_PAGE_SIZE = 50;
 const ITEM_LOOKUP_CONCURRENCY = 25;
 
 const MENU_CATEGORIES = [
-  { name: "Eletrônicos", query: "eletrônicos" },
-  { name: "Moda", query: "moda" },
-  { name: "Casa", query: "casa" },
-  { name: "Celulares", query: "celulares" },
-  { name: "Games", query: "games" },
-  { name: "Beleza", query: "beleza" },
-  { name: "Esportes", query: "esportes" },
+  { name: "Eletrônicos", queries: ["smart tv", "fone bluetooth", "caixa de som", "tablet", "câmera digital", "smartwatch", "monitor"] },
+  { name: "Moda", queries: ["tênis", "camiseta", "vestido", "calça jeans", "bolsa", "relógio", "jaqueta"] },
+  { name: "Casa", queries: ["air fryer", "liquidificador", "cafeteira", "aspirador", "ventilador", "microondas", "panela elétrica"] },
+  { name: "Celulares", queries: ["iphone", "samsung galaxy", "motorola celular", "xiaomi celular", "realme celular", "smartphone"] },
+  { name: "Games", queries: ["playstation", "xbox", "nintendo switch", "controle gamer", "headset gamer", "cadeira gamer", "jogo videogame"] },
+  { name: "Beleza", queries: ["perfume", "maquiagem", "secador de cabelo", "chapinha", "barbeador", "hidratante", "protetor solar"] },
+  { name: "Esportes", queries: ["bicicleta", "tênis corrida", "halter", "bola futebol", "camisa de time", "suplemento", "mochila esportiva"] },
 ] as const;
 
 type SyncOptions = {
@@ -167,46 +167,45 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     const categoryRecords: AlgoliaOffer[] = [];
     const seenInCategory = new Set<string>();
 
-    for (
-      let page = 0;
-      page < MAX_SEARCH_PAGES_PER_CATEGORY && categoryRecords.length < targetPerCategory;
-      page += 1
-    ) {
-      const params = new URLSearchParams({
-        status: "active",
-        site_id: "MLB",
-        q: category.query,
-        limit: String(pageSize),
-        offset: String(page * pageSize),
-      });
-      const response = await fetch(`https://api.mercadolibre.com/products/search?${params}`, { headers });
-      if (!response.ok) {
-        console.error("Mercado Livre sync search failed", category.name, page, response.status, await response.text());
-        break;
-      }
-
-      const json = (await response.json()) as { results?: CatalogProduct[] };
-      const pageProducts = (json.results ?? []).filter((product) => {
-        if (!product.id || !product.name || seenInCategory.has(product.id) || indexedIds.has(product.id)) return false;
-        seenInCategory.add(product.id);
-        return true;
-      });
-      discovered += pageProducts.length;
-
-      for (let position = 0; position < pageProducts.length; position += ITEM_LOOKUP_CONCURRENCY) {
-        if (categoryRecords.length >= targetPerCategory) break;
-        const group = pageProducts.slice(position, position + ITEM_LOOKUP_CONCURRENCY);
-        const mapped = await Promise.all(group.map((product) => mapProduct(product, category.name)));
-        for (const record of mapped) {
-          if (!record || categoryRecords.length >= targetPerCategory) {
-            if (!record) skipped += 1;
-            continue;
-          }
-          categoryRecords.push(record);
-          indexedIds.add(record.objectID);
+    for (const query of category.queries) {
+      if (categoryRecords.length >= targetPerCategory) break;
+      for (let page = 0; page < MAX_SEARCH_PAGES_PER_QUERY; page += 1) {
+        const params = new URLSearchParams({
+          status: "active",
+          site_id: "MLB",
+          q: query,
+          limit: String(pageSize),
+          offset: String(page * pageSize),
+        });
+        const response = await fetch(`https://api.mercadolibre.com/products/search?${params}`, { headers });
+        if (!response.ok) {
+          console.error("Mercado Livre sync search failed", category.name, query, page, response.status, await response.text());
+          break;
         }
+
+        const json = (await response.json()) as { results?: CatalogProduct[] };
+        const pageProducts = (json.results ?? []).filter((product) => {
+          if (!product.id || !product.name || seenInCategory.has(product.id) || indexedIds.has(product.id)) return false;
+          seenInCategory.add(product.id);
+          return true;
+        });
+        discovered += pageProducts.length;
+
+        for (let position = 0; position < pageProducts.length; position += ITEM_LOOKUP_CONCURRENCY) {
+          if (categoryRecords.length >= targetPerCategory) break;
+          const group = pageProducts.slice(position, position + ITEM_LOOKUP_CONCURRENCY);
+          const mapped = await Promise.all(group.map((product) => mapProduct(product, category.name)));
+          for (const record of mapped) {
+            if (!record || categoryRecords.length >= targetPerCategory) {
+              if (!record) skipped += 1;
+              continue;
+            }
+            categoryRecords.push(record);
+            indexedIds.add(record.objectID);
+          }
+        }
+        if (categoryRecords.length >= targetPerCategory || (json.results ?? []).length < pageSize) break;
       }
-      if ((json.results ?? []).length < pageSize) break;
     }
 
     if (categoryRecords.length < targetPerCategory) {
