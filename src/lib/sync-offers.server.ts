@@ -69,6 +69,21 @@ type AlgoliaOffer = {
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
+async function fetchWithRetry(input: string, init?: RequestInit, attempts = 3): Promise<Response> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetch(input, init);
+      if (response.status < 500 || attempt === attempts) return response;
+    } catch (error) {
+      lastError = error;
+      if (attempt === attempts) throw error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+  }
+  throw lastError instanceof Error ? lastError : new Error("Falha temporária ao consultar o Mercado Livre.");
+}
+
 async function getMeliToken(): Promise<string> {
   if (cachedToken && cachedToken.expiresAt > Date.now() + 30_000) return cachedToken.value;
 
@@ -76,7 +91,7 @@ async function getMeliToken(): Promise<string> {
   const clientSecret = process.env["ML_CLIENT_SECRET"];
   if (!clientId || !clientSecret) throw new Error("As credenciais do Mercado Livre não estão configuradas.");
 
-  const response = await fetch("https://api.mercadolibre.com/oauth/token", {
+  const response = await fetchWithRetry("https://api.mercadolibre.com/oauth/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
     body: new URLSearchParams({
@@ -123,7 +138,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
 
   const mapProduct = async (product: CatalogProduct, categoryName: string): Promise<AlgoliaOffer | null> => {
     try {
-      const response = await fetch(
+      const response = await fetchWithRetry(
         `https://api.mercadolibre.com/products/${encodeURIComponent(product.id)}/items?limit=20`,
         { headers },
       );
@@ -177,7 +192,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
           limit: String(pageSize),
           offset: String(page * pageSize),
         });
-        const response = await fetch(`https://api.mercadolibre.com/products/search?${params}`, { headers });
+        const response = await fetchWithRetry(`https://api.mercadolibre.com/products/search?${params}`, { headers });
         if (!response.ok) {
           console.error("Mercado Livre sync search failed", category.name, query, page, response.status, await response.text());
           break;
