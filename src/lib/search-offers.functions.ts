@@ -182,3 +182,53 @@ export const searchOffers = createServerFn({ method: "POST" })
       return emptyResult(offset, limit);
     }
   });
+
+export const getHomeOffers = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{ deals: Offer[]; popular: Offer[] }> => {
+    try {
+      const { client, indexName } = getAlgoliaConfig();
+      const [dealsResponse, popularResponse] = await Promise.all([
+        client.searchSingleIndex<AlgoliaOffer>({
+          indexName: `${indexName}_price_asc`,
+          searchParams: {
+            query: "",
+            hitsPerPage: 14,
+            filters: "price > 0",
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
+          },
+        }),
+        client.searchSingleIndex<AlgoliaOffer>({
+          indexName,
+          searchParams: {
+            query: "smartphone eletrônico",
+            hitsPerPage: 14,
+            typoTolerance: true,
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
+          },
+        }),
+      ]);
+
+      const mapHits = (hits: AlgoliaOffer[]) => hits.flatMap((hit) => {
+        if (!Number.isFinite(hit.price) || hit.price <= 0) return [];
+        return [{
+          id: hit.objectID,
+          title: hit.title,
+          imageUrl: hit.imageUrl,
+          store: hit.store,
+          price: hit.price,
+          originalPrice: hit.originalPrice,
+          discountPercent: hit.discountPercent,
+          freeShipping: Boolean(hit.freeShipping),
+          affiliateUrl: hit.affiliateUrl,
+          category: hit.category,
+          sellerCount: hit.sellerCount,
+        }];
+      });
+
+      return { deals: mapHits(dealsResponse.hits), popular: mapHits(popularResponse.hits) };
+    } catch (error) {
+      console.error("Homepage offers failed", error);
+      return { deals: [], popular: [] };
+    }
+  },
+);

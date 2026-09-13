@@ -25,6 +25,7 @@ import {
 } from "recharts";
 
 import { Header } from "@/components/marketplace/Header";
+import { SiteFooter } from "@/components/marketplace/SiteFooter";
 import {
   Accordion,
   AccordionContent,
@@ -479,9 +480,7 @@ function ProductPage() {
         )}
       </main>
 
-      <footer className="mt-10 border-t border-border py-8 text-center text-xs text-muted-foreground">
-        Compare e Compre · Preços e disponibilidade podem mudar na loja parceira.
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

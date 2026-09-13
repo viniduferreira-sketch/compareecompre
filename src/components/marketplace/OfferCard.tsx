@@ -8,9 +8,9 @@ import type { Offer } from "@/lib/search-offers.functions";
 export const formatBRL = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export function OfferCard({ offer, onCompare }: { offer: Offer; onCompare: (offer: Offer) => void }) {
+export function OfferCard({ offer }: { offer: Offer }) {
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lift">
+    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lift">
       <Link
         to="/produto/$id"
         params={{ id: offer.id }}
@@ -40,6 +40,7 @@ export function OfferCard({ offer, onCompare }: { offer: Offer; onCompare: (offe
       </Link>
 
       <div className="flex flex-1 flex-col gap-3 p-4">
+        <p className="text-[10px] font-bold uppercase text-muted-foreground">Mercado Livre</p>
         <Link
           to="/produto/$id"
           params={{ id: offer.id }}
@@ -64,14 +65,11 @@ export function OfferCard({ offer, onCompare }: { offer: Offer; onCompare: (offe
           ) : null}
         </div>
 
-        <div className="flex gap-2">
-          <Button variant="hero" className="flex-1" asChild>
+        <div>
+          <Button variant="hero" className="w-full" asChild>
             <a href={offer.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">
-              Ver Oferta na Loja <ExternalLink className="size-4" />
+              Ver no Mercado Livre <ExternalLink className="size-4" />
             </a>
-          </Button>
-          <Button variant="softInk" size="icon" onClick={() => onCompare(offer)} aria-label="Comparar">
-            ⇄
           </Button>
         </div>
       </div>
