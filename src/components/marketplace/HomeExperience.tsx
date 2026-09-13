@@ -1,5 +1,5 @@
 import { BadgeCheck, BellRing, Building2, Check, Mail, ShieldCheck, Sparkles, Store } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 

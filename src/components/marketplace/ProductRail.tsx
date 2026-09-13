@@ -57,7 +57,7 @@ export function ProductRail({
             ))
           : offers.map((offer, index) => (
               <div key={offer.id} className="w-[250px] shrink-0 snap-start sm:w-[270px]">
-                <OfferCard offer={offer} rank={ranked ? index + 1 : undefined} />
+                <OfferCard offer={offer} {...(ranked ? { rank: index + 1 } : {})} />
               </div>
             ))}
       </div>
