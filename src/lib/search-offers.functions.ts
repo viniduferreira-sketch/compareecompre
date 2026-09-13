@@ -200,7 +200,7 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
         client.searchSingleIndex<AlgoliaOffer>({
           indexName,
           searchParams: {
-            query: "smartphone eletrônico",
+            query: "smartphone",
             hitsPerPage: 14,
             typoTolerance: true,
             attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
