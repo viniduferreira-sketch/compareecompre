@@ -1,14 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShieldCheck, SlidersHorizontal, Truck } from "lucide-react";
 import { useState } from "react";
 
-import { CompareDialog } from "@/components/marketplace/CompareDialog";
 import { Header } from "@/components/marketplace/Header";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import { OfferCard } from "@/components/marketplace/OfferCard";
 import { PopularCategories } from "@/components/marketplace/PopularCategories";
+import { ProductRail } from "@/components/marketplace/ProductRail";
+import { SiteFooter } from "@/components/marketplace/SiteFooter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import {
   searchOffers,
+  getHomeOffers,
   type Offer,
   type OfferFilter,
   type OfferSort,
@@ -147,7 +149,6 @@ function SearchResults({
   total,
   pageSize,
   isLoading,
-  onCompare,
   onSort,
   onPage,
 }: {
@@ -159,7 +160,6 @@ function SearchResults({
   total: number;
   pageSize: number;
   isLoading: boolean;
-  onCompare: (offer: Offer) => void;
   onSort: (sort: OfferSort) => void;
   onPage: (page: number) => void;
 }) {
@@ -198,7 +198,7 @@ function SearchResults({
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-              {offers.map((offer) => <OfferCard key={`${offer.store}-${offer.id}`} offer={offer} onCompare={onCompare} />)}
+              {offers.map((offer) => <OfferCard key={`${offer.store}-${offer.id}`} offer={offer} />)}
             </div>
           )}
           {!isLoading && offers.length > 0 ? (
@@ -212,9 +212,9 @@ function SearchResults({
 
 function Home() {
   const run = useServerFn(searchOffers);
+  const loadHome = useServerFn(getHomeOffers);
   const { q } = Route.useSearch();
   const [term, setTerm] = useState(q ?? "");
-  const [selected, setSelected] = useState<Offer | null>(null);
   const [sort, setSort] = useState<OfferSort>("relevance");
   const [page, setPage] = useState(1);
 
@@ -229,6 +229,12 @@ function Home() {
     queryFn: () => run({
       data: { query: term, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, sort },
     }),
+  });
+  const homeOffers = useQuery({
+    queryKey: ["offers", "home"],
+    queryFn: () => loadHome(),
+    enabled: term.length === 0,
+    staleTime: 15 * 60 * 1000,
   });
   const validOffers = (search.data?.offers ?? []).filter(
     (offer) => Number.isFinite(offer.price) && offer.price > 0,
@@ -250,7 +256,6 @@ function Home() {
             total={search.data?.paging.total ?? 0}
             pageSize={search.data?.paging.limit ?? PAGE_SIZE}
             isLoading={isSearchLoading}
-            onCompare={setSelected}
             onSort={(value) => { setSort(value); setPage(1); }}
             onPage={(value) => { setPage(value); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           />
@@ -258,16 +263,41 @@ function Home() {
           <>
             <HeroCarousel onSearch={startSearch} />
             <PopularCategories onSearch={startSearch} />
+            <ProductRail
+              title="Ofertas Imperdíveis"
+              description="Preços selecionados para você aproveitar agora"
+              offers={homeOffers.data?.deals ?? []}
+              isLoading={homeOffers.isPending}
+            />
+
+            <section className="bg-ink text-ink-foreground">
+              <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+                <div className="flex items-start gap-4">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                    <ShieldCheck className="size-6" />
+                  </span>
+                  <div>
+                    <h2 className="font-display text-xl font-bold">Compra Garantida e Frete Rápido</h2>
+                    <p className="mt-1 text-sm text-ink-foreground/70">Confira a seleção oficial Mercado Livre e valide as condições na página de cada oferta.</p>
+                  </div>
+                </div>
+                <Button variant="hero" className="shrink-0" onClick={() => startSearch("frete grátis")}>
+                  <Truck className="size-4" /> Conferir seleção
+                </Button>
+              </div>
+            </section>
+
+            <ProductRail
+              title="Os Mais Buscados"
+              description="Eletrônicos e smartphones que estão em alta"
+              offers={homeOffers.data?.popular ?? []}
+              isLoading={homeOffers.isPending}
+            />
           </>
         )}
       </main>
 
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        Compare e Compre · Preços e disponibilidade podem mudar na loja parceira. Podemos receber
-        comissão pelas compras realizadas.
-      </footer>
-
-      <CompareDialog offer={selected} onOpenChange={(open) => !open && setSelected(null)} />
+      <SiteFooter />
     </div>
   );
 }
