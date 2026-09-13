@@ -2,34 +2,31 @@ import { algoliasearch } from "algoliasearch";
 
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 const DEFAULT_INDEX_NAME = "produtos_mercado_livre";
-const DEFAULT_PRODUCT_LIMIT = 800;
-const MAX_SEARCH_PAGES = 10;
+const TARGET_OFFERS_PER_CATEGORY = 100;
+const MAX_SEARCH_PAGES_PER_CATEGORY = 30;
 const SEARCH_PAGE_SIZE = 50;
-const ITEM_LOOKUP_CONCURRENCY = 20;
+const ITEM_LOOKUP_CONCURRENCY = 25;
 
-const DEFAULT_QUERIES = [
-  "celulares",
-  "eletrônicos",
-  "informática",
-  "notebooks",
-  "smart tv",
-  "áudio e fones",
-  "games e consoles",
-  "eletrodomésticos",
-  "casa inteligente",
-  "câmeras",
-];
+const MENU_CATEGORIES = [
+  { name: "Eletrônicos", query: "eletrônicos" },
+  { name: "Moda", query: "moda" },
+  { name: "Casa", query: "casa" },
+  { name: "Celulares", query: "celulares" },
+  { name: "Games", query: "games" },
+  { name: "Beleza", query: "beleza" },
+  { name: "Esportes", query: "esportes" },
+] as const;
 
 type SyncOptions = {
-  queries?: string[];
   recordsPerQuery?: number;
-  maxProducts?: number;
+  targetPerCategory?: number;
 };
 
 export type SyncOffersResult = {
   indexed: number;
   skipped: number;
   discovered: number;
+  categories: Record<string, number>;
   message: string;
 };
 
@@ -44,6 +41,9 @@ type CatalogProduct = {
 };
 
 type CatalogItem = {
+  id?: string;
+  title?: string;
+  thumbnail?: string;
   price?: number;
   original_price?: number | null;
   category_id?: string;
@@ -112,94 +112,108 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
   const startedAt = Date.now();
   const token = await getMeliToken();
   const { client, indexName } = getAlgoliaConfig();
-  const queries = options.queries ?? DEFAULT_QUERIES;
   const pageSize = Math.min(options.recordsPerQuery ?? SEARCH_PAGE_SIZE, 100);
-  const maxProducts = Math.min(options.maxProducts ?? DEFAULT_PRODUCT_LIMIT, 1_000);
+  const targetPerCategory = Math.min(options.targetPerCategory ?? TARGET_OFFERS_PER_CATEGORY, 150);
   const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
-  const products = new Map<string, CatalogProduct>();
-  const exhaustedQueries = new Set<string>();
+  const records: AlgoliaOffer[] = [];
+  const indexedIds = new Set<string>();
+  const categories: Record<string, number> = {};
+  let discovered = 0;
+  let skipped = 0;
 
-  for (let page = 0; page < MAX_SEARCH_PAGES && products.size < maxProducts; page += 1) {
-    for (const query of queries) {
-      if (products.size >= maxProducts) break;
-      if (exhaustedQueries.has(query)) continue;
+  const mapProduct = async (product: CatalogProduct, categoryName: string): Promise<AlgoliaOffer | null> => {
+    try {
+      const response = await fetch(
+        `https://api.mercadolibre.com/products/${encodeURIComponent(product.id)}/items?limit=20`,
+        { headers },
+      );
+      if (!response.ok) return null;
 
+      const json = (await response.json()) as { results?: CatalogItem[] };
+      const items = (json.results ?? []).filter(
+        (item) => typeof item.price === "number" && Number.isFinite(item.price) && item.price > 0,
+      );
+      if (items.length === 0) return null;
+
+      const cheapest = items.reduce((best, item) => Number(item.price) < Number(best.price) ? item : best);
+      const price = Number(cheapest.price);
+      const originalPrice = cheapest.original_price && cheapest.original_price > price
+        ? cheapest.original_price
+        : null;
+      const brand = product.attributes?.find((attribute) => attribute.id === "BRAND")?.value_name ?? null;
+
+      return {
+        objectID: product.id,
+        title: product.name,
+        imageUrl: product.pictures?.[0]?.url ?? cheapest.thumbnail ?? null,
+        store: "Mercado Livre",
+        price,
+        originalPrice,
+        discountPercent: originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : null,
+        freeShipping: Boolean(cheapest.shipping?.free_shipping),
+        affiliateUrl: withAffiliate(cheapest.permalink ?? `https://www.mercadolivre.com.br/p/${product.id}`),
+        category: cheapest.category_id ?? product.domain_id ?? null,
+        categoryName,
+        brand,
+        sellerCount: items.length,
+      };
+    } catch (error) {
+      console.error("Mercado Livre sync item failed", product.id, error);
+      return null;
+    }
+  };
+
+  for (const category of MENU_CATEGORIES) {
+    const categoryRecords: AlgoliaOffer[] = [];
+    const seenInCategory = new Set<string>();
+
+    for (
+      let page = 0;
+      page < MAX_SEARCH_PAGES_PER_CATEGORY && categoryRecords.length < targetPerCategory;
+      page += 1
+    ) {
       const params = new URLSearchParams({
         status: "active",
         site_id: "MLB",
-        q: query,
+        q: category.query,
         limit: String(pageSize),
         offset: String(page * pageSize),
       });
       const response = await fetch(`https://api.mercadolibre.com/products/search?${params}`, { headers });
       if (!response.ok) {
-        console.error("Mercado Livre sync search failed", query, page, response.status, await response.text());
-        exhaustedQueries.add(query);
-        continue;
+        console.error("Mercado Livre sync search failed", category.name, page, response.status, await response.text());
+        break;
       }
 
       const json = (await response.json()) as { results?: CatalogProduct[] };
-      const pageProducts = json.results ?? [];
-      if (pageProducts.length < pageSize) exhaustedQueries.add(query);
-      for (const product of pageProducts) {
-        if (products.size >= maxProducts) break;
-        if (product.id && product.name) products.set(product.id, product);
+      const pageProducts = (json.results ?? []).filter((product) => {
+        if (!product.id || !product.name || seenInCategory.has(product.id) || indexedIds.has(product.id)) return false;
+        seenInCategory.add(product.id);
+        return true;
+      });
+      discovered += pageProducts.length;
+
+      for (let position = 0; position < pageProducts.length; position += ITEM_LOOKUP_CONCURRENCY) {
+        if (categoryRecords.length >= targetPerCategory) break;
+        const group = pageProducts.slice(position, position + ITEM_LOOKUP_CONCURRENCY);
+        const mapped = await Promise.all(group.map((product) => mapProduct(product, category.name)));
+        for (const record of mapped) {
+          if (!record || categoryRecords.length >= targetPerCategory) {
+            if (!record) skipped += 1;
+            continue;
+          }
+          categoryRecords.push(record);
+          indexedIds.add(record.objectID);
+        }
       }
+      if ((json.results ?? []).length < pageSize) break;
     }
-  }
 
-  const records: AlgoliaOffer[] = [];
-  let skipped = 0;
-  const productList = [...products.values()];
-  for (let position = 0; position < productList.length; position += ITEM_LOOKUP_CONCURRENCY) {
-    const group = productList.slice(position, position + ITEM_LOOKUP_CONCURRENCY);
-    const mapped = await Promise.all(group.map(async (product): Promise<AlgoliaOffer | null> => {
-      try {
-        const response = await fetch(
-          `https://api.mercadolibre.com/products/${encodeURIComponent(product.id)}/items?limit=20`,
-          { headers },
-        );
-        if (!response.ok) return null;
-
-        const json = (await response.json()) as { results?: CatalogItem[] };
-        const items = (json.results ?? []).filter(
-          (item) => typeof item.price === "number" && Number.isFinite(item.price) && item.price > 0,
-        );
-        if (items.length === 0) return null;
-
-        const cheapest = items.reduce((best, item) => Number(item.price) < Number(best.price) ? item : best);
-        const price = Number(cheapest.price);
-        const originalPrice = cheapest.original_price && cheapest.original_price > price
-          ? cheapest.original_price
-          : null;
-        const brand = product.attributes?.find((attribute) => attribute.id === "BRAND")?.value_name ?? null;
-        const categoryName = product.domain_id?.replace(/^MLB-/, "").replaceAll("-", " ") ?? null;
-
-        return {
-          objectID: product.id,
-          title: product.name,
-          imageUrl: product.pictures?.[0]?.url ?? null,
-          store: "Mercado Livre",
-          price,
-          originalPrice,
-          discountPercent: originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : null,
-          freeShipping: Boolean(cheapest.shipping?.free_shipping),
-          affiliateUrl: withAffiliate(cheapest.permalink ?? `https://www.mercadolivre.com.br/p/${product.id}`),
-          category: cheapest.category_id ?? product.domain_id ?? null,
-          categoryName,
-          brand,
-          sellerCount: items.length,
-        };
-      } catch (error) {
-        console.error("Mercado Livre sync item failed", product.id, error);
-        return null;
-      }
-    }));
-
-    for (const record of mapped) {
-      if (record) records.push(record);
-      else skipped += 1;
+    if (categoryRecords.length < targetPerCategory) {
+      throw new Error(`${category.name}: somente ${categoryRecords.length} ofertas válidas encontradas.`);
     }
+    categories[category.name] = categoryRecords.length;
+    records.push(...categoryRecords);
   }
 
   if (records.length === 0) throw new Error("A sincronização não encontrou ofertas com preço válido.");
@@ -215,7 +229,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
       replicas: [`${indexName}_price_asc`, `${indexName}_price_desc`],
     },
   });
-  await client.saveObjects({ indexName, objects: records, batchSize: 500, waitForTasks: true });
+  await client.replaceAllObjects({ indexName, objects: records, batchSize: 500 });
   await Promise.all([
     client.setSettings({
       indexName: `${indexName}_price_asc`,
@@ -230,8 +244,9 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
   const result = {
     indexed: records.length,
     skipped,
-    discovered: productList.length,
-    message: `${records.length} ofertas sincronizadas de ${productList.length} produtos encontrados.`,
+    discovered,
+    categories,
+    message: `${records.length} ofertas sincronizadas, com ${targetPerCategory} em cada categoria.`,
   };
   console.info("Algolia sync completed", { ...result, durationMs: Date.now() - startedAt });
   return result;
