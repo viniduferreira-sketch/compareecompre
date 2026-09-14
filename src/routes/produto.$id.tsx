@@ -172,7 +172,6 @@ function prettyCategory(domain: string | null) {
 }
 
 function ProductPage() {
-  const { id } = Route.useParams();
   const data = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const [activeImage, setActiveImage] = useState(0);
