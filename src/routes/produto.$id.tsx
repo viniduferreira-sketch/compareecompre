@@ -1,6 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import {
   BellRing,
   ChevronRight,
@@ -34,30 +32,89 @@ import {
 } from "@/components/ui/accordion";
 import { formatBRL } from "@/components/marketplace/OfferCard";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { getProductDetail } from "@/lib/product-detail.functions";
 
 export const Route = createFileRoute("/produto/$id")({
-  head: () => ({
-    meta: [
-      { title: "Detalhes do produto | Compare e Compre" },
-      {
-        name: "description",
-        content:
-          "Veja fotos, ficha técnica, prós e contras e o menor preço encontrado para este produto nas lojas parceiras.",
-      },
-      { property: "og:title", content: "Detalhes do produto | Compare e Compre" },
-      {
-        property: "og:description",
-        content: "Compare o preço deste produto e compre pela melhor oferta do Brasil.",
-      },
-      { property: "og:type", content: "product" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  loader: ({ params }) => getProductDetail({ data: { id: params.id } }),
+  head: ({ loaderData }) => {
+    const product = loaderData;
+    const title = product
+      ? `${product.title.slice(0, 38)} | Compare e Compre`
+      : "Detalhes do produto | Compare e Compre";
+    const description = product?.description.slice(0, 155)
+      ?? "Veja fotos, ficha técnica e o menor preço encontrado para este produto nas lojas parceiras.";
+    const image = product?.images.find((url) => url.startsWith("https://"));
+    const validPrice = product?.price && Number.isFinite(product.price) && product.price > 0
+      ? product.price
+      : null;
+    const productSchema = product
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.title,
+          description: product.description,
+          sku: product.id,
+          ...(product.images.length > 0 ? { image: product.images } : {}),
+          ...(validPrice
+            ? {
+                offers: {
+                  "@type": "Offer",
+                  priceCurrency: "BRL",
+                  price: validPrice.toFixed(2),
+                  availability: "https://schema.org/InStock",
+                  url: product.affiliateUrl,
+                  seller: {
+                    "@type": "Organization",
+                    name: "Mercado Livre",
+                  },
+                },
+              }
+            : {}),
+        }
+      : null;
+    const faqSchema = product
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQ.map((item) => ({
+            "@type": "Question",
+            name: item.q,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: item.a,
+            },
+          })),
+        }
+      : null;
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "product" },
+        { name: "twitter:card", content: "summary_large_image" },
+        ...(image
+          ? [
+              { property: "og:image", content: image },
+              { name: "twitter:image", content: image },
+            ]
+          : []),
+      ],
+      scripts: [productSchema, faqSchema].flatMap((schema) =>
+        schema
+          ? [{
+              type: "application/ld+json",
+              children: JSON.stringify(schema).replace(/</g, "\\u003c"),
+            }]
+          : [],
+      ),
+    };
+  },
   component: ProductPage,
 });
 
@@ -116,19 +173,13 @@ function prettyCategory(domain: string | null) {
 
 function ProductPage() {
   const { id } = Route.useParams();
+  const data = Route.useLoaderData();
   const navigate = Route.useNavigate();
-  const run = useServerFn(getProductDetail);
   const [activeImage, setActiveImage] = useState(0);
   const [alert, setAlert] = useState(false);
   const [favorite, setFavorite] = useState(false);
   const [helpful, setHelpful] = useState<boolean | null>(null);
   const [period, setPeriod] = useState(PERIODS[0]!.days);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ["product-detail", id],
-    queryFn: () => run({ data: { id } }),
-    staleTime: 5 * 60 * 1000,
-  });
 
   const history = useMemo(
     () => buildHistory(data?.price ?? 1000, period),
@@ -146,16 +197,7 @@ function ProductPage() {
       />
 
       <main className="mx-auto max-w-5xl px-5 py-8 text-sm sm:px-8 lg:px-12">
-        {isLoading ? (
-          <div className="space-y-6">
-            <Skeleton className="h-6 w-64" />
-            <Skeleton className="h-10 w-96 max-w-full" />
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Skeleton className="h-96 rounded-2xl" />
-              <Skeleton className="h-96 rounded-2xl" />
-            </div>
-          </div>
-        ) : !data ? (
+        {!data ? (
           <p className="rounded-2xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
             Não encontramos os detalhes deste produto.{" "}
             <Link to="/" className="text-primary underline">
