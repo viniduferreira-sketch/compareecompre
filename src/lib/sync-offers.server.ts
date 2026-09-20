@@ -1,5 +1,7 @@
 import { algoliasearch } from "algoliasearch";
 
+import { fetchQA_MercadoLivre, type PartnerQA } from "@/lib/partner-qa.server";
+
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 const DEFAULT_INDEX_NAME = "produtos_mercado_livre";
 const TARGET_OFFERS_PER_CATEGORY = 100;
@@ -53,6 +55,7 @@ type CatalogItem = {
 
 type AlgoliaOffer = {
   objectID: string;
+  itemId: string;
   title: string;
   imageUrl: string | null;
   store: string;
@@ -65,6 +68,7 @@ type AlgoliaOffer = {
   categoryName: string | null;
   brand: string | null;
   sellerCount: number;
+  qa: PartnerQA[];
 };
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
@@ -156,9 +160,12 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
         ? cheapest.original_price
         : null;
       const brand = product.attributes?.find((attribute) => attribute.id === "BRAND")?.value_name ?? null;
+       const itemId = cheapest.id?.trim() ?? "";
+       const qa = itemId ? await fetchQA_MercadoLivre(itemId, headers, fetchWithRetry) : [];
 
       return {
         objectID: product.id,
+         itemId,
         title: product.name,
         imageUrl: product.pictures?.[0]?.url ?? cheapest.thumbnail ?? null,
         store: "Mercado Livre",
@@ -171,6 +178,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
         categoryName,
         brand,
         sellerCount: items.length,
+         qa,
       };
     } catch (error) {
       console.error("Mercado Livre sync item failed", product.id, error);

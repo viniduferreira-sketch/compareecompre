@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
+import { algoliasearch } from "algoliasearch";
 import { z } from "zod";
 
 import { getMeliToken, withAffiliate } from "@/lib/search-offers.functions";
+import type { PartnerQA } from "@/lib/partner-qa.server";
 
 export type ProductAttribute = { name: string; value: string };
 
@@ -20,7 +22,38 @@ export type ProductDetail = {
   attributes: ProductAttribute[];
   pros: string[];
   cons: string[];
+  qa: PartnerQA[];
 };
+
+function isPartnerQA(value: unknown): value is PartnerQA {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.question === "string"
+    && typeof item.date === "string"
+    && typeof item.source === "string"
+    && (item.answer === undefined || typeof item.answer === "string");
+}
+
+async function getIndexedQA(productId: string): Promise<PartnerQA[]> {
+  const applicationId = process.env["ALGOLIA_APPLICATION_ID"];
+  const apiKey = process.env["ALGOLIA_API_KEY"];
+  const indexName = process.env["ALGOLIA_INDEX_NAME"] ?? "produtos_mercado_livre";
+  if (!applicationId || !apiKey) return [];
+
+  try {
+    const record = await algoliasearch(applicationId, apiKey).getObject<{ qa?: unknown }>({
+      indexName,
+      objectID: productId,
+      attributesToRetrieve: ["qa"],
+    });
+    return Array.isArray(record.qa)
+      ? record.qa.filter(isPartnerQA).sort((left, right) => Date.parse(right.date) - Date.parse(left.date))
+      : [];
+  } catch (error) {
+    console.warn("Indexed product Q&A unavailable", productId, error);
+    return [];
+  }
+}
 
 type MeliProduct = {
   id: string;
@@ -89,6 +122,7 @@ export const getProductDetail = createServerFn({ method: "POST" })
       .map((picture) => picture.secure_url ?? picture.url)
       .filter((url): url is string => Boolean(url))
       .slice(0, 8);
+    const qa = await getIndexedQA(product.id);
 
     const attributeValue = (needle: string) =>
       attributes.find((attribute) => attribute.name.toLowerCase().includes(needle))?.value ?? null;
@@ -126,5 +160,6 @@ export const getProductDetail = createServerFn({ method: "POST" })
       attributes,
       pros,
       cons,
+       qa,
     };
   });
