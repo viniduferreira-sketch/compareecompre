@@ -29,7 +29,7 @@ function isPartnerQA(value: unknown): value is PartnerQA {
   if (!value || typeof value !== "object") return false;
   const item = value as Record<string, unknown>;
   return typeof item["pergunta"] === "string"
-    && typeof item["date"] === "string"
+    && typeof item["data"] === "string"
     && typeof item["source"] === "string"
     && (item["resposta"] === undefined || typeof item["resposta"] === "string");
 }
@@ -47,7 +47,7 @@ async function getIndexedQA(productId: string): Promise<PartnerQA[]> {
       attributesToRetrieve: ["qa"],
     });
     return Array.isArray(record.qa)
-      ? record.qa.filter(isPartnerQA).sort((left, right) => Date.parse(right.date) - Date.parse(left.date))
+      ? record.qa.filter(isPartnerQA).sort((left, right) => Date.parse(right.data) - Date.parse(left.data))
       : [];
   } catch (error) {
     console.warn("Indexed product Q&A unavailable", productId, error);

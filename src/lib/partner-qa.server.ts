@@ -1,7 +1,7 @@
 export type PartnerQA = {
   pergunta: string;
   resposta?: string;
-  date: string;
+  data: string;
   source: string;
 };
 
@@ -42,18 +42,18 @@ export async function fetchQA_MercadoLivre(
     return (payload.questions ?? [])
       .flatMap((item): PartnerQA[] => {
         const pergunta = item.text?.trim();
-        const date = item.date_created ?? item.answer?.date_created;
-        if (!pergunta || !date) return [];
+        const data = item.date_created ?? item.answer?.date_created;
+        if (!pergunta || !data) return [];
 
         const resposta = item.answer?.text?.trim();
         return [{
           pergunta,
           ...(resposta ? { resposta } : {}),
-          date,
+          data,
           source: "mercado_livre",
         }];
       })
-      .sort((left, right) => Date.parse(right.date) - Date.parse(left.date))
+      .sort((left, right) => Date.parse(right.data) - Date.parse(left.data))
       .slice(0, MAX_QA_PER_OFFER);
   } catch (error) {
     console.warn("Mercado Livre Q&A request failed", itemId, error);

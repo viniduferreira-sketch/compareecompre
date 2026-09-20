@@ -452,12 +452,12 @@ function ProductPage() {
                 <h2 className="font-display text-base font-semibold text-foreground">Perguntas &amp; Respostas</h2>
                 <Accordion type="single" collapsible className="mt-3 rounded-xl border border-border bg-card px-4">
                   {data.qa.map((item, index) => (
-                  <AccordionItem key={`${item.source}-${item.date}-${index}`} value={`qa-${index}`}>
+                  <AccordionItem key={`${item.source}-${item.data}-${index}`} value={`qa-${index}`}>
                     <AccordionTrigger className="py-3 text-left text-sm font-medium hover:no-underline">
                       <span>
                         {item.pergunta}
                         <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
-                          {formatQADate(item.date)}
+                          {formatQADate(item.data)}
                         </span>
                       </span>
                     </AccordionTrigger>
