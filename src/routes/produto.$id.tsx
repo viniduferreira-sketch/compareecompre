@@ -75,16 +75,17 @@ export const Route = createFileRoute("/produto/$id")({
             : {}),
         }
       : null;
-    const faqSchema = product
+    const answeredQA = product?.qa.filter((item) => item.resposta) ?? [];
+    const faqSchema = answeredQA.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: FAQ.map((item) => ({
+          mainEntity: answeredQA.map((item) => ({
             "@type": "Question",
-            name: item.q,
+            name: item.pergunta,
             acceptedAnswer: {
               "@type": "Answer",
-              text: item.a,
+              text: item.resposta,
             },
           })),
         }
@@ -118,33 +119,6 @@ export const Route = createFileRoute("/produto/$id")({
   component: ProductPage,
 });
 
-const FAQ = [
-  {
-    q: "Tem boa qualidade de imagem?",
-    a: "Sim. O produto entrega uma imagem nítida e cores equilibradas para o uso do dia a dia, com bom desempenho tanto em ambientes claros quanto à noite.",
-  },
-  {
-    q: "É bom para jogos?",
-    a: "Atende bem jogos casuais e uso intenso. Para partidas competitivas, confira na ficha técnica a taxa de atualização e o tempo de resposta.",
-  },
-  {
-    q: "Vale a pena pelo preço atual?",
-    a: "Comparando com o histórico de preços mostrado acima, o valor atual está dentro da faixa considerada boa para este modelo.",
-  },
-  {
-    q: "Qual é o prazo de entrega?",
-    a: "O prazo é calculado pela loja responsável no momento da compra, de acordo com o seu CEP. Muitos anúncios contam com frete grátis.",
-  },
-  {
-    q: "A compra é segura?",
-    a: "Sim. Você é redirecionado para a página oficial da loja responsável, onde confere o pagamento, a entrega e as condições de garantia.",
-  },
-  {
-    q: "Tem garantia do fabricante?",
-    a: "A maioria dos anúncios oferece garantia do fabricante ou do vendedor. O prazo exato aparece na página da loja responsável.",
-  },
-];
-
 const PERIODS = [
   { label: "40 dias", days: 40 },
   { label: "3 meses", days: 90 },
@@ -169,6 +143,12 @@ function prettyCategory(domain: string | null) {
   if (!domain) return "Produtos";
   const raw = domain.split("-").slice(1).join(" ").toLowerCase().replace(/_/g, " ");
   return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : "Produtos";
+}
+
+function formatQADate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" }).format(date);
 }
 
 function ProductPage() {
@@ -467,22 +447,30 @@ function ProductPage() {
               </TabsContent>
             </Tabs>
 
-            <section className="mt-8">
-              <h2 className="font-display text-base font-semibold text-foreground">Perguntas &amp; Respostas</h2>
-              <Accordion type="single" collapsible className="mt-3 rounded-xl border border-border bg-card px-4">
-                {FAQ.map((item) => (
-                  <AccordionItem key={item.q} value={item.q}>
+            {data.qa.length > 0 ? (
+              <section className="mt-8">
+                <h2 className="font-display text-base font-semibold text-foreground">Perguntas &amp; Respostas</h2>
+                <Accordion type="single" collapsible className="mt-3 rounded-xl border border-border bg-card px-4">
+                  {data.qa.map((item, index) => (
+                  <AccordionItem key={`${item.source}-${item.data}-${index}`} value={`qa-${index}`}>
                     <AccordionTrigger className="py-3 text-left text-sm font-medium hover:no-underline">
-                      {item.q}
+                      <span>
+                        {item.pergunta}
+                        <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
+                          {formatQADate(item.data)}
+                        </span>
+                      </span>
                     </AccordionTrigger>
-                    <AccordionContent className="text-xs leading-relaxed text-muted-foreground">
-                      {item.a}
-                    </AccordionContent>
+                    {item.resposta ? (
+                      <AccordionContent className="text-xs leading-relaxed text-muted-foreground">
+                        {item.resposta}
+                      </AccordionContent>
+                    ) : null}
                   </AccordionItem>
-                ))}
-              </Accordion>
+                  ))}
+                </Accordion>
 
-              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+                <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
                 <p className="text-xs font-medium text-foreground">Esse conteúdo foi útil?</p>
                 <div className="flex gap-2">
                   <Button
@@ -505,9 +493,11 @@ function ProductPage() {
                 {helpful !== null ? (
                   <span className="text-xs text-muted-foreground">Obrigado pelo seu retorno!</span>
                 ) : null}
-              </div>
+                </div>
+              </section>
+            ) : null}
 
-              <div className="mt-4 flex flex-col items-start gap-3 rounded-xl border border-border bg-muted/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-8 flex flex-col items-start gap-3 rounded-xl border border-border bg-muted/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-xs text-foreground sm:text-sm">
                   Precisa de ajuda pra escolher? Nossos especialistas estão prontos para te atender!
                 </p>
@@ -515,7 +505,6 @@ function ProductPage() {
                   Falar com o especialista
                 </Button>
               </div>
-            </section>
           </>
         )}
       </main>
