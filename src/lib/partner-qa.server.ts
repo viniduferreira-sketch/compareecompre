@@ -23,7 +23,7 @@ function isMercadoLivreItemId(itemId: string): boolean {
 export async function fetchQA_MercadoLivre(
   itemId: string,
   headers: HeadersInit,
-  fetcher: typeof fetch = fetch,
+  fetcher: (input: string, init?: RequestInit) => Promise<Response> = fetch,
 ): Promise<PartnerQA[]> {
   if (!isMercadoLivreItemId(itemId)) return [];
 

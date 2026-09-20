@@ -461,9 +461,11 @@ function ProductPage() {
                         </span>
                       </span>
                     </AccordionTrigger>
-                    <AccordionContent className="text-xs leading-relaxed text-muted-foreground">
-                      {item.answer ?? "Esta pergunta ainda não foi respondida pela loja."}
-                    </AccordionContent>
+                    {item.answer ? (
+                      <AccordionContent className="text-xs leading-relaxed text-muted-foreground">
+                        {item.answer}
+                      </AccordionContent>
+                    ) : null}
                   </AccordionItem>
                   ))}
                 </Accordion>
