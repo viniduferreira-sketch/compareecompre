@@ -75,17 +75,17 @@ export const Route = createFileRoute("/produto/$id")({
             : {}),
         }
       : null;
-    const answeredQA = product?.qa.filter((item) => item.answer) ?? [];
+    const answeredQA = product?.qa.filter((item) => item.resposta) ?? [];
     const faqSchema = answeredQA.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: answeredQA.map((item) => ({
             "@type": "Question",
-            name: item.question,
+            name: item.pergunta,
             acceptedAnswer: {
               "@type": "Answer",
-              text: item.answer,
+              text: item.resposta,
             },
           })),
         }
@@ -455,15 +455,15 @@ function ProductPage() {
                   <AccordionItem key={`${item.source}-${item.date}-${index}`} value={`qa-${index}`}>
                     <AccordionTrigger className="py-3 text-left text-sm font-medium hover:no-underline">
                       <span>
-                        {item.question}
+                        {item.pergunta}
                         <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
                           {formatQADate(item.date)}
                         </span>
                       </span>
                     </AccordionTrigger>
-                    {item.answer ? (
+                    {item.resposta ? (
                       <AccordionContent className="text-xs leading-relaxed text-muted-foreground">
-                        {item.answer}
+                        {item.resposta}
                       </AccordionContent>
                     ) : null}
                   </AccordionItem>

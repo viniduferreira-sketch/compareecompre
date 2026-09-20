@@ -28,10 +28,10 @@ export type ProductDetail = {
 function isPartnerQA(value: unknown): value is PartnerQA {
   if (!value || typeof value !== "object") return false;
   const item = value as Record<string, unknown>;
-  return typeof item["question"] === "string"
+  return typeof item["pergunta"] === "string"
     && typeof item["date"] === "string"
     && typeof item["source"] === "string"
-    && (item["answer"] === undefined || typeof item["answer"] === "string");
+    && (item["resposta"] === undefined || typeof item["resposta"] === "string");
 }
 
 async function getIndexedQA(productId: string): Promise<PartnerQA[]> {

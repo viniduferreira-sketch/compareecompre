@@ -1,6 +1,6 @@
 export type PartnerQA = {
-  question: string;
-  answer?: string;
+  pergunta: string;
+  resposta?: string;
   date: string;
   source: string;
 };
@@ -41,14 +41,14 @@ export async function fetchQA_MercadoLivre(
     const payload = (await response.json()) as { questions?: MercadoLivreQuestion[] };
     return (payload.questions ?? [])
       .flatMap((item): PartnerQA[] => {
-        const question = item.text?.trim();
+        const pergunta = item.text?.trim();
         const date = item.date_created ?? item.answer?.date_created;
-        if (!question || !date) return [];
+        if (!pergunta || !date) return [];
 
-        const answer = item.answer?.text?.trim();
+        const resposta = item.answer?.text?.trim();
         return [{
-          question,
-          ...(answer ? { answer } : {}),
+          pergunta,
+          ...(resposta ? { resposta } : {}),
           date,
           source: "mercado_livre",
         }];
