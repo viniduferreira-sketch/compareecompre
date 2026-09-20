@@ -24,7 +24,6 @@ function TermsPage() {
       <section><h2>5. Responsabilidades</h2><p>A negociação, o pagamento, a emissão de nota fiscal, a garantia, a troca, a devolução e o atendimento pós-venda são de responsabilidade do vendedor e da plataforma onde a compra foi concluída. Não garantimos disponibilidade contínua do site ou ausência total de erros nas informações recebidas de terceiros.</p></section>
       <section><h2>6. Uso adequado</h2><p>É proibido tentar comprometer a segurança do site, automatizar acessos abusivos, copiar o conteúdo em escala ou utilizar o serviço para finalidades ilícitas.</p></section>
       <section><h2>7. Alterações e contato</h2><p>Estes termos podem ser atualizados para refletir mudanças no serviço ou na legislação. Dúvidas podem ser enviadas para contato@compareecompre.com.br.</p></section>
-      <p className="border-t border-border pt-6 text-xs">Este texto apresenta regras gerais para o serviço e deve passar por revisão jurídica antes do uso definitivo.</p>
     </InstitutionalPage>
   );
 }
