@@ -67,7 +67,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
             ou números não comprovados) + benefício concreto + botão com verbo de ação.
           */}
           <CarouselItem>
-            <div className="relative min-h-[390px] overflow-hidden rounded-xl bg-hero-gradient px-6 py-11 md:min-h-[440px] md:px-14 md:py-16">
+            <div className="relative min-h-[560px] overflow-hidden rounded-xl bg-hero-gradient px-6 py-11 md:min-h-[440px] md:px-14 md:py-16">
               <div className="relative z-10 max-w-2xl md:max-w-[58%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-ink-foreground/15 px-3 py-1 text-xs font-semibold uppercase text-ink-foreground">
                   <Tag className="size-3.5" /> Compare e Compre
@@ -90,7 +90,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                 alt="Celular, tênis e fone de ouvido em destaque"
                 width={1400}
                 height={900}
-                className="pointer-events-none absolute -bottom-10 -right-20 hidden h-auto w-[54%] object-contain drop-shadow-2xl md:block lg:-bottom-14 lg:-right-16"
+                className="pointer-events-none absolute -bottom-5 right-0 h-auto w-[92%] object-contain drop-shadow-2xl md:-bottom-10 md:-right-20 md:w-[54%] lg:-bottom-14 lg:-right-16"
               />
             </div>
           </CarouselItem>
