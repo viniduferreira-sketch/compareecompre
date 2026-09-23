@@ -10,5 +10,5 @@
 - [x] Preencher as imagens das categorias de borda a borda e separar os nomes em faixa cinza.
 - [x] Usar uma capa de vestuário ou calçado do catálogo para Moda.
 - [x] Validar os cards refinados em desktop e celular.
-- [ ] Corrigir o segundo banner com gradiente entre o laranja principal e o azul-marinho do rodapé.
-- [ ] Confirmar que os recortes de produtos permanecem intactos em desktop e celular.
+- [x] Corrigir o segundo banner com gradiente entre o laranja principal e o azul-marinho do rodapé.
+- [x] Confirmar que os recortes de produtos permanecem intactos em desktop e celular.
