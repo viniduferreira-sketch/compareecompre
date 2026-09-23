@@ -12,7 +12,7 @@
 - [x] Validar os cards refinados em desktop e celular.
 - [x] Corrigir o segundo banner com gradiente entre o laranja principal e o azul-marinho do rodapé.
 - [x] Confirmar que os recortes de produtos permanecem intactos em desktop e celular.
-- [ ] Reforçar o gradiente laranja para azul-marinho do segundo banner sem alterar seu conteúdo.
-- [ ] Adicionar três novos banners com urgência, decisão inteligente e economia real.
-- [ ] Atualizar navegação, indicadores e autoplay para cinco banners.
+- [x] Reforçar o gradiente laranja para azul-marinho do segundo banner sem alterar seu conteúdo.
+- [x] Adicionar três novos banners com urgência, decisão inteligente e economia real.
+- [x] Atualizar navegação, indicadores e autoplay para cinco banners.
 - [ ] Validar todos os banners em desktop e celular.
