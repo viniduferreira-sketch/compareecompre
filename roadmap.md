@@ -25,7 +25,8 @@
 - [x] Adicionar superfícies e profundidade visual aos banners de categoria 2 a 8.
 - [x] Validar as novas cenas em desktop e celular sem alterar o banner institucional.
 - [x] Substituir as cenas artificiais em CSS por fotografias completas nos sete banners de categoria.
-- [x] Validar as cenas fotográficas, textos, buscas, indicadores e autoplay em desktop e celular.- [ ] Substituir as fotos das categorias por sete ícones 3D vetoriais e acessíveis.
-- [ ] Adicionar animações responsivas com suporte a movimento reduzido.
-- [ ] Adicionar sombra ao cabeçalho somente após a rolagem.
+- [x] Validar as cenas fotográficas, textos, buscas, indicadores e autoplay em desktop e celular.
+- [x] Substituir as fotos das categorias por sete ícones 3D vetoriais e acessíveis.
+- [x] Adicionar animações responsivas com suporte a movimento reduzido.
+- [x] Adicionar sombra ao cabeçalho somente após a rolagem.
 - [ ] Validar categorias e cabeçalho em desktop e celular.
