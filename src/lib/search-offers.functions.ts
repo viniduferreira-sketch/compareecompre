@@ -199,7 +199,7 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
       const { client, indexName } = getAlgoliaConfig();
       const categoryCoversConfig = [
         { name: "Eletrônicos", query: "" },
-        { name: "Moda", query: "tênis" },
+        { name: "Moda", query: "camiseta" },
         { name: "Casa", query: "" },
         { name: "Celulares", query: "" },
         { name: "Games", query: "" },
@@ -239,7 +239,7 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
             indexName,
             searchParams: {
               query,
-              hitsPerPage: 1,
+              hitsPerPage: name === "Moda" ? 20 : 1,
               filters: `price > 0 AND categoryName:"${name}"`,
               attributesToRetrieve: ["title", "imageUrl"],
             },
@@ -265,8 +265,16 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
       });
 
       const categoryCovers = Object.fromEntries(categoryResponses.flatMap((response, index) => {
-        const hit = response.hits.find((item) => typeof item.imageUrl === "string" && item.imageUrl.length > 0);
         const categoryName = categoryCoversConfig[index]?.name;
+        const hit = response.hits.find((item) => {
+          if (typeof item.imageUrl !== "string" || item.imageUrl.length === 0) return false;
+          if (categoryName !== "Moda") return true;
+
+          const title = item.title.toLocaleLowerCase("pt-BR");
+          const isApparelOrFootwear = /\b(camiseta|camisa|blusa|vestido|calça|shorts|bermuda|jaqueta|tênis|sapato|sandália|bota)\b/.test(title);
+          const isAccessory = /\b(chaveiro|pingente|colar|pulseira|brinco|miniatura)\b/.test(title);
+          return isApparelOrFootwear && !isAccessory;
+        });
         return hit && categoryName && hit.imageUrl
           ? [[categoryName, { imageUrl: hit.imageUrl, title: hit.title }]]
           : [];
