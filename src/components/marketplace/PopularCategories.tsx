@@ -1,23 +1,11 @@
-import { ImageIcon } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CATEGORY_ITEMS } from "@/components/category-icons/categories";
 import type { CategoryCover } from "@/lib/search-offers.functions";
-
-const CATEGORIES = [
-  { name: "Eletrônicos", term: "Eletrônicos" },
-  { name: "Moda", term: "Moda" },
-  { name: "Casa", term: "Casa" },
-  { name: "Celulares", term: "Celulares" },
-  { name: "Games", term: "Games" },
-  { name: "Beleza", term: "Beleza" },
-  { name: "Esportes", term: "Esportes" },
-];
 
 export function PopularCategories({
   onSearch,
-  covers,
-  isLoading,
+  covers: _covers,
+  isLoading: _isLoading,
 }: {
   onSearch: (term: string) => void;
   covers: Record<string, CategoryCover>;
@@ -29,29 +17,24 @@ export function PopularCategories({
       <h2 className="mb-5 mt-1 font-display text-2xl font-extrabold">O que você está procurando?</h2>
 
       <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-7 md:gap-4 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
-        {CATEGORIES.map(({ name, term }) => {
-          const cover = covers[name];
+        {CATEGORY_ITEMS.map(({ name, slug, term, icon: Icon, imageSrc, accentClass }) => {
           return (
-          <li key={name} className="w-36 shrink-0 snap-start md:w-auto">
+          <li key={slug} className="w-[8.75rem] shrink-0 snap-start md:w-auto">
             <Button
               variant="softInk"
               type="button"
               onClick={() => onSearch(term)}
-              className="group h-auto w-full flex-col gap-0 overflow-hidden rounded-xl p-0 text-center shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:text-foreground hover:shadow-lift"
+              aria-label={`Buscar ofertas de ${name}`}
+              className="category-card group h-auto w-full flex-col gap-0 overflow-hidden rounded-xl p-0 text-center shadow-card transition-all duration-250 ease-out hover:-translate-y-1 hover:border-primary/40 hover:bg-card hover:text-foreground hover:shadow-lift active:scale-[0.97] [&_svg]:size-auto"
             >
-              <span className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-card">
-                {isLoading ? (
-                  <Skeleton className="h-full w-full rounded-none" />
-                ) : cover ? (
-                  <img
-                    src={cover.imageUrl}
-                    alt={`Produto em destaque de ${name}: ${cover.title}`}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                ) : (
-                  <ImageIcon className="size-7 text-muted-foreground" aria-hidden="true" />
-                )}
+              <span className={`category-icon-stage ${accentClass}`}>
+                <span className="category-icon-float">
+                  {imageSrc ? (
+                    <img src={imageSrc} alt={`Ilustração 3D de ${name}`} loading="lazy" className="category-icon-art" />
+                  ) : Icon ? (
+                    <Icon className="category-icon-art" />
+                  ) : null}
+                </span>
               </span>
               <span className="flex min-h-12 w-full items-center justify-center bg-muted px-2 py-3 text-xs font-semibold leading-tight text-foreground">
                 {name}

@@ -1,7 +1,8 @@
 import { Search, Tag } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export const CATEGORIES = [
   "Eletrônicos",
@@ -21,9 +22,23 @@ export function Header({
   initialTerm: string;
 }) {
   const [term, setTerm] = useState(initialTerm);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const updateHeaderShadow = () => setIsScrolled(window.scrollY > 8);
+    updateHeaderShadow();
+    window.addEventListener("scroll", updateHeaderShadow, { passive: true });
+    return () => window.removeEventListener("scroll", updateHeaderShadow);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-card/95 shadow-card backdrop-blur-md">
+    <header
+      data-scrolled={isScrolled}
+      className={cn(
+        "sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-md transition-shadow duration-200",
+        isScrolled && "shadow-card",
+      )}
+    >
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:gap-8 lg:px-8">
         <a
           href="/"
