@@ -197,7 +197,15 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
   }> => {
     try {
       const { client, indexName } = getAlgoliaConfig();
-      const categoryNames = ["Eletrônicos", "Moda", "Casa", "Celulares", "Games", "Beleza", "Esportes"];
+      const categoryCoversConfig = [
+        { name: "Eletrônicos", query: "" },
+        { name: "Moda", query: "camiseta" },
+        { name: "Casa", query: "" },
+        { name: "Celulares", query: "" },
+        { name: "Games", query: "" },
+        { name: "Beleza", query: "" },
+        { name: "Esportes", query: "" },
+      ];
       const [urgentResponse, priceDropsResponse, popularResponse, categoryResponses] = await Promise.all([
         client.searchSingleIndex<AlgoliaOffer>({
           indexName,
@@ -226,13 +234,13 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
             attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
           },
         }),
-        Promise.all(categoryNames.map((categoryName) =>
+        Promise.all(categoryCoversConfig.map(({ name, query }) =>
           client.searchSingleIndex<AlgoliaOffer>({
             indexName,
             searchParams: {
-              query: "",
-              hitsPerPage: 1,
-              filters: `price > 0 AND categoryName:"${categoryName}"`,
+              query,
+              hitsPerPage: name === "Moda" ? 20 : 1,
+              filters: `price > 0 AND categoryName:"${name}"`,
               attributesToRetrieve: ["title", "imageUrl"],
             },
           }),
@@ -257,8 +265,16 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
       });
 
       const categoryCovers = Object.fromEntries(categoryResponses.flatMap((response, index) => {
-        const hit = response.hits.find((item) => typeof item.imageUrl === "string" && item.imageUrl.length > 0);
-        const categoryName = categoryNames[index];
+        const categoryName = categoryCoversConfig[index]?.name;
+        const hit = response.hits.find((item) => {
+          if (typeof item.imageUrl !== "string" || item.imageUrl.length === 0) return false;
+          if (categoryName !== "Moda") return true;
+
+          const title = item.title.toLocaleLowerCase("pt-BR");
+          const isApparelOrFootwear = /\b(camiseta|camisa|blusa|vestido|calça|shorts|bermuda|jaqueta|tênis|sapato|sandália|bota)\b/.test(title);
+          const isAccessory = /\b(chaveiro|pingente|colar|pulseira|brinco|miniatura)\b/.test(title);
+          return isApparelOrFootwear && !isAccessory;
+        });
         return hit && categoryName && hit.imageUrl
           ? [[categoryName, { imageUrl: hit.imageUrl, title: hit.title }]]
           : [];

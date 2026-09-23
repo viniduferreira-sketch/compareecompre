@@ -1,5 +1,6 @@
 import { ImageIcon } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CategoryCover } from "@/lib/search-offers.functions";
 
@@ -32,12 +33,13 @@ export function PopularCategories({
           const cover = covers[name];
           return (
           <li key={name} className="w-36 shrink-0 snap-start md:w-auto">
-            <button
+            <Button
+              variant="softInk"
               type="button"
               onClick={() => onSearch(term)}
-              className="group flex w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-center shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lift"
+              className="group h-auto w-full flex-col gap-0 overflow-hidden rounded-xl p-0 text-center shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:text-foreground hover:shadow-lift"
             >
-              <span className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-muted">
+              <span className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-card">
                 {isLoading ? (
                   <Skeleton className="h-full w-full rounded-none" />
                 ) : cover ? (
@@ -45,16 +47,16 @@ export function PopularCategories({
                     src={cover.imageUrl}
                     alt={`Produto em destaque de ${name}: ${cover.title}`}
                     loading="lazy"
-                    className="h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 ) : (
                   <ImageIcon className="size-7 text-muted-foreground" aria-hidden="true" />
                 )}
               </span>
-              <span className="flex min-h-12 items-center justify-center px-2 py-3 text-xs font-semibold leading-tight text-foreground">
+              <span className="flex min-h-12 w-full items-center justify-center bg-muted px-2 py-3 text-xs font-semibold leading-tight text-foreground">
                 {name}
               </span>
-            </button>
+            </Button>
           </li>
           );
         })}
