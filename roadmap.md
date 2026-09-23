@@ -25,4 +25,4 @@
 - [x] Adicionar superfícies e profundidade visual aos banners de categoria 2 a 8.
 - [x] Validar as novas cenas em desktop e celular sem alterar o banner institucional.
 - [x] Substituir as cenas artificiais em CSS por fotografias completas nos sete banners de categoria.
-- [ ] Validar as cenas fotográficas, textos, buscas, indicadores e autoplay em desktop e celular.
+- [x] Validar as cenas fotográficas, textos, buscas, indicadores e autoplay em desktop e celular.
