@@ -15,4 +15,4 @@
 - [x] Reforçar o gradiente laranja para azul-marinho do segundo banner sem alterar seu conteúdo.
 - [x] Adicionar três novos banners com urgência, decisão inteligente e economia real.
 - [x] Atualizar navegação, indicadores e autoplay para cinco banners.
-- [ ] Validar todos os banners em desktop e celular.
+- [x] Validar todos os banners em desktop e celular.
