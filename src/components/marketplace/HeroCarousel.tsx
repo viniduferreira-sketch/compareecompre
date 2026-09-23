@@ -108,7 +108,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <House className="size-3.5 text-primary" /> Para sua cozinha
                 </span>
-                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl lg:text-5xl">
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl">
                   Equipar a cozinha custando menos? A gente compara por você.
                 </h2>
                 <p className="mt-3 max-w-xl text-sm font-medium text-ink/75 md:text-base">
