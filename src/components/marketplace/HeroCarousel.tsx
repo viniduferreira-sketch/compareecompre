@@ -12,28 +12,15 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/home-commerce-hero.jpg";
-import heroBeautyCutout from "@/assets/hero-beauty-cutout.png";
-import heroElectronicsCutout from "@/assets/hero-electronics-cutout.png";
-import heroFashionCutout from "@/assets/hero-fashion-cutout.png";
-import heroGamingCutout from "@/assets/hero-gaming-cutout.png";
-import heroKitchenCutout from "@/assets/hero-kitchen-cutout.png";
-import heroPhonesCutout from "@/assets/hero-phones-cutout.png";
-import heroSportsCutout from "@/assets/hero-sports-cutout.png";
+import heroBeautyScene from "@/assets/hero-beauty-scene.jpg";
+import heroElectronicsScene from "@/assets/hero-electronics-scene.jpg";
+import heroFashionScene from "@/assets/hero-fashion-scene.jpg";
+import heroGamingScene from "@/assets/hero-gaming-scene.jpg";
+import heroKitchenScene from "@/assets/hero-kitchen-scene.jpg";
+import heroPhonesScene from "@/assets/hero-phones-scene.jpg";
+import heroSportsScene from "@/assets/hero-sports-scene.jpg";
 
 const SLIDE_COUNT = 8;
-
-type CategoryScene = "beauty" | "kitchen" | "electronics" | "phones" | "gaming" | "sports" | "fashion";
-
-function ProductScene({ variant }: { variant: CategoryScene }) {
-  return (
-    <div className={cn("product-scene", `product-scene--${variant}`)} aria-hidden="true">
-      <span className="product-scene__backdrop" />
-      <span className="product-scene__detail product-scene__detail--one" />
-      <span className="product-scene__detail product-scene__detail--two" />
-      <span className="product-scene__surface" />
-    </div>
-  );
-}
 
 export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void }) {
   const [api, setApi] = useState<CarouselApi>();
@@ -89,7 +76,14 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
           */}
           <CarouselItem>
             <div className="relative min-h-[570px] overflow-hidden rounded-xl bg-beauty-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <ProductScene variant="beauty" />
+              <img
+                src={heroBeautyScene}
+                alt="Perfume, sérum facial e paleta de maquiagem sobre uma superfície de mármore rosado"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="category-scene-image"
+              />
               <div className="relative z-10 max-w-2xl md:max-w-[64%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Sparkles className="size-3.5 text-primary" /> Beleza sem pagar caro
@@ -108,20 +102,19 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                   Comparar produtos de beleza <ArrowRight className="size-4" />
                 </Button>
               </div>
-              <img
-                src={heroBeautyCutout}
-                alt="Perfume, sérum facial e paleta de maquiagem"
-                loading="lazy"
-                width={1408}
-                height={912}
-                className="pointer-events-none absolute -bottom-2 right-1 h-auto w-[83%] object-contain drop-shadow-2xl md:-bottom-5 md:-right-8 md:w-[43%] lg:right-2 lg:w-[40%]"
-              />
             </div>
           </CarouselItem>
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-kitchen-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <ProductScene variant="kitchen" />
+              <img
+                src={heroKitchenScene}
+                alt="Cafeteira, liquidificador e torradeira em uma cozinha verde-sálvia"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="category-scene-image"
+              />
               <div className="relative z-10 max-w-2xl md:max-w-[64%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <House className="size-3.5 text-primary" /> Para sua cozinha
@@ -136,20 +129,19 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                   Comparar preços de casa <ArrowRight className="size-4" />
                 </Button>
               </div>
-              <img
-                src={heroKitchenCutout}
-                alt="Cafeteira, liquidificador e torradeira"
-                loading="lazy"
-                width={1408}
-                height={912}
-                className="pointer-events-none absolute -bottom-1 right-1 h-auto w-[88%] object-contain drop-shadow-2xl md:-bottom-5 md:-right-8 md:w-[44%] lg:right-2 lg:w-[41%]"
-              />
             </div>
           </CarouselItem>
 
           <CarouselItem>
             <div className="relative min-h-[570px] overflow-hidden rounded-xl bg-electronics-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <ProductScene variant="electronics" />
+              <img
+                src={heroElectronicsScene}
+                alt="Caixa de som Bluetooth, tablet e câmera de ação em uma prateleira clara"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="category-scene-image"
+              />
               <div className="relative z-10 max-w-2xl md:max-w-[61%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Camera className="size-3.5 text-primary" /> Tecnologia em conta
@@ -164,20 +156,19 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                   Comparar eletrônicos <ArrowRight className="size-4" />
                 </Button>
               </div>
-              <img
-                src={heroElectronicsCutout}
-                alt="Caixa de som Bluetooth, tablet e câmera de ação"
-                loading="lazy"
-                width={1408}
-                height={912}
-                className="pointer-events-none absolute -bottom-1 right-0 h-auto w-[88%] object-contain drop-shadow-2xl md:-bottom-5 md:-right-8 md:w-[44%] lg:right-1 lg:w-[41%]"
-              />
             </div>
           </CarouselItem>
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-phones-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <ProductScene variant="phones" />
+              <img
+                src={heroPhonesScene}
+                alt="Smartphone, fones intra-auriculares e carregador portátil em um pedestal"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="category-scene-image"
+              />
               <div className="relative z-10 max-w-2xl md:max-w-[62%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Smartphone className="size-3.5 text-primary" /> Seu próximo celular, mais barato
@@ -192,20 +183,19 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                   Comparar celulares <ArrowRight className="size-4" />
                 </Button>
               </div>
-              <img
-                src={heroPhonesCutout}
-                alt="Smartphone, fones intra-auriculares e carregador portátil"
-                loading="lazy"
-                width={1408}
-                height={912}
-                className="pointer-events-none absolute -bottom-1 right-0 h-auto w-[86%] object-contain drop-shadow-2xl md:-bottom-6 md:-right-8 md:w-[43%] lg:right-1 lg:w-[40%]"
-              />
             </div>
           </CarouselItem>
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-gaming-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <ProductScene variant="gaming" />
+              <img
+                src={heroGamingScene}
+                alt="Console, headset gamer e teclado mecânico em uma mesa com iluminação violeta"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="category-scene-image"
+              />
               <div className="relative z-10 max-w-2xl md:max-w-[60%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Gamepad2 className="size-3.5 text-primary" /> Para quem vive o jogo
@@ -220,20 +210,19 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                   Comparar produtos gamer <ArrowRight className="size-4" />
                 </Button>
               </div>
-              <img
-                src={heroGamingCutout}
-                alt="Console de videogame, headset gamer e teclado mecânico"
-                loading="lazy"
-                width={1408}
-                height={912}
-                className="pointer-events-none absolute bottom-0 right-0 h-auto w-[90%] object-contain drop-shadow-2xl md:-bottom-4 md:-right-10 md:w-[47%] lg:right-0 lg:w-[43%]"
-              />
             </div>
           </CarouselItem>
 
           <CarouselItem>
             <div className="relative min-h-[610px] overflow-hidden rounded-xl bg-sports-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <ProductScene variant="sports" />
+              <img
+                src={heroSportsScene}
+                alt="Tênis de corrida, garrafa térmica e relógio esportivo junto a uma pista"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="category-scene-image"
+              />
               <div className="relative z-10 max-w-2xl md:max-w-[65%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Dumbbell className="size-3.5 text-primary" /> Para sua próxima meta
@@ -248,20 +237,19 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                   Comparar artigos esportivos <ArrowRight className="size-4" />
                 </Button>
               </div>
-              <img
-                src={heroSportsCutout}
-                alt="Tênis de corrida, garrafa térmica e relógio esportivo"
-                loading="lazy"
-                width={1408}
-                height={912}
-                className="pointer-events-none absolute bottom-0 right-0 h-auto w-[91%] object-contain drop-shadow-2xl md:-bottom-4 md:-right-8 md:w-[45%] lg:right-1 lg:w-[42%]"
-              />
             </div>
           </CarouselItem>
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-fashion-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <ProductScene variant="fashion" />
+              <img
+                src={heroFashionScene}
+                alt="Jaqueta, bolsa e óculos de sol sobre uma superfície de mármore claro"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="category-scene-image"
+              />
               <div className="relative z-10 max-w-2xl md:max-w-[61%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Shirt className="size-3.5 text-primary" /> Estilo que cabe no bolso
@@ -276,14 +264,6 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                   Comparar moda <ArrowRight className="size-4" />
                 </Button>
               </div>
-              <img
-                src={heroFashionCutout}
-                alt="Jaqueta, bolsa e óculos de sol"
-                loading="lazy"
-                width={1408}
-                height={912}
-                className="pointer-events-none absolute bottom-0 right-0 h-auto w-[86%] object-contain drop-shadow-2xl md:-bottom-5 md:-right-7 md:w-[43%] lg:right-1 lg:w-[40%]"
-              />
             </div>
           </CarouselItem>
         </CarouselContent>
