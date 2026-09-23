@@ -21,4 +21,4 @@
 - [x] Preservar os três primeiros banners do carrossel sem alterações.
 - [x] Substituir os banners 4 e 5 por Eletrônicos e Celulares.
 - [x] Criar os banners 6, 7 e 8 para Games, Esportes e Moda.
-- [ ] Validar os oito banners, CTAs, indicadores e autoplay em desktop e celular.
+- [x] Validar os oito banners, CTAs, indicadores e autoplay em desktop e celular.

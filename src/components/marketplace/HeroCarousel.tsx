@@ -80,7 +80,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Sparkles className="size-3.5 text-primary" /> Beleza sem pagar caro
                 </span>
-                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl lg:text-5xl">
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl">
                   O perfume que você quer, pelo preço que faz sentido.
                 </h2>
                 <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
@@ -138,7 +138,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Camera className="size-3.5 text-primary" /> Tecnologia em conta
                 </span>
-                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl lg:text-5xl">
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl">
                   Tecnologia boa não precisa custar caro.
                 </h2>
                 <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
@@ -165,7 +165,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Smartphone className="size-3.5 text-primary" /> Seu próximo celular, mais barato
                 </span>
-                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl lg:text-5xl">
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl">
                   Antes de trocar de celular, compare o preço em segundos.
                 </h2>
                 <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
@@ -192,7 +192,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Gamepad2 className="size-3.5 text-primary" /> Para quem vive o jogo
                 </span>
-                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl lg:text-5xl">
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl">
                   Seu setup de gamer, pelo menor preço do Brasil.
                 </h2>
                 <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
