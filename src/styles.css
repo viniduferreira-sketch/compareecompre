@@ -117,6 +117,8 @@
 
   --gradient-hero: linear-gradient(115deg, var(--primary) 0%, var(--primary) 55%, var(--footer) 55%, var(--footer) 100%);
   --gradient-primary: linear-gradient(100deg, oklch(0.72 0.18 60) 0%, oklch(0.65 0.2 35) 100%);
+  --gradient-beauty: linear-gradient(115deg, oklch(0.955 0.025 30) 0%, oklch(0.92 0.035 320) 100%);
+  --gradient-kitchen: linear-gradient(115deg, oklch(0.95 0.025 145) 0%, oklch(0.955 0.02 85) 100%);
   --gradient-hero-scrim: linear-gradient(90deg, oklch(0.985 0.008 85 / 0.98) 0%, oklch(0.985 0.008 85 / 0.92) 38%, oklch(0.985 0.008 85 / 0.12) 72%);
 }
 
@@ -182,6 +184,14 @@
 
 @utility bg-primary-gradient {
   background-image: var(--gradient-primary);
+}
+
+@utility bg-beauty-gradient {
+  background-image: var(--gradient-beauty);
+}
+
+@utility bg-kitchen-gradient {
+  background-image: var(--gradient-kitchen);
 }
 
 @utility bg-hero-scrim {

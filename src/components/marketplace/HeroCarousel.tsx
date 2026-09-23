@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, BadgeDollarSign, Clock3, SearchCheck, Sparkles, Tag } from "lucide-react";
+import { ArrowRight, BadgeDollarSign, House, SearchCheck, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,9 +12,10 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/home-commerce-hero.jpg";
+import heroBeautyCutout from "@/assets/hero-beauty-cutout.png";
+import heroKitchenCutout from "@/assets/hero-kitchen-cutout.png";
 import heroProductCutout from "@/assets/hero-product-cutout.png";
 import heroSavingsCutout from "@/assets/hero-savings-cutout.png";
-import heroUrgencyCutout from "@/assets/hero-urgency-cutout.png";
 
 const SLIDE_COUNT = 5;
 
@@ -71,63 +72,60 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
             ou números não comprovados) + benefício concreto + botão com verbo de ação.
           */}
           <CarouselItem>
-            <div className="relative min-h-[560px] overflow-hidden rounded-xl bg-hero-gradient px-6 py-11 md:min-h-[440px] md:px-14 md:py-16">
-              <div className="relative z-10 max-w-2xl md:max-w-[58%]">
-                <span className="inline-flex items-center gap-2 rounded-full bg-ink-foreground/15 px-3 py-1 text-xs font-semibold uppercase text-ink-foreground">
-                  <Tag className="size-3.5" /> Compare e Compre
+            <div className="relative min-h-[570px] overflow-hidden rounded-xl bg-beauty-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <div className="relative z-10 max-w-2xl md:max-w-[64%]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
+                  <Sparkles className="size-3.5 text-primary" /> Beleza sem pagar caro
                 </span>
-                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink-foreground md:text-5xl">
-                  Buscamos em grandes lojas. Você escolhe a melhor oferta.
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl lg:text-5xl">
+                  O perfume que você quer, pelo preço que faz sentido.
                 </h2>
-                <p className="mt-3 max-w-xl text-sm text-ink-foreground/80 md:text-base">
-                  Menos tempo procurando, mais confiança para decidir e economia para aproveitar.
+                <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
+                  Comparamos preços em dezenas de lojas de beleza pra você economizar sem abrir mão da qualidade.
                 </p>
                 <Button
-                  className="mt-6 rounded-full bg-ink px-6 text-ink-foreground hover:bg-ink/90"
-                  onClick={() => onSearch("Smart TV")}
+                  variant="hero"
+                  className="mt-6 rounded-full px-6"
+                  onClick={() => onSearch("beleza")}
                 >
-                  Encontrar menor preço <ArrowRight className="size-4" />
+                  Comparar produtos de beleza <ArrowRight className="size-4" />
                 </Button>
               </div>
               <img
-                src={heroProductCutout}
-                alt="Celular, tênis e fone de ouvido em destaque"
-                width={1400}
-                height={900}
-                className="pointer-events-none absolute -bottom-5 right-0 h-auto w-[92%] object-contain drop-shadow-2xl md:-bottom-10 md:-right-20 md:w-[54%] lg:-bottom-14 lg:-right-16"
+                src={heroBeautyCutout}
+                alt="Perfume, sérum facial e paleta de maquiagem"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="pointer-events-none absolute -bottom-2 right-1 h-auto w-[83%] object-contain drop-shadow-2xl md:-bottom-5 md:-right-8 md:w-[43%] lg:right-2 lg:w-[40%]"
               />
             </div>
           </CarouselItem>
 
           <CarouselItem>
-            <div className="relative min-h-[560px] overflow-hidden rounded-xl bg-primary-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <div className="relative z-10 max-w-2xl md:max-w-[58%]">
-                <span className="inline-flex items-center gap-2 rounded-full bg-ink px-3 py-1 text-xs font-semibold uppercase text-ink-foreground shadow-card">
-                  <Clock3 className="size-3.5" /> Oferta por tempo limitado
+            <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-kitchen-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <div className="relative z-10 max-w-2xl md:max-w-[64%]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
+                  <House className="size-3.5 text-primary" /> Para sua cozinha
                 </span>
-                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-5xl">
-                  Os menores preços não esperam.
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl lg:text-5xl">
+                  Equipar a cozinha custando menos? A gente compara por você.
                 </h2>
-                <p className="mt-3 max-w-xl text-sm font-medium text-ink/80 md:text-base">
-                  Preços mudam o tempo todo. Compare agora e garanta a melhor oferta antes que ela suma.
+                <p className="mt-3 max-w-xl text-sm font-medium text-ink/75 md:text-base">
+                  Da cafeteira ao liquidificador: encontramos o menor preço nas lojas mais confiáveis do Brasil.
                 </p>
-                <Button variant="ink" className="mt-6 rounded-full px-6" onClick={() => onSearch("ofertas do dia")}>
-                  Ver ofertas agora <ArrowRight className="size-4" />
+                <Button variant="hero" className="mt-6 rounded-full px-6" onClick={() => onSearch("casa e cozinha")}>
+                  Comparar preços de casa <ArrowRight className="size-4" />
                 </Button>
               </div>
-              <div className="pointer-events-none absolute -bottom-2 right-0 w-[82%] md:-bottom-10 md:-right-10 md:w-[47%]">
-                <span className="absolute right-5 top-4 z-10 inline-flex rotate-3 items-center gap-1.5 rounded-full bg-card px-3 py-1.5 text-xs font-bold uppercase text-primary shadow-lift md:right-10 md:top-8">
-                  <Clock3 className="size-3.5" /> Preços podem mudar
-                </span>
-                <img
-                  src={heroUrgencyCutout}
-                  alt="Fone de ouvido e relógio inteligente em destaque"
-                  loading="lazy"
-                  width={1200}
-                  height={912}
-                  className="h-auto w-full object-contain drop-shadow-2xl"
-                />
-              </div>
+              <img
+                src={heroKitchenCutout}
+                alt="Cafeteira, liquidificador e torradeira"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="pointer-events-none absolute -bottom-1 right-1 h-auto w-[88%] object-contain drop-shadow-2xl md:-bottom-5 md:-right-8 md:w-[44%] lg:right-2 lg:w-[41%]"
+              />
             </div>
           </CarouselItem>
 
