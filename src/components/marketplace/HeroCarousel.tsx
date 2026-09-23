@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, BadgeDollarSign, House, SearchCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Camera, Dumbbell, Gamepad2, House, Shirt, Smartphone, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,11 +13,14 @@ import {
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/home-commerce-hero.jpg";
 import heroBeautyCutout from "@/assets/hero-beauty-cutout.png";
+import heroElectronicsCutout from "@/assets/hero-electronics-cutout.png";
+import heroFashionCutout from "@/assets/hero-fashion-cutout.png";
+import heroGamingCutout from "@/assets/hero-gaming-cutout.png";
 import heroKitchenCutout from "@/assets/hero-kitchen-cutout.png";
-import heroProductCutout from "@/assets/hero-product-cutout.png";
-import heroSavingsCutout from "@/assets/hero-savings-cutout.png";
+import heroPhonesCutout from "@/assets/hero-phones-cutout.png";
+import heroSportsCutout from "@/assets/hero-sports-cutout.png";
 
-const SLIDE_COUNT = 5;
+const SLIDE_COUNT = 8;
 
 export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void }) {
   const [api, setApi] = useState<CarouselApi>();
@@ -77,7 +80,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Sparkles className="size-3.5 text-primary" /> Beleza sem pagar caro
                 </span>
-                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl lg:text-5xl">
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl">
                   O perfume que você quer, pelo preço que faz sentido.
                 </h2>
                 <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
@@ -130,63 +133,137 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
           </CarouselItem>
 
           <CarouselItem>
-            <div className="relative min-h-[570px] overflow-hidden rounded-xl bg-background px-6 py-10 ring-1 ring-border md:min-h-[440px] md:px-14 md:py-16">
-              <div className="relative z-10 max-w-2xl md:max-w-[57%]">
-                <span className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-xs font-semibold uppercase text-accent-foreground">
-                  <SearchCheck className="size-3.5 text-primary" /> Quem compara, escolhe melhor
+            <div className="relative min-h-[570px] overflow-hidden rounded-xl bg-electronics-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <div className="relative z-10 max-w-2xl md:max-w-[61%]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
+                  <Camera className="size-3.5 text-primary" /> Tecnologia em conta
                 </span>
-                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-5xl">
-                  Comprar bem começa por comparar.
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl">
+                  Tecnologia boa não precisa custar caro.
                 </h2>
-                <p className="mt-3 max-w-xl text-sm text-muted-foreground md:text-base">
-                  Confira ofertas de lojas confiáveis e escolha com mais informação, segurança e economia.
+                <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
+                  Comparamos preço, loja e prazo pra você escolher o eletrônico certo sem gastar mais do que devia.
                 </p>
-                <Button variant="hero" className="mt-6 rounded-full px-6" onClick={() => onSearch("mais buscados")}>
-                  Comparar e economizar <ArrowRight className="size-4" />
+                <Button variant="hero" className="mt-6 rounded-full px-6" onClick={() => onSearch("Eletrônicos")}>
+                  Comparar eletrônicos <ArrowRight className="size-4" />
                 </Button>
               </div>
               <img
-                src={heroProductCutout}
-                alt="Celular, tênis e fone de ouvido entre produtos populares"
+                src={heroElectronicsCutout}
+                alt="Caixa de som Bluetooth, tablet e câmera de ação"
                 loading="lazy"
-                width={1400}
-                height={900}
-                className="pointer-events-none absolute -bottom-4 right-0 h-auto w-[90%] object-contain drop-shadow-2xl md:-bottom-10 md:-right-14 md:w-[50%]"
+                width={1408}
+                height={912}
+                className="pointer-events-none absolute -bottom-1 right-0 h-auto w-[88%] object-contain drop-shadow-2xl md:-bottom-5 md:-right-8 md:w-[44%] lg:right-1 lg:w-[41%]"
               />
             </div>
           </CarouselItem>
 
           <CarouselItem>
-            <div className="relative min-h-[570px] overflow-hidden rounded-xl bg-ink px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <div className="relative z-10 max-w-2xl md:max-w-[58%]">
-                <span className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1 text-xs font-semibold uppercase text-primary-foreground">
-                  <BadgeDollarSign className="size-3.5" /> Mesmo produto, preço diferente
+            <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-phones-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <div className="relative z-10 max-w-2xl md:max-w-[62%]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
+                  <Smartphone className="size-3.5 text-primary" /> Seu próximo celular, mais barato
                 </span>
-                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink-foreground md:text-5xl">
-                  Por que pagar mais pelo mesmo produto?
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl">
+                  Antes de trocar de celular, compare o preço em segundos.
                 </h2>
-                <p className="mt-3 max-w-xl text-sm text-ink-foreground/80 md:text-base">
-                  Encontramos o mesmo item por um preço menor em outra loja confiável. Vale a pena checar.
+                <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
+                  Reunimos as melhores ofertas de celulares e acessórios em lojas oficiais e verificadas.
                 </p>
-                <Button className="mt-6 rounded-full px-6" onClick={() => onSearch("menor preço")}>
-                  Encontrar o menor preço <ArrowRight className="size-4" />
+                <Button variant="ink" className="mt-6 rounded-full px-6" onClick={() => onSearch("Celulares")}>
+                  Comparar celulares <ArrowRight className="size-4" />
                 </Button>
               </div>
-              <div className="pointer-events-none absolute -bottom-3 right-0 w-[77%] md:-bottom-16 md:right-0 md:w-[43%]">
-                <div className="absolute left-0 top-8 z-10 rounded-lg bg-card px-3 py-2 shadow-lift md:left-1 md:top-16">
-                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">Compare antes</p>
-                  <p className="text-sm font-bold text-foreground line-through decoration-primary">Preço maior</p>
-                  <p className="text-base font-extrabold text-primary">Menor preço</p>
-                </div>
-                <img
-                  src={heroSavingsCutout}
-                  alt="Air fryer em destaque para comparação de preços"
-                  loading="lazy"
-                  width={1104}
-                  height={912}
-                  className="h-auto w-full object-contain drop-shadow-2xl"
-                />
+              <img
+                src={heroPhonesCutout}
+                alt="Smartphone, fones intra-auriculares e carregador portátil"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="pointer-events-none absolute -bottom-1 right-0 h-auto w-[86%] object-contain drop-shadow-2xl md:-bottom-6 md:-right-8 md:w-[43%] lg:right-1 lg:w-[40%]"
+              />
+            </div>
+          </CarouselItem>
+
+          <CarouselItem>
+            <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-gaming-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <div className="relative z-10 max-w-2xl md:max-w-[60%]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
+                  <Gamepad2 className="size-3.5 text-primary" /> Para quem vive o jogo
+                </span>
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl">
+                  Seu setup de gamer, pelo menor preço do Brasil.
+                </h2>
+                <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
+                  De console a periférico: comparamos preços pra você jogar mais e gastar menos.
+                </p>
+                <Button variant="hero" className="mt-6 rounded-full px-6" onClick={() => onSearch("Games")}>
+                  Comparar produtos gamer <ArrowRight className="size-4" />
+                </Button>
               </div>
+              <img
+                src={heroGamingCutout}
+                alt="Console de videogame, headset gamer e teclado mecânico"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="pointer-events-none absolute bottom-0 right-0 h-auto w-[90%] object-contain drop-shadow-2xl md:-bottom-4 md:-right-10 md:w-[47%] lg:right-0 lg:w-[43%]"
+              />
+            </div>
+          </CarouselItem>
+
+          <CarouselItem>
+            <div className="relative min-h-[610px] overflow-hidden rounded-xl bg-sports-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <div className="relative z-10 max-w-2xl md:max-w-[65%]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
+                  <Dumbbell className="size-3.5 text-primary" /> Para sua próxima meta
+                </span>
+                <h2 className="mt-4 font-display text-2xl font-extrabold leading-tight text-ink sm:text-3xl md:text-4xl">
+                  Todo treino começa com o equipamento certo — e no preço certo.
+                </h2>
+                <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
+                  Comparamos preços de tênis, roupas e acessórios esportivos nas melhores lojas do Brasil.
+                </p>
+                <Button variant="ink" className="mt-6 rounded-full px-6" onClick={() => onSearch("Esportes")}>
+                  Comparar artigos esportivos <ArrowRight className="size-4" />
+                </Button>
+              </div>
+              <img
+                src={heroSportsCutout}
+                alt="Tênis de corrida, garrafa térmica e relógio esportivo"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="pointer-events-none absolute bottom-0 right-0 h-auto w-[91%] object-contain drop-shadow-2xl md:-bottom-4 md:-right-8 md:w-[45%] lg:right-1 lg:w-[42%]"
+              />
+            </div>
+          </CarouselItem>
+
+          <CarouselItem>
+            <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-fashion-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <div className="relative z-10 max-w-2xl md:max-w-[61%]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
+                  <Shirt className="size-3.5 text-primary" /> Estilo que cabe no bolso
+                </span>
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl">
+                  A peça que você quer, na loja que cobra menos por ela.
+                </h2>
+                <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
+                  Comparamos preços de roupas, calçados e acessórios pra você renovar o guarda-roupa sem gastar mais.
+                </p>
+                <Button variant="hero" className="mt-6 rounded-full px-6" onClick={() => onSearch("Moda")}>
+                  Comparar moda <ArrowRight className="size-4" />
+                </Button>
+              </div>
+              <img
+                src={heroFashionCutout}
+                alt="Jaqueta, bolsa e óculos de sol"
+                loading="lazy"
+                width={1408}
+                height={912}
+                className="pointer-events-none absolute bottom-0 right-0 h-auto w-[86%] object-contain drop-shadow-2xl md:-bottom-5 md:-right-7 md:w-[43%] lg:right-1 lg:w-[40%]"
+              />
             </div>
           </CarouselItem>
         </CarouselContent>

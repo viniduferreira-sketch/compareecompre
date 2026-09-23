@@ -18,3 +18,7 @@
 - [x] Validar todos os banners em desktop e celular.
 - [x] Substituir apenas os banners 2 e 3 por temas de Beleza e Casa/Cozinha.
 - [x] Validar os novos banners em desktop e celular sem regressões nos banners preservados.
+- [x] Preservar os três primeiros banners do carrossel sem alterações.
+- [x] Substituir os banners 4 e 5 por Eletrônicos e Celulares.
+- [x] Criar os banners 6, 7 e 8 para Games, Esportes e Moda.
+- [x] Validar os oito banners, CTAs, indicadores e autoplay em desktop e celular.
