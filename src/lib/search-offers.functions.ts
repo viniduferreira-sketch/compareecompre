@@ -32,6 +32,11 @@ export type SearchOffersResult = {
   paging: { total: number; offset: number; limit: number };
 };
 
+export type CategoryCover = {
+  imageUrl: string;
+  title: string;
+};
+
 type AlgoliaOffer = {
   objectID: string;
   title: string;
@@ -184,10 +189,16 @@ export const searchOffers = createServerFn({ method: "POST" })
   });
 
 export const getHomeOffers = createServerFn({ method: "GET" }).handler(
-  async (): Promise<{ urgent: Offer[]; priceDrops: Offer[]; popular: Offer[] }> => {
+  async (): Promise<{
+    urgent: Offer[];
+    priceDrops: Offer[];
+    popular: Offer[];
+    categoryCovers: Record<string, CategoryCover>;
+  }> => {
     try {
       const { client, indexName } = getAlgoliaConfig();
-      const [urgentResponse, priceDropsResponse, popularResponse] = await Promise.all([
+      const categoryNames = ["Eletrônicos", "Moda", "Casa", "Celulares", "Games", "Beleza", "Esportes"];
+      const [urgentResponse, priceDropsResponse, popularResponse, categoryResponses] = await Promise.all([
         client.searchSingleIndex<AlgoliaOffer>({
           indexName,
           searchParams: {
@@ -215,6 +226,17 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
             attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
           },
         }),
+        Promise.all(categoryNames.map((categoryName) =>
+          client.searchSingleIndex<AlgoliaOffer>({
+            indexName,
+            searchParams: {
+              query: "",
+              hitsPerPage: 1,
+              filters: `price > 0 AND categoryName:"${categoryName}"`,
+              attributesToRetrieve: ["title", "imageUrl"],
+            },
+          }),
+        )),
       ]);
 
       const mapHits = (hits: AlgoliaOffer[]) => hits.flatMap((hit) => {
@@ -234,10 +256,23 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
         }];
       });
 
-      return { urgent: mapHits(urgentResponse.hits), priceDrops: mapHits(priceDropsResponse.hits), popular: mapHits(popularResponse.hits) };
+      const categoryCovers = Object.fromEntries(categoryResponses.flatMap((response, index) => {
+        const hit = response.hits.find((item) => typeof item.imageUrl === "string" && item.imageUrl.length > 0);
+        const categoryName = categoryNames[index];
+        return hit && categoryName && hit.imageUrl
+          ? [[categoryName, { imageUrl: hit.imageUrl, title: hit.title }]]
+          : [];
+      }));
+
+      return {
+        urgent: mapHits(urgentResponse.hits),
+        priceDrops: mapHits(priceDropsResponse.hits),
+        popular: mapHits(popularResponse.hits),
+        categoryCovers,
+      };
     } catch (error) {
       console.error("Homepage offers failed", error);
-      return { urgent: [], priceDrops: [], popular: [] };
+      return { urgent: [], priceDrops: [], popular: [], categoryCovers: {} };
     }
   },
 );

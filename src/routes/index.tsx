@@ -263,7 +263,11 @@ function Home() {
         ) : (
           <>
             <HeroCarousel onSearch={startSearch} />
-            <PopularCategories onSearch={startSearch} />
+            <PopularCategories
+              onSearch={startSearch}
+              covers={homeOffers.data?.categoryCovers ?? {}}
+              isLoading={homeOffers.isPending}
+            />
             <ProductRail
               eyebrow="Urgência"
               title="Ofertas que acabam rápido"

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/home-commerce-hero.jpg";
+import heroProductCutout from "@/assets/hero-product-cutout.png";
 
 export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void }) {
   const [api, setApi] = useState<CarouselApi>();
@@ -58,23 +59,39 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
             </div>
           </CarouselItem>
 
+          {/*
+            Padrão para novos banners: sempre incluir recorte de produtos reais, manter a
+            tipografia do título e a cor de destaque do botão. O fundo pode variar entre
+            gradiente ou cor sólida, desde que preserve contraste com o texto branco.
+            Copy: tag curta + título com urgência/facilidade verdadeira (sem prova social
+            ou números não comprovados) + benefício concreto + botão com verbo de ação.
+          */}
           <CarouselItem>
-            <div className="relative min-h-[390px] overflow-hidden rounded-xl bg-hero-gradient px-6 py-11 md:min-h-[440px] md:px-14 md:py-16">
-              <span className="inline-flex items-center gap-2 rounded-full bg-ink-foreground/15 px-3 py-1 text-xs font-semibold uppercase text-ink-foreground">
-                <Tag className="size-3.5" /> Compare e Compre
-              </span>
-              <h2 className="mt-4 max-w-2xl font-display text-3xl font-extrabold leading-tight text-ink-foreground md:text-5xl">
-                Buscamos em grandes lojas. Você escolhe a melhor oferta.
-              </h2>
-              <p className="mt-3 max-w-xl text-sm text-ink-foreground/80 md:text-base">
-                Menos tempo procurando, mais confiança para decidir e economia para aproveitar.
-              </p>
-              <Button
-                className="mt-6 rounded-full bg-ink px-6 text-ink-foreground hover:bg-ink/90"
-                onClick={() => onSearch("Smart TV")}
-              >
-                Encontrar menor preço <ArrowRight className="size-4" />
-              </Button>
+            <div className="relative min-h-[560px] overflow-hidden rounded-xl bg-hero-gradient px-6 py-11 md:min-h-[440px] md:px-14 md:py-16">
+              <div className="relative z-10 max-w-2xl md:max-w-[58%]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-ink-foreground/15 px-3 py-1 text-xs font-semibold uppercase text-ink-foreground">
+                  <Tag className="size-3.5" /> Compare e Compre
+                </span>
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink-foreground md:text-5xl">
+                  Buscamos em grandes lojas. Você escolhe a melhor oferta.
+                </h2>
+                <p className="mt-3 max-w-xl text-sm text-ink-foreground/80 md:text-base">
+                  Menos tempo procurando, mais confiança para decidir e economia para aproveitar.
+                </p>
+                <Button
+                  className="mt-6 rounded-full bg-ink px-6 text-ink-foreground hover:bg-ink/90"
+                  onClick={() => onSearch("Smart TV")}
+                >
+                  Encontrar menor preço <ArrowRight className="size-4" />
+                </Button>
+              </div>
+              <img
+                src={heroProductCutout}
+                alt="Celular, tênis e fone de ouvido em destaque"
+                width={1400}
+                height={900}
+                className="pointer-events-none absolute -bottom-5 right-0 h-auto w-[92%] object-contain drop-shadow-2xl md:-bottom-10 md:-right-20 md:w-[54%] lg:-bottom-14 lg:-right-16"
+              />
             </div>
           </CarouselItem>
         </CarouselContent>
