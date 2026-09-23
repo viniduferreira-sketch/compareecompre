@@ -22,5 +22,5 @@
 - [x] Substituir os banners 4 e 5 por Eletrônicos e Celulares.
 - [x] Criar os banners 6, 7 e 8 para Games, Esportes e Moda.
 - [x] Validar os oito banners, CTAs, indicadores e autoplay em desktop e celular.
-- [ ] Adicionar superfícies e profundidade visual aos banners de categoria 2 a 8.
-- [ ] Validar as novas cenas em desktop e celular sem alterar o banner institucional.
+- [x] Adicionar superfícies e profundidade visual aos banners de categoria 2 a 8.
+- [x] Validar as novas cenas em desktop e celular sem alterar o banner institucional.
