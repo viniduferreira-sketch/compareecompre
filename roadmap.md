@@ -16,3 +16,5 @@
 - [x] Adicionar três novos banners com urgência, decisão inteligente e economia real.
 - [x] Atualizar navegação, indicadores e autoplay para cinco banners.
 - [x] Validar todos os banners em desktop e celular.
+- [x] Substituir apenas os banners 2 e 3 por temas de Beleza e Casa/Cozinha.
+- [x] Validar os novos banners em desktop e celular sem regressões nos banners preservados.
