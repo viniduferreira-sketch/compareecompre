@@ -22,6 +22,19 @@ import heroSportsCutout from "@/assets/hero-sports-cutout.png";
 
 const SLIDE_COUNT = 8;
 
+type CategoryScene = "beauty" | "kitchen" | "electronics" | "phones" | "gaming" | "sports" | "fashion";
+
+function ProductScene({ variant }: { variant: CategoryScene }) {
+  return (
+    <div className={cn("product-scene", `product-scene--${variant}`)} aria-hidden="true">
+      <span className="product-scene__backdrop" />
+      <span className="product-scene__detail product-scene__detail--one" />
+      <span className="product-scene__detail product-scene__detail--two" />
+      <span className="product-scene__surface" />
+    </div>
+  );
+}
+
 export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void }) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -76,6 +89,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
           */}
           <CarouselItem>
             <div className="relative min-h-[570px] overflow-hidden rounded-xl bg-beauty-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <ProductScene variant="beauty" />
               <div className="relative z-10 max-w-2xl md:max-w-[64%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Sparkles className="size-3.5 text-primary" /> Beleza sem pagar caro
@@ -107,6 +121,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-kitchen-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <ProductScene variant="kitchen" />
               <div className="relative z-10 max-w-2xl md:max-w-[64%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <House className="size-3.5 text-primary" /> Para sua cozinha
@@ -134,6 +149,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[570px] overflow-hidden rounded-xl bg-electronics-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <ProductScene variant="electronics" />
               <div className="relative z-10 max-w-2xl md:max-w-[61%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Camera className="size-3.5 text-primary" /> Tecnologia em conta
@@ -161,6 +177,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-phones-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <ProductScene variant="phones" />
               <div className="relative z-10 max-w-2xl md:max-w-[62%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Smartphone className="size-3.5 text-primary" /> Seu próximo celular, mais barato
@@ -188,6 +205,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-gaming-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <ProductScene variant="gaming" />
               <div className="relative z-10 max-w-2xl md:max-w-[60%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Gamepad2 className="size-3.5 text-primary" /> Para quem vive o jogo
@@ -215,6 +233,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[610px] overflow-hidden rounded-xl bg-sports-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <ProductScene variant="sports" />
               <div className="relative z-10 max-w-2xl md:max-w-[65%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Dumbbell className="size-3.5 text-primary" /> Para sua próxima meta
@@ -242,6 +261,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-fashion-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
+              <ProductScene variant="fashion" />
               <div className="relative z-10 max-w-2xl md:max-w-[61%]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Shirt className="size-3.5 text-primary" /> Estilo que cabe no bolso
