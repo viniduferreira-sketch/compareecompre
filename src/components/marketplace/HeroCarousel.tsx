@@ -246,7 +246,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/75 px-3 py-1 text-xs font-semibold uppercase text-ink shadow-card">
                   <Shirt className="size-3.5 text-primary" /> Estilo que cabe no bolso
                 </span>
-                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl lg:text-5xl">
+                <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl">
                   A peça que você quer, na loja que cobra menos por ela.
                 </h2>
                 <p className="mt-3 max-w-xl text-sm text-ink/75 md:text-base">
