@@ -197,7 +197,15 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
   }> => {
     try {
       const { client, indexName } = getAlgoliaConfig();
-      const categoryNames = ["Eletrônicos", "Moda", "Casa", "Celulares", "Games", "Beleza", "Esportes"];
+      const categoryCoversConfig = [
+        { name: "Eletrônicos", query: "" },
+        { name: "Moda", query: "tênis" },
+        { name: "Casa", query: "" },
+        { name: "Celulares", query: "" },
+        { name: "Games", query: "" },
+        { name: "Beleza", query: "" },
+        { name: "Esportes", query: "" },
+      ];
       const [urgentResponse, priceDropsResponse, popularResponse, categoryResponses] = await Promise.all([
         client.searchSingleIndex<AlgoliaOffer>({
           indexName,
@@ -226,13 +234,13 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
             attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
           },
         }),
-        Promise.all(categoryNames.map((categoryName) =>
+        Promise.all(categoryCoversConfig.map(({ name, query }) =>
           client.searchSingleIndex<AlgoliaOffer>({
             indexName,
             searchParams: {
-              query: "",
+              query,
               hitsPerPage: 1,
-              filters: `price > 0 AND categoryName:"${categoryName}"`,
+              filters: `price > 0 AND categoryName:"${name}"`,
               attributesToRetrieve: ["title", "imageUrl"],
             },
           }),
@@ -258,7 +266,7 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
 
       const categoryCovers = Object.fromEntries(categoryResponses.flatMap((response, index) => {
         const hit = response.hits.find((item) => typeof item.imageUrl === "string" && item.imageUrl.length > 0);
-        const categoryName = categoryNames[index];
+        const categoryName = categoryCoversConfig[index]?.name;
         return hit && categoryName && hit.imageUrl
           ? [[categoryName, { imageUrl: hit.imageUrl, title: hit.title }]]
           : [];
