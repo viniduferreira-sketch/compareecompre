@@ -323,6 +323,6 @@
   }
 
   .category-card:hover {
-    transform: none;
+    transform: none !important;
   }
 }
