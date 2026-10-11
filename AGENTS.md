@@ -9,6 +9,6 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Keep category names, search terms, artwork and accent roles in the typed category configuration; both shortcut cards and header navigation consume it to avoid diverging categories.
-- Category artwork accepts inline SVG components or transparent image paths in the same configuration; a square contain frame preserves proportions when swapping formats.
+- Keep category names, search terms, Lucide fallbacks and uploaded image paths in the typed category configuration; both shortcut cards and header navigation consume it to avoid diverging categories.
+- Resolve category artwork from category-named PNG/WebP assets or CDN pointers under src/assets/categorias, with Lucide fallbacks; this accepts user uploads without changing navigation or drawing custom artwork.
 - Measure the sticky header with ResizeObserver for anchor offsets; its height changes when search and navigation wrap on smaller screens.
