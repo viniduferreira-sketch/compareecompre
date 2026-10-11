@@ -20,7 +20,7 @@ export interface CategoryItem {
   slug: string;
   term: string;
   icon?: CategoryIconComponent;
-  imageSrc?: string;
+  imageSrc?: string | undefined;
 }
 
 export const CATEGORY_ITEMS: CategoryItem[] = [
