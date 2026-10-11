@@ -29,5 +29,5 @@
 - [x] Substituir as fotos das categorias por sete ícones 3D vetoriais e acessíveis.
 - [x] Adicionar animações responsivas com suporte a movimento reduzido.
 - [x] Adicionar sombra ao cabeçalho somente após a rolagem.
-- [ ] Conferir o pedido reenviado: categorias no tablet, troca por PNG/WebP e margem de rolagem igual ao cabeçalho.
-- [ ] Validar categorias e cabeçalho em desktop e celular.
+- [x] Conferir o pedido reenviado: categorias no tablet, troca por PNG/WebP e margem de rolagem igual ao cabeçalho.
+- [x] Validar categorias e cabeçalho em desktop e celular.
