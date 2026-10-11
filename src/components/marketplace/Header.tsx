@@ -1,18 +1,11 @@
 import { Search, Tag } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { CATEGORY_ITEMS } from "@/components/category-icons/categories";
 import { cn } from "@/lib/utils";
 
-export const CATEGORIES = [
-  "Eletrônicos",
-  "Moda",
-  "Casa",
-  "Celulares",
-  "Games",
-  "Beleza",
-  "Esportes",
-] as const;
+export const CATEGORIES = CATEGORY_ITEMS.map(({ name }) => name);
 
 export function Header({
   onSearch,
@@ -23,6 +16,7 @@ export function Header({
 }) {
   const [term, setTerm] = useState(initialTerm);
   const [isScrolled, setIsScrolled] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const updateHeaderShadow = () => setIsScrolled(window.scrollY > 8);
@@ -31,8 +25,24 @@ export function Header({
     return () => window.removeEventListener("scroll", updateHeaderShadow);
   }, []);
 
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const updateHeight = () => {
+      document.documentElement.style.setProperty("--header-height", `${header.getBoundingClientRect().height}px`);
+    };
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(header);
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty("--header-height");
+    };
+  }, []);
+
   return (
     <header
+      ref={headerRef}
       data-scrolled={isScrolled}
       className={cn(
         "sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-md transition-shadow duration-200",

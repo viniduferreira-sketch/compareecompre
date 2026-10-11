@@ -16,10 +16,10 @@ export function PopularCategories({
       <p className="text-xs font-bold uppercase text-primary">Atalhos para economizar</p>
       <h2 className="mb-5 mt-1 font-display text-2xl font-extrabold">O que você está procurando?</h2>
 
-      <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-7 md:gap-4 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
+      <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-7 lg:gap-4 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden">
         {CATEGORY_ITEMS.map(({ name, slug, term, icon: Icon, imageSrc, accentClass }) => {
           return (
-          <li key={slug} className="w-[8.75rem] shrink-0 snap-start md:w-auto">
+          <li key={slug} className="w-[8.75rem] shrink-0 snap-start lg:w-auto">
             <Button
               variant="softInk"
               type="button"
