@@ -253,7 +253,7 @@
 }
 
 :where(section[id], [id]) {
-  scroll-margin-top: 8rem;
+  scroll-margin-top: var(--header-height, 8rem);
 }
 
 .category-icon-stage {
@@ -292,6 +292,8 @@ li:nth-child(7) .category-icon-float { animation-delay: -2.7s; }
 .category-icon-art {
   display: block;
   width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
   height: auto;
   transform-origin: center;
   transition: transform 250ms ease-out;
