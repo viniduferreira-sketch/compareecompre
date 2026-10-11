@@ -1,7 +1,7 @@
 # Roadmap
 
 - [x] Uniformizar os cards de categoria e substituir desenhos 3D por ícones Lucide provisórios até receber imagens do usuário.
-- [ ] Validar os cards discretos, interação de busca e movimento reduzido sem alterar outras seções.
+- [x] Validar os cards discretos, interação de busca e movimento reduzido sem alterar outras seções.
 
 - [x] Adicionar adaptador isolado de perguntas do Mercado Livre.
 - [x] Indexar `qa` por oferta com origem, data e resposta opcional.
