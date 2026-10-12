@@ -1,7 +1,9 @@
 import { BadgeCheck, BellRing, Building2, Check, Mail, ShieldCheck, Sparkles, Store } from "lucide-react";
 import { useState, type FormEvent } from "react";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Button } from "@/components/ui/button";
+import { subscribeToPriceAlerts } from "@/lib/price-alert-signup.functions";
 
 const FUTURE_STORES = ["Nova loja", "Nova loja", "Nova loja"];
 
@@ -68,11 +70,24 @@ export function MonitoredStores() {
 export function PriceAlertSignup() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  const subscribe = useServerFn(subscribeToPriceAlerts);
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!email.trim()) return;
-    setSubmitted(true);
+    if (!email.trim() || pending) return;
+    setPending(true);
+    setError("");
+    try {
+      const result = await subscribe({ data: { email: email.trim() } });
+      if (!result.success) throw new Error("Signup failed");
+      setSubmitted(true);
+    } catch {
+      setError("Não foi possível registrar seu interesse. Tente novamente.");
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -91,7 +106,7 @@ export function PriceAlertSignup() {
         </div>
 
         {submitted ? (
-          <div className="mt-7 flex min-h-24 items-center gap-3 rounded-lg bg-card p-5 text-card-foreground md:mt-0">
+          <div role="status" className="mt-7 flex min-h-24 items-center gap-3 rounded-lg bg-card p-5 text-card-foreground md:mt-0">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-savings text-savings-foreground">
               <Check className="size-5" />
             </span>
@@ -101,7 +116,7 @@ export function PriceAlertSignup() {
             </div>
           </div>
         ) : (
-          <form onSubmit={submit} className="mt-7 rounded-lg bg-card p-2 shadow-lift md:mt-0">
+          <form onSubmit={submit} aria-busy={pending} className="mt-7 rounded-lg bg-card p-2 shadow-lift md:mt-0">
             <div className="flex flex-col gap-2 sm:flex-row">
               <label className="flex min-w-0 flex-1 items-center gap-2 px-3">
                 <Mail className="size-4 shrink-0 text-muted-foreground" />
@@ -109,16 +124,20 @@ export function PriceAlertSignup() {
                 <input
                   required
                   type="email"
+                  autoComplete="email"
+                  maxLength={254}
+                  disabled={pending}
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="Seu melhor e-mail"
                   className="h-11 min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
                 />
               </label>
-              <Button type="submit" variant="ink" size="lg" className="shrink-0">
-                Criar alerta <Sparkles className="size-4" />
+              <Button type="submit" disabled={pending} variant="ink" size="lg" className="shrink-0">
+                {pending ? "Registrando..." : "Criar alerta"} <Sparkles className="size-4" />
               </Button>
             </div>
+            {error && <p role="alert" className="px-3 pt-2 text-xs text-destructive">{error}</p>}
             <p className="px-3 pb-1 pt-2 text-[11px] text-muted-foreground">Sem spam. Você poderá cancelar quando quiser.</p>
           </form>
         )}
