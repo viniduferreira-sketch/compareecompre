@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { InstitutionalPage } from "@/components/marketplace/InstitutionalPage";
 
 export const Route = createFileRoute("/termos-de-uso")({
+  staticData: { sitemap: true },
   head: () => ({ meta: [
     { title: "Termos de Uso | Compare e Compre" },
     { name: "description", content: "Consulte as regras para utilizar o Compare e Compre e acessar ofertas de terceiros." },

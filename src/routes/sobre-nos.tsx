@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { InstitutionalPage } from "@/components/marketplace/InstitutionalPage";
 
 export const Route = createFileRoute("/sobre-nos")({
+  staticData: { sitemap: true },
   head: () => ({ meta: [
     { title: "Sobre Nós | Compare e Compre" },
     { name: "description", content: "Conheça o Compare e Compre, comparador que busca ofertas nas melhores lojas da internet." },
