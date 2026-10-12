@@ -125,12 +125,16 @@
   --gradient-sports: linear-gradient(115deg, oklch(0.975 0.025 90) 0%, oklch(0.93 0.075 90) 100%);
   --gradient-fashion: linear-gradient(115deg, oklch(0.96 0.025 5) 0%, oklch(0.91 0.045 5) 100%);
   --gradient-hero-scrim: linear-gradient(90deg, oklch(0.985 0.008 85 / 0.98) 0%, oklch(0.985 0.008 85 / 0.92) 38%, oklch(0.985 0.008 85 / 0.12) 72%);
-  --category-background: oklch(1 0 0);
-  --category-border: oklch(0.77 0.025 80);
-  --category-shadow: 0 2px 6px color-mix(in oklab, var(--footer) 5%, transparent);
-  --category-shadow-hover: 0 5px 12px color-mix(in oklab, var(--footer) 9%, transparent);
+  --category-electronics: #4DE3E8;
+  --category-fashion: #FF7AB6;
+  --category-home: #FFD93D;
+  --category-phones: #FF9F43;
+  --category-games: #8B5CF6;
+  --category-beauty: #B7F34A;
+  --category-sports: #3AB4FF;
   --category-contact-shadow: color-mix(in oklab, var(--footer) 12%, transparent);
-  --category-placeholder-background: color-mix(in oklab, var(--primary) 8%, transparent);
+  --category-placeholder-background: oklch(0.92 0 0);
+  --category-placeholder-detail: oklch(0.78 0 0);
 }
 
 .dark {
@@ -256,52 +260,83 @@
 }
 
 .category-card {
-  background: var(--category-background);
-  border: 1px solid var(--category-border);
-  box-shadow: var(--category-shadow);
-  transition: transform 200ms ease-out, border-color 200ms ease-out, box-shadow 200ms ease-out;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  transition: transform 250ms ease-out;
 }
 
 .category-card:hover {
-  background: var(--category-background);
-  border-color: var(--primary);
-  box-shadow: var(--category-shadow-hover);
-  transform: translateY(-3px);
+  background: transparent;
+  transform: translateY(-4px);
+}
+
+.category-shortcut-item { width: calc((100vw - 50px) / 2.5); }
+@media (min-width: 768px) and (max-width: 1023px) {
+  .category-shortcut-item { width: 156px; }
+}
+@media (min-width: 1024px) {
+  .category-shortcut-item { width: auto; }
 }
 
 .category-icon-stage {
   display: flex;
+  position: relative;
   aspect-ratio: 4 / 3;
   width: 100%;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  background: var(--category-background);
+  isolation: isolate;
 }
+
+.category-blob {
+  position: absolute;
+  width: 88%;
+  height: 88%;
+  z-index: -1;
+  transition: transform 250ms ease-out;
+  fill: var(--category-blob-color);
+}
+.category-blob[data-color="electronics"] { --category-blob-color: var(--category-electronics); }
+.category-blob[data-color="fashion"] { --category-blob-color: var(--category-fashion); }
+.category-blob[data-color="home"] { --category-blob-color: var(--category-home); }
+.category-blob[data-color="phones"] { --category-blob-color: var(--category-phones); }
+.category-blob[data-color="games"] { --category-blob-color: var(--category-games); }
+.category-blob[data-color="beauty"] { --category-blob-color: var(--category-beauty); }
+.category-blob[data-color="sports"] { --category-blob-color: var(--category-sports); }
+.category-card:hover .category-blob { transform: rotate(4deg); }
+.category-card:hover .category-icon-art,
+.category-card:hover .category-icon-placeholder { transform: scale(1.06); }
 
 .category-icon-placeholder {
   display: flex;
-  width: 72px;
-  height: 72px;
+  position: relative;
+  width: 53%;
+  height: 52%;
   flex: none;
-  border-radius: 50%;
+  border-radius: 8px;
   align-items: center;
   justify-content: center;
   background: var(--category-placeholder-background);
-  color: var(--footer);
+  filter: drop-shadow(0 3px 3px var(--category-contact-shadow));
+  transition: transform 250ms ease-out;
 }
 
-.category-icon-placeholder svg {
-  width: 40px;
-  height: 40px;
+.category-icon-placeholder::after {
+  content: "";
+  width: 26%;
+  aspect-ratio: 1;
+  border: 2px solid var(--category-placeholder-detail);
+  border-radius: 50%;
 }
 
 .category-icon-art {
   display: block;
-  width: 41.25%;
-  height: 55%;
+  width: 92%;
+  height: 94%;
   object-fit: contain;
   filter: drop-shadow(0 3px 3px var(--category-contact-shadow));
+  transition: transform 250ms ease-out;
 }
 
 @media (max-width: 767px) {
@@ -322,7 +357,10 @@
     transition-duration: 0.01ms !important;
   }
 
-  .category-card:hover {
+  .category-card:hover,
+  .category-card:hover .category-blob,
+  .category-card:hover .category-icon-art,
+  .category-card:hover .category-icon-placeholder {
     transform: none !important;
   }
 }
