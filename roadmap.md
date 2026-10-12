@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Redesenhar somente os atalhos de categoria com manchas orgânicas coloridas, links acessíveis e placeholders para os PNGs ausentes.
+- [ ] Validar navegação, sete cores, desktop, celular e movimento reduzido sem alterar header ou vitrines.
+
 - [x] Conectar a inscrição de alertas a uma gravação privada e persistente, sem alterar o visual existente.
 - [x] Verificar inscrição real, duplicidade e falhas antes de concluir a correção de SEO.
 
