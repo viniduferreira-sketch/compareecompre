@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { getProductDetail } from "@/lib/product-detail.functions";
 
 export const Route = createFileRoute("/produto/$id")({
+  staticData: { sitemap: true },
   loader: ({ params }) => getProductDetail({ data: { id: params.id } }),
   head: ({ loaderData }) => {
     const product = loaderData;

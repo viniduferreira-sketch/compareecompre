@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { InstitutionalPage } from "@/components/marketplace/InstitutionalPage";
 
 export const Route = createFileRoute("/politica-de-privacidade")({
+  staticData: { sitemap: true },
   head: () => ({ meta: [
     { title: "Política de Privacidade | Compare e Compre" },
     { name: "description", content: "Saiba como o Compare e Compre trata cookies e dados pessoais conforme a LGPD." },

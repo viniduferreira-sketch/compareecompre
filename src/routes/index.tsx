@@ -29,6 +29,7 @@ import {
 } from "@/lib/search-offers.functions";
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Compare e Compre | Compare preços online" },
