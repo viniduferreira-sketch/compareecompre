@@ -12,3 +12,4 @@
 - Keep category names, search terms, Lucide fallbacks and uploaded image paths in the typed category configuration; both shortcut cards and header navigation consume it to avoid diverging categories.
 - Resolve category artwork from category-named PNG/WebP assets or CDN pointers under src/assets/categorias, with Lucide fallbacks; this accepts user uploads without changing navigation or drawing custom artwork.
 - Measure the sticky header with ResizeObserver for anchor offsets; its height changes when search and navigation wrap on smaller screens.
+- Homepage price-alert intake uses a validated public server function to write only to a private subscriber table; success follows persistence, duplicates are idempotent, and no subscriber data is exposed to visitors.
