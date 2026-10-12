@@ -34,8 +34,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           do {
             const response = await client.browse<{ objectID: string }>({
               indexName,
-              browseParams: { attributesToRetrieve: ["objectID"], hitsPerPage: 1000 },
-              cursor,
+              browseParams: { attributesToRetrieve: ["objectID"], hitsPerPage: 1000, cursor },
             });
             for (const hit of response.hits) {
               const location = router.buildLocation({
