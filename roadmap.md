@@ -1,7 +1,7 @@
 # Roadmap
 
 - [x] Conectar a inscrição de alertas a uma gravação privada e persistente, sem alterar o visual existente.
-- [ ] Verificar inscrição real, duplicidade e falhas antes de concluir a correção de SEO.
+- [x] Verificar inscrição real, duplicidade e falhas antes de concluir a correção de SEO.
 
 - [x] Uniformizar os cards de categoria e substituir desenhos 3D por ícones Lucide provisórios até receber imagens do usuário.
 - [x] Validar os cards discretos, interação de busca e movimento reduzido sem alterar outras seções.
