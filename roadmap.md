@@ -1,8 +1,10 @@
 # Roadmap
 
-- [ ] Atualizar sincronização por categoria a cada seis horas com remoção segura e logs.
-- [ ] Aplicar frescor de 24 horas e carimbo nos cards e páginas de produto.
-- [ ] Testar regras, execução real e agendamento sem alterar outras funcionalidades.
+- [x] Atualizar sincronização por categoria a cada seis horas com remoção segura e logs.
+- [x] Aplicar frescor de 24 horas e carimbo nos cards e páginas de produto.
+- [x] Testar regras, falha de execução real e agendamento sem alterar outras funcionalidades.
+- [ ] Validar atualização bem-sucedida de ofertas: API Mercado Livre retorna “No winners found”; índice preservado.
+- [ ] Validar buscas reais com filtro numérico: conexão Algolia não disponibilizou a chave pública ao navegador.
 
 - [x] Redesenhar somente os atalhos de categoria com manchas orgânicas coloridas, links acessíveis e placeholders para os PNGs ausentes.
 - [x] Validar navegação, sete cores, desktop, celular e movimento reduzido sem alterar header ou vitrines.

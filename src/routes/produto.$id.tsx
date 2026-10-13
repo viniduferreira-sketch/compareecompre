@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatPriceUpdated, isFreshPrice } from "@/lib/offer-freshness";
+import { usePriceFreshness } from "@/hooks/use-price-freshness";
 import { cn } from "@/lib/utils";
 import { getProductDetail } from "@/lib/product-detail.functions";
 
@@ -155,7 +156,7 @@ function formatQADate(value: string) {
 
 function ProductPage() {
   const loaded = Route.useLoaderData();
-  const fresh = isFreshPrice(loaded?.last_synced_at);
+  const fresh = usePriceFreshness(loaded?.last_synced_at);
   const data = loaded && !fresh ? { ...loaded, price: null, originalPrice: null, discountPercent: null, freeShipping: false } : loaded;
   const navigate = Route.useNavigate();
   const [activeImage, setActiveImage] = useState(0);

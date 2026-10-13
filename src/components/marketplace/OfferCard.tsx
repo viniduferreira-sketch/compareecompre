@@ -3,14 +3,16 @@ import { ExternalLink, Truck } from "lucide-react";
 
 
 import { Button } from "@/components/ui/button";
-import { formatPriceUpdated, isFreshPrice } from "@/lib/offer-freshness";
+import { formatPriceUpdated } from "@/lib/offer-freshness";
+import { usePriceFreshness } from "@/hooks/use-price-freshness";
 import type { Offer } from "@/lib/search-offers.functions";
 
 export const formatBRL = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
-  if (!isFreshPrice(offer.last_synced_at)) return null;
+  const fresh = usePriceFreshness(offer.last_synced_at);
+  if (!fresh) return null;
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lift">
       <Link
