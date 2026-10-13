@@ -1,5 +1,9 @@
 # Roadmap
 
+- [ ] Atualizar sincronização por categoria a cada seis horas com remoção segura e logs.
+- [ ] Aplicar frescor de 24 horas e carimbo nos cards e páginas de produto.
+- [ ] Testar regras, execução real e agendamento sem alterar outras funcionalidades.
+
 - [x] Redesenhar somente os atalhos de categoria com manchas orgânicas coloridas, links acessíveis e placeholders para os PNGs ausentes.
 - [x] Validar navegação, sete cores, desktop, celular e movimento reduzido sem alterar header ou vitrines.
 
