@@ -18,7 +18,9 @@ export const Route = createFileRoute("/api/public/hooks/sync-algolia")({
         try {
           const { syncOffersToAlgolia } = await import("@/lib/sync-offers.server");
           const result = await syncOffersToAlgolia({ category: parsed.data.category, targetPerCategory: 100 });
-          return Response.json(result, { status: result.success ? 200 : 503 });
+          // A safely preserved category is a completed job outcome, not a route crash.
+          // Keep success:false and error counters so monitoring never reports a refresh.
+          return Response.json(result, { headers: { "Cache-Control": "no-store" } });
         } catch (error) {
           console.error("Scheduled Algolia sync failed", error);
           return Response.json(

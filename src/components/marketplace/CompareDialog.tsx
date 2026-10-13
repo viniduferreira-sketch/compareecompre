@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatBRL } from "@/components/marketplace/OfferCard";
+import { formatBRL } from "@/lib/currency";
 import { searchOffers, type Offer } from "@/lib/search-offers.functions";
 
 export function CompareDialog({

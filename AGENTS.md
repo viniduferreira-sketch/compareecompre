@@ -17,3 +17,5 @@
 - Algolia visitor queries run through the browser lite client; server indexing, object reads and sitemap browsing share a gateway-only server adapter to keep connection credentials private.
 - Category synchronization stages a complete validated snapshot before source-scoped deletion on the primary index; replicas inherit changes and private category leases prevent overlapping executions.
 - Price visibility uses shared freshness rules and both ISO and numeric synchronization timestamps so list filters, product markup and price structured data agree.
+- Share currency formatting from a non-component module to keep offer cards compatible with React Fast Refresh.
+- Scheduled sync returns completed category outcomes as JSON with explicit success and error counters; unexpected infrastructure exceptions retain HTTP errors.

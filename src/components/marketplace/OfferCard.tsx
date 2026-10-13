@@ -5,10 +5,8 @@ import { ExternalLink, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPriceUpdated } from "@/lib/offer-freshness";
 import { usePriceFreshness } from "@/hooks/use-price-freshness";
+import { formatBRL } from "@/lib/currency";
 import type { Offer } from "@/lib/search-offers.functions";
-
-export const formatBRL = (value: number) =>
-  value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
   const fresh = usePriceFreshness(offer.last_synced_at);
