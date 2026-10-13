@@ -12,8 +12,11 @@ export const Route = createFileRoute("/api/public/hooks/sync-algolia")({
         try {
           const { configureDailyAlgoliaSync, syncOffersToAlgolia } = await import("@/lib/sync-offers.server");
           await configureDailyAlgoliaSync();
-          const result = await syncOffersToAlgolia({ targetPerCategory: 100 });
-          return Response.json({ success: true, ...result });
+          const body = (await request.json().catch(() => ({}))) as { category?: unknown };
+          const category = typeof body.category === "string" ? body.category : undefined;
+          const result = await syncOffersToAlgolia({ targetPerCategory: 100, category });
+          const ok = result.categories.every((report) => report.success);
+          return Response.json({ success: ok, ...result }, { status: ok ? 200 : 502 });
         } catch (error) {
           console.error("Scheduled Algolia sync failed", error);
           return Response.json(

@@ -2,6 +2,8 @@ import { algoliasearch } from "algoliasearch";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { freshnessNumericFilter } from "@/lib/price-freshness";
+
 export const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 
 export type Offer = {
@@ -16,6 +18,7 @@ export type Offer = {
   affiliateUrl: string;
   category: string | null;
   sellerCount: number;
+  lastSyncedAt: string | null;
 };
 
 export type OfferFilter = {
@@ -51,6 +54,7 @@ type AlgoliaOffer = {
   categoryName: string | null;
   brand: string | null;
   sellerCount: number;
+  last_synced_at?: string;
 };
 
 const INDEX_NAME = "produtos_mercado_livre";
@@ -150,6 +154,7 @@ export const searchOffers = createServerFn({ method: "POST" })
       const response = await client.searchSingleIndex<AlgoliaOffer>({
         indexName: searchIndex,
         searchParams: {
+            numericFilters: [freshnessNumericFilter()],
           query: data.query,
           page,
           hitsPerPage: limit,
@@ -157,7 +162,7 @@ export const searchOffers = createServerFn({ method: "POST" })
           typoTolerance: true,
           attributesToRetrieve: [
             "objectID", "title", "imageUrl", "store", "price", "originalPrice",
-            "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount",
+            "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "last_synced_at",
           ],
         },
       });
@@ -175,6 +180,7 @@ export const searchOffers = createServerFn({ method: "POST" })
           affiliateUrl: hit.affiliateUrl,
           category: hit.category,
           sellerCount: hit.sellerCount,
+          lastSyncedAt: hit.last_synced_at ?? null,
         }];
       });
       return {
@@ -210,34 +216,38 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
         client.searchSingleIndex<AlgoliaOffer>({
           indexName,
           searchParams: {
+            numericFilters: [freshnessNumericFilter()],
             query: "",
             hitsPerPage: 14,
             filters: "price > 0 AND discountPercent >= 10",
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "last_synced_at"],
           },
         }),
         client.searchSingleIndex<AlgoliaOffer>({
           indexName: `${indexName}_price_asc`,
           searchParams: {
+            numericFilters: [freshnessNumericFilter()],
             query: "",
             hitsPerPage: 14,
             filters: "price > 0",
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "last_synced_at"],
           },
         }),
         client.searchSingleIndex<AlgoliaOffer>({
           indexName,
           searchParams: {
+            numericFilters: [freshnessNumericFilter()],
             query: "iphone",
             hitsPerPage: 14,
             typoTolerance: true,
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "last_synced_at"],
           },
         }),
         Promise.all(categoryCoversConfig.map(({ name, query }) =>
           client.searchSingleIndex<AlgoliaOffer>({
             indexName,
             searchParams: {
+            numericFilters: [freshnessNumericFilter()],
               query,
               hitsPerPage: name === "Moda" ? 20 : 1,
               filters: `price > 0 AND categoryName:"${name}"`,
@@ -261,6 +271,7 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
           affiliateUrl: hit.affiliateUrl,
           category: hit.category,
           sellerCount: hit.sellerCount,
+          lastSyncedAt: hit.last_synced_at ?? null,
         }];
       });
 
