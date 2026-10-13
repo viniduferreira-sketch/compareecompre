@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { ExternalLink, Loader2, Truck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatBRL } from "@/components/marketplace/OfferCard";
+import { formatBRL } from "@/lib/currency";
 import { searchOffers, type Offer } from "@/lib/search-offers.functions";
 
 export function CompareDialog({
@@ -20,7 +19,7 @@ export function CompareDialog({
   offer: Offer | null;
   onOpenChange: (open: boolean) => void;
 }) {
-  const run = useServerFn(searchOffers);
+  const run = searchOffers;
 
   const { data, isLoading } = useQuery({
     queryKey: ["compare", offer?.id],

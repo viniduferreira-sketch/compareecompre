@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 
@@ -213,8 +212,8 @@ function SearchResults({
 }
 
 function Home() {
-  const run = useServerFn(searchOffers);
-  const loadHome = useServerFn(getHomeOffers);
+  const run = searchOffers;
+  const loadHome = getHomeOffers;
   const { q } = Route.useSearch();
   const [term, setTerm] = useState(q ?? "");
   const [sort, setSort] = useState<OfferSort>("relevance");
@@ -228,6 +227,7 @@ function Home() {
   const search = useQuery({
     queryKey: ["offers", "search", term, sort, page],
     enabled: term.length > 0,
+    refetchInterval: 60 * 1000,
     queryFn: () => run({
       data: { query: term, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, sort },
     }),
@@ -236,7 +236,8 @@ function Home() {
     queryKey: ["offers", "home"],
     queryFn: () => loadHome(),
     enabled: term.length === 0,
-    staleTime: 15 * 60 * 1000,
+    staleTime: 60 * 1000,
+    refetchInterval: 60 * 1000,
   });
   const validOffers = (search.data?.offers ?? []).filter(
     (offer) => Number.isFinite(offer.price) && offer.price > 0,
