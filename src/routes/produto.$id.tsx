@@ -34,6 +34,7 @@ import { formatBRL } from "@/components/marketplace/OfferCard";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatPriceUpdated, isFreshPrice } from "@/lib/offer-freshness";
 import { cn } from "@/lib/utils";
 import { getProductDetail } from "@/lib/product-detail.functions";
 
@@ -48,7 +49,7 @@ export const Route = createFileRoute("/produto/$id")({
     const description = product?.description.slice(0, 155)
       ?? "Veja fotos, ficha técnica e o menor preço encontrado para este produto nas lojas parceiras.";
     const image = product?.images.find((url) => url.startsWith("https://"));
-    const validPrice = product?.price && Number.isFinite(product.price) && product.price > 0
+    const validPrice = isFreshPrice(product?.last_synced_at) && product?.price && Number.isFinite(product.price) && product.price > 0
       ? product.price
       : null;
     const productSchema = product
@@ -153,13 +154,15 @@ function formatQADate(value: string) {
 }
 
 function ProductPage() {
-  const data = Route.useLoaderData();
+  const loaded = Route.useLoaderData();
+  const fresh = isFreshPrice(loaded?.last_synced_at);
+  const data = loaded && !fresh ? { ...loaded, price: null, originalPrice: null, discountPercent: null, freeShipping: false } : loaded;
   const navigate = Route.useNavigate();
   const [activeImage, setActiveImage] = useState(0);
   const [alert, setAlert] = useState(false);
   const [favorite, setFavorite] = useState(false);
   const [helpful, setHelpful] = useState<boolean | null>(null);
-  const [period, setPeriod] = useState(PERIODS[0]!.days);
+  const [period, setPeriod] = useState(PERIODS[0]?.days ?? 40);
 
   const history = useMemo(
     () => buildHistory(data?.price ?? 1000, period),
@@ -282,7 +285,7 @@ function ProductPage() {
                       </p>
                     ) : null}
                     <p className="font-display text-2xl font-bold text-foreground">
-                      {data.price ? formatBRL(data.price) : "Indisponível"}
+                      {data.price ? formatBRL(data.price) : "Preço indisponível no momento"}
                     </p>
                     {data.price ? (
                       <p className="mt-0.5 text-xs text-muted-foreground">
@@ -297,16 +300,17 @@ function ProductPage() {
                   </div>
 
                   <p className="shrink-0 text-xs text-muted-foreground sm:text-right">
-                    Melhor oferta em: <span className="font-semibold text-foreground">loja verificada</span>
+                    Melhor oferta em: <span className="font-semibold text-foreground">{data.store}</span>
                   </p>
                 </div>
 
                 <Button variant="ink" className="mt-4 h-10 w-full text-sm" asChild>
                   <a href={data.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">
-                    Ver melhor oferta <ExternalLink className="size-3.5" />
+                    {data.price ? "Ver melhor oferta" : "Ver no Mercado Livre"} <ExternalLink className="size-3.5" />
                   </a>
                 </Button>
 
+                <p className="mt-2 text-center text-[11px] text-muted-foreground">{formatPriceUpdated(data.last_synced_at)}</p>
                 <p className="mt-2 text-center text-[11px] text-muted-foreground">
                   {data.sellerCount > 0
                     ? `${data.sellerCount} vendedor(es) anunciando este produto`
@@ -388,6 +392,7 @@ function ProductPage() {
               </TabsContent>
 
               <TabsContent value="history" className="mt-3">
+                {data.price ? (
                 <div className="rounded-xl border border-border bg-card p-5">
                   <h2 className="font-display text-sm font-semibold">Histórico de preços</h2>
                   <div className="mt-3 h-52 w-full">
@@ -445,6 +450,7 @@ function ProductPage() {
                     Variação estimada com base no melhor preço encontrado entre as lojas monitoradas.
                   </p>
                 </div>
+                ) : <p className="py-5 text-muted-foreground">Preço indisponível no momento</p>}
               </TabsContent>
             </Tabs>
 
