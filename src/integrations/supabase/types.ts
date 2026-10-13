@@ -14,24 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      offer_sync_category_leases: {
-        Row: {
-          category: string
-          execution_id: string
-          expires_at: string
-        }
-        Insert: {
-          category: string
-          execution_id: string
-          expires_at: string
-        }
-        Update: {
-          category?: string
-          execution_id?: string
-          expires_at?: string
-        }
-        Relationships: []
-      }
       offers: {
         Row: {
           affiliate_url: string
@@ -138,17 +120,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      claim_offer_sync_category: {
-        Args: { _category: string; _execution_id: string }
-        Returns: boolean
-      }
       configure_algolia_sync_job: {
         Args: { _cron_secret: string }
         Returns: number
-      }
-      release_offer_sync_category: {
-        Args: { _category: string; _execution_id: string }
-        Returns: undefined
       }
     }
     Enums: {
