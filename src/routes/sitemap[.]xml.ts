@@ -22,8 +22,14 @@ export const Route = createFileRoute("/sitemap.xml")({
         // Product pages are the site's main content: list every indexed offer.
         const productRoute = router.routesById[PRODUCT_ROUTE_ID];
         if (isSitemapRouteIncluded(productRoute)) {
-          const { getAlgoliaConfig } = await import("@/lib/algolia.server");
-          const { client, indexName } = getAlgoliaConfig();
+          const { algoliasearch } = await import("algoliasearch");
+          const applicationId = process.env["ALGOLIA_APPLICATION_ID"];
+          const apiKey = process.env["ALGOLIA_API_KEY"];
+          const indexName = process.env["ALGOLIA_INDEX_NAME"] ?? "produtos_mercado_livre";
+          if (!applicationId || !apiKey) {
+            throw new Error("Algolia credentials are required to build the sitemap");
+          }
+          const client = algoliasearch(applicationId, apiKey);
           let cursor: string | undefined;
           do {
             const response = await client.browse<{ objectID: string }>({

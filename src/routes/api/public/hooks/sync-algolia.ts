@@ -9,18 +9,11 @@ export const Route = createFileRoute("/api/public/hooks/sync-algolia")({
         const authError = await authenticateCronRequest(request);
         if (authError) return authError;
 
-        let body: unknown;
-        try { body = await request.json(); } catch { return Response.json({ error: "Corpo inválido." }, { status: 400 }); }
-        const { z } = await import("zod");
-        const schema = z.object({ category: z.enum(["Eletrônicos", "Moda", "Casa", "Celulares", "Games", "Beleza", "Esportes"]) });
-        const parsed = schema.safeParse(body);
-        if (!parsed.success) return Response.json({ error: "Categoria inválida." }, { status: 400 });
         try {
-          const { syncOffersToAlgolia } = await import("@/lib/sync-offers.server");
-          const result = await syncOffersToAlgolia({ category: parsed.data.category, targetPerCategory: 100 });
-          // A safely preserved category is a completed job outcome, not a route crash.
-          // Keep success:false and error counters so monitoring never reports a refresh.
-          return Response.json(result, { headers: { "Cache-Control": "no-store" } });
+          const { configureDailyAlgoliaSync, syncOffersToAlgolia } = await import("@/lib/sync-offers.server");
+          await configureDailyAlgoliaSync();
+          const result = await syncOffersToAlgolia({ targetPerCategory: 100 });
+          return Response.json({ success: true, ...result });
         } catch (error) {
           console.error("Scheduled Algolia sync failed", error);
           return Response.json(
