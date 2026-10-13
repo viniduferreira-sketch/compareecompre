@@ -1,5 +1,5 @@
-import { algoliasearch } from "algoliasearch";
-import { createServerFn } from "@tanstack/react-start";
+import { liteClient } from "algoliasearch/lite";
+import { freshnessNumericFilters, isFreshPrice } from "@/lib/offer-freshness";
 import { z } from "zod";
 
 export const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
@@ -16,6 +16,10 @@ export type Offer = {
   affiliateUrl: string;
   category: string | null;
   sellerCount: number;
+  source: string;
+  status: string;
+  last_synced_at: string | null;
+  last_synced_at_timestamp: number;
 };
 
 export type OfferFilter = {
@@ -51,6 +55,10 @@ type AlgoliaOffer = {
   categoryName: string | null;
   brand: string | null;
   sellerCount: number;
+  source: string;
+  status: string;
+  last_synced_at: string | null;
+  last_synced_at_timestamp: number;
 };
 
 const INDEX_NAME = "produtos_mercado_livre";
@@ -62,46 +70,11 @@ export function withAffiliate(url: string): string {
   return `${clean}${separator}${AFFILIATE_PARAMS}`;
 }
 
-let cachedToken: { value: string; expiresAt: number } | null = null;
-
-export async function getMeliToken(): Promise<string | null> {
-  const clientId = process.env["ML_CLIENT_ID"];
-  const clientSecret = process.env["ML_CLIENT_SECRET"];
-  if (!clientId || !clientSecret) {
-    console.error("Mercado Livre credentials are missing");
-    return null;
-  }
-  if (cachedToken && cachedToken.expiresAt > Date.now() + 30_000) return cachedToken.value;
-
-  try {
-    const response = await fetch("https://api.mercadolibre.com/oauth/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
-      body: new URLSearchParams({
-        grant_type: "client_credentials",
-        client_id: clientId,
-        client_secret: clientSecret,
-      }),
-    });
-    if (!response.ok) {
-      console.error("Mercado Livre token failed", response.status, await response.text());
-      return null;
-    }
-    const json = (await response.json()) as { access_token: string; expires_in: number };
-    cachedToken = { value: json.access_token, expiresAt: Date.now() + json.expires_in * 1000 };
-    return cachedToken.value;
-  } catch (error) {
-    console.error("Mercado Livre token error", error);
-    return null;
-  }
-}
-
 function getAlgoliaConfig() {
-  const applicationId = process.env["ALGOLIA_APPLICATION_ID"];
-  const apiKey = process.env["ALGOLIA_API_KEY"];
-  const indexName = process.env["ALGOLIA_INDEX_NAME"] ?? INDEX_NAME;
+  const applicationId = import.meta.env.VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID;
+  const apiKey = import.meta.env.VITE_LOVABLE_CONNECTOR_ALGOLIA_PUBLIC_API_KEY;
   if (!applicationId || !apiKey) throw new Error("A busca inteligente não está configurada.");
-  return { client: algoliasearch(applicationId, apiKey), indexName };
+  return { client: liteClient(applicationId, apiKey), indexName: INDEX_NAME };
 }
 
 function emptyResult(offset: number, limit = RESULTS_PER_PAGE): SearchOffersResult {
@@ -126,17 +99,14 @@ function facetsToFilters(facets?: Record<string, Record<string, number>>): Offer
   });
 }
 
-export const searchOffers = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) =>
-    z.object({
+export async function searchOffers({ data: input }: { data: unknown }): Promise<SearchOffersResult> {
+    const data = z.object({
       query: z.string().min(1).max(120),
       limit: z.number().int().min(1).max(50).optional(),
       offset: z.number().int().min(0).max(10_000).optional(),
       sort: z.enum(["relevance", "price_asc", "price_desc"]).optional(),
       filters: z.array(z.object({ id: z.string(), value: z.string() })).optional(),
-    }).parse(data),
-  )
-  .handler(async ({ data }): Promise<SearchOffersResult> => {
+    }).parse(input);
     const limit = RESULTS_PER_PAGE;
     const offset = data.offset ?? 0;
     const page = Math.floor(offset / limit);
@@ -147,22 +117,24 @@ export const searchOffers = createServerFn({ method: "POST" })
         : data.sort === "price_desc"
           ? `${indexName}_price_desc`
           : indexName;
-      const response = await client.searchSingleIndex<AlgoliaOffer>({
+      const { results } = await client.searchForHits<AlgoliaOffer>({ requests: [{
         indexName: searchIndex,
-        searchParams: {
           query: data.query,
+          numericFilters: freshnessNumericFilters(),
+          filters: data.filters?.filter(filter => ["categoryName", "brand", "freeShipping"].includes(filter.id)).map(filter => `${filter.id}:${JSON.stringify(filter.value)}`).join(" AND ") || undefined,
           page,
           hitsPerPage: limit,
           facets: ["categoryName", "brand", "freeShipping"],
           typoTolerance: true,
           attributesToRetrieve: [
             "objectID", "title", "imageUrl", "store", "price", "originalPrice",
-            "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount",
+            "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at", "last_synced_at_timestamp",
           ],
-        },
-      });
+      }] });
+      const response = results[0];
+      if (!response) return emptyResult(offset, limit);
       const validOffers = response.hits.flatMap((hit) => {
-        if (!Number.isFinite(hit.price) || hit.price <= 0) return [];
+        if (!Number.isFinite(hit.price) || hit.price <= 0 || !isFreshPrice(hit.last_synced_at)) return [];
         return [{
           id: hit.objectID,
           title: hit.title,
@@ -175,6 +147,10 @@ export const searchOffers = createServerFn({ method: "POST" })
           affiliateUrl: hit.affiliateUrl,
           category: hit.category,
           sellerCount: hit.sellerCount,
+          source: hit.source,
+          status: hit.status,
+          last_synced_at: hit.last_synced_at,
+          last_synced_at_timestamp: hit.last_synced_at_timestamp,
         }];
       });
       return {
@@ -186,17 +162,20 @@ export const searchOffers = createServerFn({ method: "POST" })
       console.error("Algolia search failed", error);
       return emptyResult(offset, limit);
     }
-  });
+}
 
-export const getHomeOffers = createServerFn({ method: "GET" }).handler(
-  async (): Promise<{
+export async function getHomeOffers(): Promise<{
     urgent: Offer[];
     priceDrops: Offer[];
     popular: Offer[];
     categoryCovers: Record<string, CategoryCover>;
-  }> => {
+  }> {
     try {
       const { client, indexName } = getAlgoliaConfig();
+      const searchIndex = async (request: { indexName: string; searchParams: { query: string; hitsPerPage: number; filters?: string; attributesToRetrieve: string[]; typoTolerance?: boolean } }) => {
+        const { results } = await client.searchForHits<AlgoliaOffer>({ requests: [{ indexName: request.indexName, ...request.searchParams, numericFilters: freshnessNumericFilters() }] });
+        return results[0] ?? { hits: [] };
+      };
       const categoryCoversConfig = [
         { name: "Eletrônicos", query: "" },
         { name: "Moda", query: "camiseta" },
@@ -207,35 +186,35 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
         { name: "Esportes", query: "" },
       ];
       const [urgentResponse, priceDropsResponse, popularResponse, categoryResponses] = await Promise.all([
-        client.searchSingleIndex<AlgoliaOffer>({
+        searchIndex({
           indexName,
           searchParams: {
             query: "",
             hitsPerPage: 14,
             filters: "price > 0 AND discountPercent >= 10",
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at", "last_synced_at_timestamp"],
           },
         }),
-        client.searchSingleIndex<AlgoliaOffer>({
+        searchIndex({
           indexName: `${indexName}_price_asc`,
           searchParams: {
             query: "",
             hitsPerPage: 14,
             filters: "price > 0",
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at", "last_synced_at_timestamp"],
           },
         }),
-        client.searchSingleIndex<AlgoliaOffer>({
+        searchIndex({
           indexName,
           searchParams: {
             query: "iphone",
             hitsPerPage: 14,
             typoTolerance: true,
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount"],
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at", "last_synced_at_timestamp"],
           },
         }),
         Promise.all(categoryCoversConfig.map(({ name, query }) =>
-          client.searchSingleIndex<AlgoliaOffer>({
+          searchIndex({
             indexName,
             searchParams: {
               query,
@@ -248,7 +227,7 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
       ]);
 
       const mapHits = (hits: AlgoliaOffer[]) => hits.flatMap((hit) => {
-        if (!Number.isFinite(hit.price) || hit.price <= 0) return [];
+        if (!Number.isFinite(hit.price) || hit.price <= 0 || !isFreshPrice(hit.last_synced_at)) return [];
         return [{
           id: hit.objectID,
           title: hit.title,
@@ -261,6 +240,10 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
           affiliateUrl: hit.affiliateUrl,
           category: hit.category,
           sellerCount: hit.sellerCount,
+          source: hit.source,
+          status: hit.status,
+          last_synced_at: hit.last_synced_at,
+          last_synced_at_timestamp: hit.last_synced_at_timestamp,
         }];
       });
 
@@ -290,5 +273,5 @@ export const getHomeOffers = createServerFn({ method: "GET" }).handler(
       console.error("Homepage offers failed", error);
       return { urgent: [], priceDrops: [], popular: [], categoryCovers: {} };
     }
-  },
-);
+}
+
