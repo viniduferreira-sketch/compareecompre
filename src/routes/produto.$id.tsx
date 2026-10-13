@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { formatSyncedAt } from "@/lib/price-freshness";
 import { getProductDetail } from "@/lib/product-detail.functions";
 
 export const Route = createFileRoute("/produto/$id")({
@@ -282,7 +283,7 @@ function ProductPage() {
                       </p>
                     ) : null}
                     <p className="font-display text-2xl font-bold text-foreground">
-                      {data.price ? formatBRL(data.price) : "Indisponível"}
+                      {data.price ? formatBRL(data.price) : data.priceStale ? "Preço indisponível no momento" : "Indisponível"}
                     </p>
                     {data.price ? (
                       <p className="mt-0.5 text-xs text-muted-foreground">
@@ -303,10 +304,13 @@ function ProductPage() {
 
                 <Button variant="ink" className="mt-4 h-10 w-full text-sm" asChild>
                   <a href={data.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">
-                    Ver melhor oferta <ExternalLink className="size-3.5" />
+                    {data.priceStale ? "Ver no Mercado Livre" : "Ver melhor oferta"} <ExternalLink className="size-3.5" />
                   </a>
                 </Button>
 
+                {formatSyncedAt(data.lastSyncedAt) && !data.priceStale ? (
+                  <p className="mt-2 text-center text-[11px] text-muted-foreground">{formatSyncedAt(data.lastSyncedAt)}</p>
+                ) : null}
                 <p className="mt-2 text-center text-[11px] text-muted-foreground">
                   {data.sellerCount > 0
                     ? `${data.sellerCount} vendedor(es) anunciando este produto`

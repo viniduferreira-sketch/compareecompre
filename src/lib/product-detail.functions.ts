@@ -3,6 +3,7 @@ import { algoliasearch } from "algoliasearch";
 import { z } from "zod";
 
 import { getMeliToken, withAffiliate } from "@/lib/search-offers.functions";
+import { isPriceFresh } from "@/lib/price-freshness";
 import type { PartnerQA } from "@/lib/partner-qa.server";
 
 export type ProductAttribute = { name: string; value: string };
@@ -23,6 +24,8 @@ export type ProductDetail = {
   pros: string[];
   cons: string[];
   qa: PartnerQA[];
+  lastSyncedAt: string | null;
+  priceStale: boolean;
 };
 
 function isPartnerQA(value: unknown): value is PartnerQA {
@@ -34,24 +37,25 @@ function isPartnerQA(value: unknown): value is PartnerQA {
     && (item["resposta"] === undefined || typeof item["resposta"] === "string");
 }
 
-async function getIndexedQA(productId: string): Promise<PartnerQA[]> {
+async function getIndexedQA(productId: string): Promise<{ qa: PartnerQA[]; lastSyncedAt: string | null }> {
   const applicationId = process.env["ALGOLIA_APPLICATION_ID"];
   const apiKey = process.env["ALGOLIA_API_KEY"];
   const indexName = process.env["ALGOLIA_INDEX_NAME"] ?? "produtos_mercado_livre";
-  if (!applicationId || !apiKey) return [];
+  if (!applicationId || !apiKey) return { qa: [], lastSyncedAt: null };
 
   try {
-    const record = await algoliasearch(applicationId, apiKey).getObject<{ qa?: unknown }>({
+    const record = await algoliasearch(applicationId, apiKey).getObject<{ qa?: unknown; last_synced_at?: unknown }>({
       indexName,
       objectID: productId,
-      attributesToRetrieve: ["qa"],
+      attributesToRetrieve: ["qa", "last_synced_at"],
     });
-    return Array.isArray(record.qa)
+    const qa = Array.isArray(record.qa)
       ? record.qa.filter(isPartnerQA).sort((left, right) => Date.parse(right.data) - Date.parse(left.data))
       : [];
+    return { qa, lastSyncedAt: typeof record.last_synced_at === "string" ? record.last_synced_at : null };
   } catch (error) {
     console.warn("Indexed product Q&A unavailable", productId, error);
-    return [];
+    return { qa: [], lastSyncedAt: null };
   }
 }
 
@@ -122,7 +126,12 @@ export const getProductDetail = createServerFn({ method: "POST" })
       .map((picture) => picture.secure_url ?? picture.url)
       .filter((url): url is string => Boolean(url))
       .slice(0, 8);
-    const qa = await getIndexedQA(product.id);
+    const { qa, lastSyncedAt } = await getIndexedQA(product.id);
+    const priceStale = !isPriceFresh(lastSyncedAt);
+    if (priceStale) {
+      price = null;
+      originalPrice = null;
+    }
 
     const attributeValue = (needle: string) =>
       attributes.find((attribute) => attribute.name.toLowerCase().includes(needle))?.value ?? null;
@@ -161,5 +170,7 @@ export const getProductDetail = createServerFn({ method: "POST" })
       pros,
       cons,
        qa,
+      lastSyncedAt,
+      priceStale,
     };
   });

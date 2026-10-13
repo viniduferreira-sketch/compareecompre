@@ -3,6 +3,7 @@ import { ExternalLink, Truck } from "lucide-react";
 
 
 import { Button } from "@/components/ui/button";
+import { formatSyncedAt } from "@/lib/price-freshness";
 import type { Offer } from "@/lib/search-offers.functions";
 
 export const formatBRL = (value: number) =>
@@ -70,6 +71,9 @@ export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
           ) : null}
         </div>
 
+        {formatSyncedAt(offer.lastSyncedAt) ? (
+          <p className="text-[11px] text-muted-foreground">{formatSyncedAt(offer.lastSyncedAt)}</p>
+        ) : null}
         <div>
           <Button variant="hero" className="w-full" asChild>
             <a href={offer.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">
