@@ -38,7 +38,16 @@ export async function syncOffersToAlgolia(options: { category: string; targetPer
   const target = Math.min(options.targetPerCategory ?? 100, 150);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 180000);
-  const request: typeof fetch = (input, init) => fetch(input, { ...init, signal: controller.signal });
+  let apiFailed = false;
+  const request: typeof fetch = async (input, init) => {
+    const response = await fetch(input, { ...init, signal: controller.signal });
+    if (response.status === 403 || response.status === 429 || response.status >= 500) {
+      apiFailed = true;
+      result.errors += 1;
+      console.error('Mercado Livre sync retry/error', { executionId, category: category.name, status: response.status });
+    }
+    return response;
+  };
   const fetcher = (input: string, init?: RequestInit) => fetchMeliWithRetry(input, init, request);
   let locked = false;
   const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
@@ -122,6 +131,7 @@ export async function syncOffersToAlgolia(options: { category: string; targetPer
       }
     }
     if (records.length < target) throw new Error(`Categoria incompleta: ${records.length}/${target} ofertas válidas.`);
+    if (apiFailed) throw new Error('A API retornou erro nesta execução; categoria preservada.');
     if (controller.signal.aborted) throw new Error('Tempo de consulta excedido; categoria preservada.');
     const removed = removalIds(previous, new Set(records.map(item => item.objectID)), category.name, true);
     await client.saveObjects({ indexName, objects: records, batchSize: 100, waitForTasks: true });

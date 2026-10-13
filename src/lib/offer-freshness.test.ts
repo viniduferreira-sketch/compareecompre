@@ -1,4 +1,6 @@
-import { test, expect } from 'bun:test';
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+const expect = (actual: unknown) => ({ toBe: (expected: unknown) => assert.equal(actual, expected), toEqual: (expected: unknown) => assert.deepEqual(actual, expected) });
 import { MAX_PRICE_AGE_MS, SYNC_CRON_UTC, isFreshPrice, freshnessNumericFilters, validMeliItem, removalIds, fetchMeliWithRetry } from './offer-freshness';
 const now = Date.parse('2026-10-13T03:00:00Z');
 test('six hour cron is midnight, 6, 12 and 18 Brasília', () => expect(SYNC_CRON_UTC).toBe('0 3,9,15,21 * * *'));

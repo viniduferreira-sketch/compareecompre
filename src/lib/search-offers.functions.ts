@@ -71,8 +71,8 @@ export function withAffiliate(url: string): string {
 }
 
 function getAlgoliaConfig() {
-  const applicationId = import.meta.env.VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID;
-  const apiKey = import.meta.env.VITE_LOVABLE_CONNECTOR_ALGOLIA_PUBLIC_API_KEY;
+  const applicationId = import.meta.env['VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID'];
+  const apiKey = import.meta.env['VITE_LOVABLE_CONNECTOR_ALGOLIA_PUBLIC_API_KEY'];
   if (!applicationId || !apiKey) throw new Error("A busca inteligente não está configurada.");
   return { client: liteClient(applicationId, apiKey), indexName: INDEX_NAME };
 }
