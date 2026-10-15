@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 
@@ -26,7 +25,7 @@ import {
   type Offer,
   type OfferFilter,
   type OfferSort,
-} from "@/lib/search-offers.functions";
+} from "@/lib/search-offers";
 
 export const Route = createFileRoute("/")({
   staticData: { sitemap: true },
@@ -213,8 +212,8 @@ function SearchResults({
 }
 
 function Home() {
-  const run = useServerFn(searchOffers);
-  const loadHome = useServerFn(getHomeOffers);
+  const run = searchOffers;
+  const loadHome = getHomeOffers;
   const { q } = Route.useSearch();
   const [term, setTerm] = useState(q ?? "");
   const [sort, setSort] = useState<OfferSort>("relevance");
