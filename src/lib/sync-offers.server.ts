@@ -1,5 +1,4 @@
-import { algoliasearch } from "algoliasearch";
-
+import { getAlgoliaIndexingConfig } from "@/lib/algolia-indexing.server";
 import { fetchQA_MercadoLivre, type PartnerQA } from "@/lib/partner-qa.server";
 
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
@@ -124,18 +123,11 @@ function withAffiliate(url: string): string {
   return `${clean}${clean.includes("?") ? "&" : "?"}${AFFILIATE_PARAMS}`;
 }
 
-function getAlgoliaConfig() {
-  const applicationId = process.env["ALGOLIA_APPLICATION_ID"];
-  const apiKey = process.env["ALGOLIA_API_KEY"];
-  const indexName = process.env["ALGOLIA_INDEX_NAME"] ?? DEFAULT_INDEX_NAME;
-  if (!applicationId || !apiKey) throw new Error("A busca inteligente não está configurada.");
-  return { client: algoliasearch(applicationId, apiKey), indexName };
-}
-
 export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<SyncOffersResult> {
   const startedAt = Date.now();
   const token = await getMeliToken();
-  const { client, indexName } = getAlgoliaConfig();
+  const { client } = getAlgoliaIndexingConfig();
+  const indexName = DEFAULT_INDEX_NAME;
   const pageSize = Math.min(options.recordsPerQuery ?? SEARCH_PAGE_SIZE, 100);
   const targetPerCategory = Math.min(options.targetPerCategory ?? TARGET_OFFERS_PER_CATEGORY, 150);
   const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
