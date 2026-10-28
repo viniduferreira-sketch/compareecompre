@@ -69,6 +69,7 @@ type AlgoliaOffer = {
   brand: string | null;
   sellerCount: number;
   qa: PartnerQA[];
+  source: "mercadolivre";
   status: "active";
   last_synced_at: string;
 };
@@ -80,7 +81,8 @@ async function fetchWithRetry(input: string, init?: RequestInit, attempts = 3): 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       const response = await fetch(input, init);
-      if (response.status < 500 || attempt === attempts) return response;
+      const retryable = response.status === 429 || response.status >= 500;
+      if (!retryable || attempt === attempts) return response;
     } catch (error) {
       lastError = error;
       if (attempt === attempts) throw error;
@@ -182,6 +184,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
         brand,
         sellerCount: items.length,
          qa,
+        source: "mercadolivre",
         status: "active",
         last_synced_at: syncedAt,
       };
@@ -237,7 +240,8 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     }
 
     if (categoryRecords.length < targetPerCategory) {
-      throw new Error(`${category.name}: somente ${categoryRecords.length} ofertas válidas encontradas.`);
+      // Preserve existing records for this category; only upsert what was verified now.
+      console.error("Mercado Livre category below target", category.name, categoryRecords.length);
     }
     categories[category.name] = categoryRecords.length;
     records.push(...categoryRecords);
@@ -256,7 +260,8 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
       replicas: [`${indexName}_price_asc`, `${indexName}_price_desc`],
     },
   });
-  await client.replaceAllObjects({ indexName, objects: records, batchSize: 500 });
+  // Upsert only: existing records are never deleted or replaced during synchronization.
+  await client.saveObjects({ indexName, objects: records, batchSize: 500, waitForTasks: true });
   await Promise.all([
     client.setSettings({
       indexName: `${indexName}_price_asc`,
@@ -273,7 +278,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     skipped,
     discovered,
     categories,
-    message: `${records.length} ofertas sincronizadas, com ${targetPerCategory} em cada categoria.`,
+    message: `${records.length} ofertas sincronizadas em ${Object.keys(categories).length} categorias.`,
   };
   console.info("Algolia sync completed", { ...result, durationMs: Date.now() - startedAt });
   return result;
