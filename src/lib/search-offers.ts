@@ -18,16 +18,16 @@ type AlgoliaOffer = {
   categoryName: string | null;
   brand: string | null;
   sellerCount: number;
-  status?: string;
-  last_synced_at?: string;
+  status?: string | undefined;
+  last_synced_at?: string | undefined;
 };
 
 const INDEX_NAME = "produtos_mercado_livre";
 const RESULTS_PER_PAGE = 40;
 
 function getAlgoliaConfig() {
-  const applicationId = import.meta.env.VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID;
-  const apiKey = import.meta.env.VITE_LOVABLE_CONNECTOR_ALGOLIA_PUBLIC_API_KEY;
+  const applicationId = import.meta.env["VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID"];
+  const apiKey = import.meta.env["VITE_LOVABLE_CONNECTOR_ALGOLIA_PUBLIC_API_KEY"];
   if (!applicationId || !apiKey) throw new Error("A busca inteligente não está configurada.");
   const client = liteClient(applicationId, apiKey);
   return {
