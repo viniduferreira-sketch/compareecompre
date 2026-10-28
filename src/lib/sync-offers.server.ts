@@ -69,6 +69,8 @@ type AlgoliaOffer = {
   brand: string | null;
   sellerCount: number;
   qa: PartnerQA[];
+  status: "active";
+  last_synced_at: string;
 };
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
@@ -135,6 +137,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
   const targetPerCategory = Math.min(options.targetPerCategory ?? TARGET_OFFERS_PER_CATEGORY, 150);
   const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
   const records: AlgoliaOffer[] = [];
+  const syncedAt = new Date().toISOString();
   const indexedIds = new Set<string>();
   const categories: Record<string, number> = {};
   let discovered = 0;
@@ -179,6 +182,8 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
         brand,
         sellerCount: items.length,
          qa,
+        status: "active",
+        last_synced_at: syncedAt,
       };
     } catch (error) {
       console.error("Mercado Livre sync item failed", product.id, error);
@@ -244,7 +249,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     indexName,
     indexSettings: {
       searchableAttributes: ["title", "brand", "categoryName"],
-      attributesForFaceting: ["searchable(categoryName)", "searchable(brand)", "freeShipping"],
+      attributesForFaceting: ["searchable(categoryName)", "searchable(brand)", "freeShipping", "filterOnly(status)"],
       typoTolerance: true,
       removeStopWords: ["pt"],
       ignorePlurals: ["pt"],
