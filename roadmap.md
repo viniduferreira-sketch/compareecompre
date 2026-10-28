@@ -1,7 +1,8 @@
 # Roadmap
 
-- [ ] Restore offers with legacy-safe 48-hour freshness and empty-list fallback; hide unavailable records without deleting.
-- [ ] Synchronize seven categories now with timestamps and verify live index counts and six-hour cron results.
+- [x] Restore offers with legacy-safe 48-hour freshness and empty-list fallback; hide unavailable records without deleting.
+- [x] Synchronize seven categories now with timestamps (upsert only) and verify index counts.
+- [ ] Homepage rails need the Algolia search-only public key on the connection (blocked on user).
 
 - [x] Redesenhar somente os atalhos de categoria com manchas orgânicas coloridas, links acessíveis e placeholders para os PNGs ausentes.
 - [x] Validar navegação, sete cores, desktop, celular e movimento reduzido sem alterar header ou vitrines.
