@@ -1,6 +1,6 @@
 export type OfferAvailability = {
-  last_synced_at?: string | null;
-  status?: string;
+  last_synced_at?: string | null | undefined;
+  status?: string | undefined;
 };
 
 export const OFFER_FRESHNESS_HOURS = 48;

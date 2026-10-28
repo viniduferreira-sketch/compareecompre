@@ -1,11 +1,11 @@
-import { algoliasearch } from "algoliasearch";
-
+import { getAlgoliaIndexingConfig } from "@/lib/algolia-indexing.server";
 import { fetchQA_MercadoLivre, type PartnerQA } from "@/lib/partner-qa.server";
 
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 const DEFAULT_INDEX_NAME = "produtos_mercado_livre";
 const TARGET_OFFERS_PER_CATEGORY = 100;
 const MAX_SEARCH_PAGES_PER_QUERY = 10;
+const MAX_SEARCH_OFFSET = 100; // Mercado Livre rejects larger offsets on products/search.
 const SEARCH_PAGE_SIZE = 50;
 const ITEM_LOOKUP_CONCURRENCY = 25;
 
@@ -69,6 +69,9 @@ type AlgoliaOffer = {
   brand: string | null;
   sellerCount: number;
   qa: PartnerQA[];
+  source: "mercadolivre";
+  status: "active";
+  last_synced_at: string;
 };
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
@@ -78,7 +81,8 @@ async function fetchWithRetry(input: string, init?: RequestInit, attempts = 3): 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       const response = await fetch(input, init);
-      if (response.status < 500 || attempt === attempts) return response;
+      const retryable = response.status === 429 || response.status >= 500;
+      if (!retryable || attempt === attempts) return response;
     } catch (error) {
       lastError = error;
       if (attempt === attempts) throw error;
@@ -119,22 +123,16 @@ function withAffiliate(url: string): string {
   return `${clean}${clean.includes("?") ? "&" : "?"}${AFFILIATE_PARAMS}`;
 }
 
-function getAlgoliaConfig() {
-  const applicationId = process.env["ALGOLIA_APPLICATION_ID"];
-  const apiKey = process.env["ALGOLIA_API_KEY"];
-  const indexName = process.env["ALGOLIA_INDEX_NAME"] ?? DEFAULT_INDEX_NAME;
-  if (!applicationId || !apiKey) throw new Error("A busca inteligente não está configurada.");
-  return { client: algoliasearch(applicationId, apiKey), indexName };
-}
-
 export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<SyncOffersResult> {
   const startedAt = Date.now();
   const token = await getMeliToken();
-  const { client, indexName } = getAlgoliaConfig();
+  const { client } = getAlgoliaIndexingConfig();
+  const indexName = DEFAULT_INDEX_NAME;
   const pageSize = Math.min(options.recordsPerQuery ?? SEARCH_PAGE_SIZE, 100);
   const targetPerCategory = Math.min(options.targetPerCategory ?? TARGET_OFFERS_PER_CATEGORY, 150);
   const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
   const records: AlgoliaOffer[] = [];
+  const syncedAt = new Date().toISOString();
   const indexedIds = new Set<string>();
   const categories: Record<string, number> = {};
   let discovered = 0;
@@ -179,6 +177,9 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
         brand,
         sellerCount: items.length,
          qa,
+        source: "mercadolivre",
+        status: "active",
+        last_synced_at: syncedAt,
       };
     } catch (error) {
       console.error("Mercado Livre sync item failed", product.id, error);
@@ -192,7 +193,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
 
     for (const query of category.queries) {
       if (categoryRecords.length >= targetPerCategory) break;
-      for (let page = 0; page < MAX_SEARCH_PAGES_PER_QUERY; page += 1) {
+      for (let page = 0; page < MAX_SEARCH_PAGES_PER_QUERY && page * pageSize <= MAX_SEARCH_OFFSET; page += 1) {
         const params = new URLSearchParams({
           status: "active",
           site_id: "MLB",
@@ -232,7 +233,8 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     }
 
     if (categoryRecords.length < targetPerCategory) {
-      throw new Error(`${category.name}: somente ${categoryRecords.length} ofertas válidas encontradas.`);
+      // Preserve existing records for this category; only upsert what was verified now.
+      console.error("Mercado Livre category below target", category.name, categoryRecords.length);
     }
     categories[category.name] = categoryRecords.length;
     records.push(...categoryRecords);
@@ -244,14 +246,15 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     indexName,
     indexSettings: {
       searchableAttributes: ["title", "brand", "categoryName"],
-      attributesForFaceting: ["searchable(categoryName)", "searchable(brand)", "freeShipping"],
+      attributesForFaceting: ["searchable(categoryName)", "searchable(brand)", "freeShipping", "filterOnly(status)"],
       typoTolerance: true,
       removeStopWords: ["pt"],
       ignorePlurals: ["pt"],
       replicas: [`${indexName}_price_asc`, `${indexName}_price_desc`],
     },
   });
-  await client.replaceAllObjects({ indexName, objects: records, batchSize: 500 });
+  // Upsert only: existing records are never deleted or replaced during synchronization.
+  await client.saveObjects({ indexName, objects: records, batchSize: 500, waitForTasks: true });
   await Promise.all([
     client.setSettings({
       indexName: `${indexName}_price_asc`,
@@ -268,7 +271,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     skipped,
     discovered,
     categories,
-    message: `${records.length} ofertas sincronizadas, com ${targetPerCategory} em cada categoria.`,
+    message: `${records.length} ofertas sincronizadas em ${Object.keys(categories).length} categorias.`,
   };
   console.info("Algolia sync completed", { ...result, durationMs: Date.now() - startedAt });
   return result;

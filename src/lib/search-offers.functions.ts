@@ -12,8 +12,8 @@ export type Offer = {
   affiliateUrl: string;
   category: string | null;
   sellerCount: number;
-  status?: string;
-  last_synced_at?: string;
+  status?: string | undefined;
+  last_synced_at?: string | undefined;
 };
 
 export type OfferFilter = {

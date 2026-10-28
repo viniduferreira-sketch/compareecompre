@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { algoliasearch } from "algoliasearch";
 import { z } from "zod";
 
 import { getMeliToken, withAffiliate } from "@/lib/search-offers.functions";
@@ -35,13 +34,10 @@ function isPartnerQA(value: unknown): value is PartnerQA {
 }
 
 async function getIndexedQA(productId: string): Promise<PartnerQA[]> {
-  const applicationId = process.env["ALGOLIA_APPLICATION_ID"];
-  const apiKey = process.env["ALGOLIA_API_KEY"];
-  const indexName = process.env["ALGOLIA_INDEX_NAME"] ?? "produtos_mercado_livre";
-  if (!applicationId || !apiKey) return [];
-
   try {
-    const record = await algoliasearch(applicationId, apiKey).getObject<{ qa?: unknown }>({
+    const { getAlgoliaIndexingConfig } = await import("@/lib/algolia-indexing.server");
+    const { client, indexName } = getAlgoliaIndexingConfig();
+    const record = await client.getObject<{ qa?: unknown }>({
       indexName,
       objectID: productId,
       attributesToRetrieve: ["qa"],
