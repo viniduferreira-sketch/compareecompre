@@ -6,6 +6,7 @@ const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 const DEFAULT_INDEX_NAME = "produtos_mercado_livre";
 const TARGET_OFFERS_PER_CATEGORY = 100;
 const MAX_SEARCH_PAGES_PER_QUERY = 10;
+const MAX_SEARCH_OFFSET = 100; // Mercado Livre rejects larger offsets on products/search.
 const SEARCH_PAGE_SIZE = 50;
 const ITEM_LOOKUP_CONCURRENCY = 25;
 
@@ -200,7 +201,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
 
     for (const query of category.queries) {
       if (categoryRecords.length >= targetPerCategory) break;
-      for (let page = 0; page < MAX_SEARCH_PAGES_PER_QUERY; page += 1) {
+      for (let page = 0; page < MAX_SEARCH_PAGES_PER_QUERY && page * pageSize <= MAX_SEARCH_OFFSET; page += 1) {
         const params = new URLSearchParams({
           status: "active",
           site_id: "MLB",
