@@ -2,10 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Download, LogOut, RefreshCw, ExternalLink } from "lucide-react";
+import { Download, LogOut, RefreshCw, ExternalLink, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { getImportStatus, startAwinImport, startLomadeeSync } from "@/lib/admin-import.functions";
+import { getImportStatus, startAwinImport, startLomadeeSync, startCouponSync } from "@/lib/admin-import.functions";
 
 const importsQuery = queryOptions({ queryKey: ["admin", "awin-imports"], queryFn: () => getImportStatus(), refetchInterval: 10000 });
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -33,6 +33,8 @@ function AdminImports() {
   const [notice, setNotice] = useState("");
   const [lomadeePending, setLomadeePending] = useState(false);
   const syncLomadee = useServerFn(startLomadeeSync);
+  const syncCoupons = useServerFn(startCouponSync);
+  const [couponPending, setCouponPending] = useState(false);
   const active = imports.some((job) => job.source !== "lomadee" && (job.status === "queued" || job.status === "running"));
   return <main className="mx-auto min-h-screen max-w-5xl px-5 py-10 text-foreground">
     <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
@@ -46,12 +48,18 @@ function AdminImports() {
         catch (e) { setError(e instanceof Error ? e.message : "Não foi possível iniciar a importação."); }
         finally { setPending(false); }
       }}><Download className="size-4" />{pending ? "Solicitando…" : "Sincronizar catálogo"}</Button>
-      <Button variant="secondary" disabled={lomadeePending || imports.some((j) => j.source === "lomadee" && j.status === "running")} onClick={async () => {
+      <Button variant="secondary" disabled={lomadeePending || couponPending || imports.some((j) => j.source === "lomadee" && j.status === "running")} onClick={async () => {
         setLomadeePending(true); setError(""); setNotice("");
-        try { const r = await syncLomadee(); setNotice(`Lomadee: ${r.indexed} produtos enviados para a busca, ${r.skipped} descartados.`); }
+        try { const r = await syncLomadee(); setNotice(`Lomadee: ${r.indexed} produtos enviados para a busca, ${r.coupons} cupons atualizados, ${r.skipped} descartados.${r.emptyStores.includes("Shopee") ? " Shopee: nenhum produto disponibilizado pela API nesta rodada." : ""}`); }
         catch (e) { setError(e instanceof Error ? e.message : "Não foi possível sincronizar a Lomadee."); }
         finally { setLomadeePending(false); await client.invalidateQueries({ queryKey: ["admin", "awin-imports"] }); }
       }}><Download className="size-4" />{lomadeePending ? "Sincronizando Lomadee… (até 1 min)" : "Sincronizar Lomadee"}</Button>
+      <Button variant="outline" disabled={couponPending || lomadeePending || imports.some((j) => j.source === "lomadee" && j.status === "running")} onClick={async () => {
+        setCouponPending(true); setError(""); setNotice("");
+        try { const r = await syncCoupons(); setNotice(`Lomadee: ${r.coupons} cupons atualizados.`); }
+        catch (e) { setError(e instanceof Error ? e.message : "Não foi possível sincronizar os cupons."); }
+        finally { setCouponPending(false); await client.invalidateQueries({ queryKey: ["admin", "awin-imports"] }); }
+      }}><Ticket className="size-4" />{couponPending ? "Sincronizando cupons…" : "Sincronizar cupons"}</Button>
       <Button variant="outline" size="icon" aria-label="Atualizar status" title="Atualizar status" onClick={() => client.invalidateQueries({ queryKey: ["admin", "awin-imports"] })}><RefreshCw className="size-4" /></Button>
       {active && <span role="status" className="text-sm text-muted-foreground">Importação em andamento</span>}
     </div>

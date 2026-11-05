@@ -4,6 +4,7 @@ const OFFICIAL_LOGOS: Array<{ names: string[]; file: string; inverse?: boolean }
   { names: ["mercado livre"], file: "mercado-livre.png" },
   { names: ["kabum", "kabum!", "kabum br"], file: "kabum.svg" },
   { names: ["reserva"], file: "reserva.svg" },
+  { names: ["shopee", "shopee brasil", "shopee br"], file: "shopee.png" },
   { names: ["promo farma", "promofarma"], file: "promo-farma.svg" },
   { names: ["anhanguera ferramentas"], file: "anhanguera.svg", inverse: true },
   { names: ["amakha paris"], file: "amakha-paris.png" },

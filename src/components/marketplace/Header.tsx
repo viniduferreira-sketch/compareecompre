@@ -1,4 +1,5 @@
-import { Search, Tag } from "lucide-react";
+import { Search, Tag, Ticket } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,11 @@ export function Header({
               </Button>
             </li>
           ))}
+          <li className="shrink-0">
+            <Button asChild variant="ghost" className="h-auto flex-col gap-1.5 px-2 py-0 text-xs font-semibold text-muted-foreground hover:bg-transparent hover:text-primary">
+              <Link to="/cupons"><span className="flex size-11 items-center justify-center rounded-full border border-primary/15 bg-primary/10 text-primary"><Ticket className="size-5" strokeWidth={1.75} aria-hidden="true" /></span>Cupons</Link>
+            </Button>
+          </li>
         </ul>
       </nav>
     </header>

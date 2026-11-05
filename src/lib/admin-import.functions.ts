@@ -27,6 +27,16 @@ export const startLomadeeSync = createServerFn({ method: "POST" })
     return runLomadeeSync();
   });
 
+export const startCouponSync = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    setResponseHeader("Cache-Control", "no-store");
+    const role = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (role.error || !role.data) throw new Error("Acesso restrito ao administrador.");
+    const { runLomadeeSync } = await import("@/lib/lomadee-sync.server");
+    return runLomadeeSync({ couponsOnly: true });
+  });
+
 export const startAwinImport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
