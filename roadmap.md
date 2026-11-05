@@ -1,5 +1,9 @@
 # Roadmap
 
+- [ ] Importar o feed Awin com normalização, persistência e lotes no índice existente, preservando produtos de outras fontes.
+- [ ] Preparar disparo administrativo protegido e status da importação Awin.
+- [ ] Configurar execução automática e validar uma importação real da Awin.
+
 - [x] Restore offers with legacy-safe 48-hour freshness and empty-list fallback; hide unavailable records without deleting.
 - [x] Synchronize seven categories now with timestamps (upsert only) and verify index counts.
 - [ ] Homepage rails need the Algolia search-only public key on the connection (blocked on user).
