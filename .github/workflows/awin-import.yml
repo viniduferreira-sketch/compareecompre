@@ -1,0 +1,30 @@
+name: Import Awin catalog
+on:
+  workflow_dispatch:
+    inputs:
+      import_id:
+        description: Administrative import request
+        required: false
+        type: string
+  schedule:
+    - cron: '30 3,9,15,21 * * *'
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: awin-catalog-import
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.4'
+      - run: bun install --frozen-lockfile
+      - run: node scripts/import-awin.mjs
+        env:
+          AWIN_IMPORT_ENDPOINT: https://compareecompre.com/api/public/awin/import
+          AWIN_IMPORT_ID: ${{ inputs.import_id }}

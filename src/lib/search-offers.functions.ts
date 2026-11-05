@@ -12,6 +12,7 @@ export type Offer = {
   affiliateUrl: string;
   category: string | null;
   sellerCount: number;
+  source?: string | undefined;
   status?: string | undefined;
   last_synced_at?: string | undefined;
 };

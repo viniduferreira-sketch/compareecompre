@@ -69,7 +69,7 @@ export const Route = createFileRoute("/produto/$id")({
                   url: product.affiliateUrl,
                   seller: {
                     "@type": "Organization",
-                    name: "Mercado Livre",
+                    name: product.store,
                   },
                 },
               }
@@ -159,7 +159,7 @@ function ProductPage() {
   const [alert, setAlert] = useState(false);
   const [favorite, setFavorite] = useState(false);
   const [helpful, setHelpful] = useState<boolean | null>(null);
-  const [period, setPeriod] = useState(PERIODS[0]!.days);
+  const [period, setPeriod] = useState(PERIODS[0]?.days ?? 40);
 
   const history = useMemo(
     () => buildHistory(data?.price ?? 1000, period),
@@ -297,7 +297,7 @@ function ProductPage() {
                   </div>
 
                   <p className="shrink-0 text-xs text-muted-foreground sm:text-right">
-                    Melhor oferta em: <span className="font-semibold text-foreground">loja verificada</span>
+                      Melhor oferta em: <span className="font-semibold text-foreground">{data.store}</span>
                   </p>
                 </div>
 
@@ -315,11 +315,12 @@ function ProductPage() {
               </div>
             </section>
 
-            <Tabs defaultValue="pros" className="mt-8">
+            {data.last_synced_at && <p className="mt-3 text-xs text-muted-foreground">Preço atualizado em {new Date(data.last_synced_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}</p>}
+            <Tabs defaultValue={data.source === "awin" ? "specs" : "pros"} className="mt-8">
               <TabsList className="flex w-full justify-start gap-1 overflow-x-auto rounded-lg bg-muted/60 p-1 text-xs">
-                <TabsTrigger value="pros">Prós e Contras</TabsTrigger>
+                {(data.pros.length > 0 || data.cons.length > 0) && <TabsTrigger value="pros">Prós e Contras</TabsTrigger>}
                 <TabsTrigger value="specs">Ficha técnica</TabsTrigger>
-                <TabsTrigger value="history">Histórico de preços</TabsTrigger>
+                {data.source !== "awin" && <TabsTrigger value="history">Histórico de preços</TabsTrigger>}
               </TabsList>
 
               <TabsContent value="pros" className="mt-3">

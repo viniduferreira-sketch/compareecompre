@@ -14,6 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_access_emails: {
+        Row: {
+          email: string
+        }
+        Insert: {
+          email: string
+        }
+        Update: {
+          email?: string
+        }
+        Relationships: []
+      }
+      catalog_import_batches: {
+        Row: {
+          batch: number
+          import_id: string
+          indexed: number
+          skipped: number
+        }
+        Insert: {
+          batch: number
+          import_id: string
+          indexed?: number
+          skipped?: number
+        }
+        Update: {
+          batch?: number
+          import_id?: string
+          indexed?: number
+          skipped?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_import_batches_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_imports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      catalog_imports: {
+        Row: {
+          created_at: string
+          error: string | null
+          finished_at: string | null
+          github_run_id: string | null
+          id: string
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          finished_at?: string | null
+          github_run_id?: string | null
+          id?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          finished_at?: string | null
+          github_run_id?: string | null
+          id?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       offer_sync_category_leases: {
         Row: {
           category: string
@@ -82,6 +156,27 @@ export type Database = {
           },
         ]
       }
+      partner_catalog: {
+        Row: {
+          last_synced_at: string
+          object_id: string
+          record: Json
+          source: string
+        }
+        Insert: {
+          last_synced_at?: string
+          object_id: string
+          record: Json
+          source: string
+        }
+        Update: {
+          last_synced_at?: string
+          object_id?: string
+          record?: Json
+          source?: string
+        }
+        Relationships: []
+      }
       price_alert_subscribers: {
         Row: {
           created_at: string
@@ -130,6 +225,24 @@ export type Database = {
           image_url?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: string
+          user_id?: string
         }
         Relationships: []
       }

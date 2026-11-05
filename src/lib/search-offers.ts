@@ -18,6 +18,7 @@ type AlgoliaOffer = {
   categoryName: string | null;
   brand: string | null;
   sellerCount: number;
+  source?: string;
   status?: string | undefined;
   last_synced_at?: string | undefined;
 };
@@ -95,7 +96,7 @@ export async function searchOffers({ data: input }: { data: { query: string; lim
           typoTolerance: true,
           attributesToRetrieve: [
             "objectID", "title", "imageUrl", "store", "price", "originalPrice",
-            "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "status", "last_synced_at",
+            "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at",
           ],
         }
       });
@@ -113,6 +114,7 @@ export async function searchOffers({ data: input }: { data: { query: string; lim
           affiliateUrl: hit.affiliateUrl,
           category: hit.category,
           sellerCount: hit.sellerCount,
+          source: hit.source,
            status: hit.status,
            last_synced_at: hit.last_synced_at,
         }];
@@ -153,7 +155,7 @@ export async function getHomeOffers(): Promise<{
             query: "",
             hitsPerPage: 14,
             filters: "price > 0 AND discountPercent >= 10",
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "status", "last_synced_at"],
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at"],
           }
         }),
         client.searchSingleIndex<AlgoliaOffer>({
@@ -162,7 +164,7 @@ export async function getHomeOffers(): Promise<{
             query: "",
             hitsPerPage: 14,
             filters: "price > 0",
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "status", "last_synced_at"],
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at"],
           }
         }),
         client.searchSingleIndex<AlgoliaOffer>({
@@ -171,7 +173,7 @@ export async function getHomeOffers(): Promise<{
             query: "iphone",
             hitsPerPage: 14,
             typoTolerance: true,
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "status", "last_synced_at"],
+            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at"],
           }
         }),
         Promise.all(categoryCoversConfig.map(({ name, query }) =>
@@ -201,6 +203,7 @@ export async function getHomeOffers(): Promise<{
           affiliateUrl: hit.affiliateUrl,
           category: hit.category,
           sellerCount: hit.sellerCount,
+          source: hit.source,
            status: hit.status,
            last_synced_at: hit.last_synced_at,
         }];

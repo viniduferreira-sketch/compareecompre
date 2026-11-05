@@ -7,6 +7,9 @@ import type { PartnerQA } from "@/lib/partner-qa.server";
 export type ProductAttribute = { name: string; value: string };
 
 export type ProductDetail = {
+  source: string;
+  store: string;
+  last_synced_at?: string;
   id: string;
   title: string;
   images: string[];
@@ -18,7 +21,7 @@ export type ProductDetail = {
   sellerCount: number;
   category: string | null;
   description: string;
-  attributes: ProductAttribute[];
+  attributes: Array<ProductAttribute & { source?: string }>;
   pros: string[];
   cons: string[];
   qa: PartnerQA[];
@@ -67,8 +70,12 @@ type MeliItem = {
 };
 
 export const getProductDetail = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({ id: z.string().min(3).max(40) }).parse(data))
+  .inputValidator((data: unknown) => z.object({ id: z.string().min(3).max(130).regex(/^[\w.-]+$/) }).parse(data))
   .handler(async ({ data }): Promise<ProductDetail | null> => {
+    if (data.id.startsWith("awin-")) {
+      const { getAwinProductDetail } = await import("@/lib/awin-product.server");
+      return getAwinProductDetail(data.id);
+    }
     const token = await getMeliToken();
     if (!token) return null;
 
@@ -139,6 +146,8 @@ export const getProductDetail = createServerFn({ method: "POST" })
     ];
 
     return {
+      source: "mercadolivre",
+      store: "Mercado Livre",
       id: product.id,
       title: product.name,
       images,

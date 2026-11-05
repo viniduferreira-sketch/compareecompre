@@ -135,9 +135,15 @@
   --category-contact-shadow: color-mix(in oklab, var(--footer) 12%, transparent);
   --category-placeholder-background: oklch(0.92 0 0);
   --category-placeholder-detail: oklch(0.78 0 0);
+  --google-background: #FFFFFF;
+  --google-border: #747775;
+  --google-foreground: #1F1F1F;
 }
 
 .dark {
+  --google-background: #131314;
+  --google-border: #8E918F;
+  --google-foreground: #E3E3E3;
   --background: oklch(0.19 0.02 265);
   --foreground: oklch(0.97 0.008 85);
   --card: oklch(0.24 0.025 265);
@@ -191,6 +197,16 @@
     font-family: var(--font-display);
     letter-spacing: 0;
   }
+}
+
+.google-sign-in {
+  background: var(--google-background);
+  border-color: var(--google-border);
+  color: var(--google-foreground);
+  font-size: 14px;
+  font-weight: 500;
+  gap: 10px;
+  padding-inline: 12px;
 }
 
 @utility bg-hero-gradient {

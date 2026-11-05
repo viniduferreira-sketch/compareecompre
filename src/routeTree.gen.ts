@@ -10,16 +10,35 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthCallbackRouteImport } from './routes/auth-callback'
 import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-privacidade'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SobreNosRouteImport } from './routes/sobre-nos'
 import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ProdutoIdRouteImport } from './routes/produto.$id'
+import { Route as ApiPublicAwinImportRouteImport } from './routes/api/public/awin/import'
 import { Route as ApiPublicHooksSyncAlgoliaRouteImport } from './routes/api/public/hooks/sync-algolia'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth-callback',
+  path: '/auth-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliticaDePrivacidadeRoute = PoliticaDePrivacidadeRouteImport.update({
@@ -42,9 +61,19 @@ const TermosDeUsoRoute = TermosDeUsoRouteImport.update({
   path: '/termos-de-uso',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ProdutoIdRoute = ProdutoIdRouteImport.update({
   id: '/produto/$id',
   path: '/produto/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAwinImportRoute = ApiPublicAwinImportRouteImport.update({
+  id: '/api/public/awin/import',
+  path: '/api/public/awin/import',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHooksSyncAlgoliaRoute =
@@ -56,69 +85,99 @@ const ApiPublicHooksSyncAlgoliaRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/auth-callback': typeof AuthCallbackRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/auth-callback': typeof AuthCallbackRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/auth-callback': typeof AuthCallbackRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
+    | '/auth-callback'
     | '/politica-de-privacidade'
     | '/sitemap.xml'
     | '/sobre-nos'
     | '/termos-de-uso'
+    | '/admin'
     | '/produto/$id'
+    | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
+    | '/auth-callback'
     | '/politica-de-privacidade'
     | '/sitemap.xml'
     | '/sobre-nos'
     | '/termos-de-uso'
+    | '/admin'
     | '/produto/$id'
+    | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/auth-callback'
     | '/politica-de-privacidade'
     | '/sitemap.xml'
     | '/sobre-nos'
     | '/termos-de-uso'
+    | '/_authenticated/admin'
     | '/produto/$id'
+    | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
   PoliticaDePrivacidadeRoute: typeof PoliticaDePrivacidadeRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SobreNosRoute: typeof SobreNosRoute
   TermosDeUsoRoute: typeof TermosDeUsoRoute
   ProdutoIdRoute: typeof ProdutoIdRoute
+  ApiPublicAwinImportRoute: typeof ApiPublicAwinImportRoute
   ApiPublicHooksSyncAlgoliaRoute: typeof ApiPublicHooksSyncAlgoliaRoute
 }
 
@@ -129,6 +188,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth-callback': {
+      id: '/auth-callback'
+      path: '/auth-callback'
+      fullPath: '/auth-callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/politica-de-privacidade': {
@@ -159,11 +239,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermosDeUsoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/produto/$id': {
       id: '/produto/$id'
       path: '/produto/$id'
       fullPath: '/produto/$id'
       preLoaderRoute: typeof ProdutoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/awin/import': {
+      id: '/api/public/awin/import'
+      path: '/api/public/awin/import'
+      fullPath: '/api/public/awin/import'
+      preLoaderRoute: typeof ApiPublicAwinImportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/sync-algolia': {
@@ -176,13 +270,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
   PoliticaDePrivacidadeRoute: PoliticaDePrivacidadeRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SobreNosRoute: SobreNosRoute,
   TermosDeUsoRoute: TermosDeUsoRoute,
   ProdutoIdRoute: ProdutoIdRoute,
+  ApiPublicAwinImportRoute: ApiPublicAwinImportRoute,
   ApiPublicHooksSyncAlgoliaRoute: ApiPublicHooksSyncAlgoliaRoute,
 }
 export const routeTree = rootRouteImport
