@@ -267,6 +267,7 @@ function Home() {
               onSearch={startSearch}
               covers={homeOffers.data?.categoryCovers ?? {}}
               isLoading={homeOffers.isPending}
+              debugError={homeOffers.data?.debugError}
             />
             <ProductRail
               eyebrow="Urgência"
@@ -274,6 +275,7 @@ function Home() {
               description="Descontos em destaque para decidir antes que o preço mude"
               offers={homeOffers.data?.urgent ?? []}
               isLoading={homeOffers.isPending}
+              debugError={homeOffers.data?.debugError}
             />
             <ProductRail
               eyebrow="Oportunidade do dia"
@@ -281,6 +283,7 @@ function Home() {
               description="Veja a diferença entre o preço anterior e a melhor oferta atual"
               offers={homeOffers.data?.priceDrops ?? []}
               isLoading={homeOffers.isPending}
+              debugError={homeOffers.data?.debugError}
             />
             <TrustBanner />
             <MonitoredStores />
@@ -290,6 +293,7 @@ function Home() {
               description="Produtos que estão concentrando a atenção dos consumidores"
               offers={homeOffers.data?.popular ?? []}
               isLoading={homeOffers.isPending}
+              debugError={homeOffers.data?.debugError}
               ranked
             />
             <PriceAlertSignup />

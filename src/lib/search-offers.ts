@@ -34,8 +34,16 @@ function getAlgoliaConfig() {
     indexName: INDEX_NAME,
     client: {
       async searchSingleIndex<T>({ indexName, searchParams }: { indexName: string; searchParams: Record<string, unknown> }) {
-        const { results } = await client.searchForHits<T>({ requests: [{ indexName, ...searchParams }] });
+        let results;
+        try {
+          ({ results } = await client.searchForHits<T>({ requests: [{ indexName, ...searchParams }] }));
+        } catch (error) {
+          const e = error as { status?: number; message?: string };
+          console.error("[Algolia debug] erro", { indexName, searchParams, status: e.status, message: e.message });
+          throw error;
+        }
         const response = results[0];
+        console.info("[Algolia debug] resposta", { indexName, searchParams, status: 200, nbHits: response?.nbHits, response });
         if (!response) throw new Error("O Algolia não retornou resultados.");
         return response;
       }
@@ -125,6 +133,7 @@ export async function getHomeOffers(): Promise<{
     priceDrops: Offer[];
     popular: Offer[];
     categoryCovers: Record<string, CategoryCover>;
+    debugError?: string;
   }> {
     try {
       const { client, indexName } = getAlgoliaConfig();
@@ -221,6 +230,8 @@ export async function getHomeOffers(): Promise<{
       };
     } catch (error) {
       console.error("Homepage offers failed", error);
-      return { urgent: [], priceDrops: [], popular: [], categoryCovers: {} };
+      const e = error as { status?: number; message?: string };
+      const debugError = `Erro da Algolia${e.status ? ` (status ${e.status})` : ""}: ${e.message ?? String(error)}`;
+      return { urgent: [], priceDrops: [], popular: [], categoryCovers: {}, debugError };
     }
   }

@@ -13,7 +13,9 @@ export function ProductRail({
   isLoading,
   ranked = false,
   eyebrow,
+  debugError,
 }: {
+  debugError?: string | undefined;
   title: string;
   description: string;
   offers: Offer[];
@@ -64,7 +66,7 @@ export function ProductRail({
 
       {!isLoading && offers.length === 0 ? (
         <p className="border-y border-border py-10 text-center text-sm text-muted-foreground">
-          As ofertas desta seleção estão sendo atualizadas.
+          {debugError ?? "As ofertas desta seleção estão sendo atualizadas."}
         </p>
       ) : null}
     </section>
