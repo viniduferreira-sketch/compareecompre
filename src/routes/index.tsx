@@ -267,7 +267,6 @@ function Home() {
               onSearch={startSearch}
               covers={homeOffers.data?.categoryCovers ?? {}}
               isLoading={homeOffers.isPending}
-              debugError={homeOffers.data?.debugError}
             />
             <ProductRail
               eyebrow="Urgência"
