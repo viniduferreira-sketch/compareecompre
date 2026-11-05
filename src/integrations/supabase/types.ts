@@ -65,6 +65,7 @@ export type Database = {
           next_page: number | null
           source: string
           status: string
+          sync_cursor: Json | null
           updated_at: string
         }
         Insert: {
@@ -76,6 +77,7 @@ export type Database = {
           next_page?: number | null
           source?: string
           status?: string
+          sync_cursor?: Json | null
           updated_at?: string
         }
         Update: {
@@ -87,6 +89,7 @@ export type Database = {
           next_page?: number | null
           source?: string
           status?: string
+          sync_cursor?: Json | null
           updated_at?: string
         }
         Relationships: []
@@ -177,6 +180,54 @@ export type Database = {
           object_id?: string
           record?: Json
           source?: string
+        }
+        Relationships: []
+      }
+      partner_coupons: {
+        Row: {
+          affiliate_url: string
+          code: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          last_synced_at: string
+          logo_url: string | null
+          merchant_id: string
+          source: string
+          starts_at: string | null
+          status: string
+          store: string
+          title: string
+        }
+        Insert: {
+          affiliate_url: string
+          code: string
+          description?: string | null
+          expires_at?: string | null
+          id: string
+          last_synced_at?: string
+          logo_url?: string | null
+          merchant_id: string
+          source: string
+          starts_at?: string | null
+          status?: string
+          store: string
+          title: string
+        }
+        Update: {
+          affiliate_url?: string
+          code?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          last_synced_at?: string
+          logo_url?: string | null
+          merchant_id?: string
+          source?: string
+          starts_at?: string | null
+          status?: string
+          store?: string
+          title?: string
         }
         Relationships: []
       }

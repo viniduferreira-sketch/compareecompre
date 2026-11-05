@@ -20,7 +20,7 @@ export type LomadeeProduct = {
   }>;
 };
 
-export type LomadeeBrand = { name: string; site?: string | undefined };
+export type LomadeeBrand = { name: string; site?: string | undefined; logo?: string | undefined; channels?: Array<{ shortUrls?: string[] | null }>; network?: { active?: boolean } };
 
 function httpsUrl(value: string | undefined): string | null {
   try {
@@ -70,7 +70,8 @@ export function normalizeLomadeeProduct(
     externalId: String(product.id),
     merchantId: String(product.organizationId),
     source: "lomadee" as const,
-    title, store, price: best.price, affiliateUrl: link, productUrl,
+    title, store, storeLogoUrl: httpsUrl(brand?.logo), merchant_name: store,
+    price: best.price, affiliateUrl: link, productUrl,
     imageUrl: images[0] ?? null, images,
     originalPrice,
     discountPercent: originalPrice ? Math.round(((originalPrice - best.price) / originalPrice) * 100) : null,

@@ -9,6 +9,12 @@ const base = {
 };
 
 describe("normalizeLomadeeProduct", () => {
+  it("normaliza Shopee com logotipo oficial e link próprio", () => {
+    const p = normalizeLomadeeProduct({ ...base, organizationId: "shopee-org" }, { name: "Shopee", logo: "https://cdn.lomadee.com.br/shopee.png" }, "https://lmdee.link/shopee", "2026-11-05T00:00:00Z");
+    expect(p.objectID).toBe("lomadee-shopee-org-2691");
+    expect(p.store).toBe("Shopee"); expect(p.storeLogoUrl).toBe("https://cdn.lomadee.com.br/shopee.png");
+    expect(p.affiliateUrl).toBe("https://lmdee.link/shopee"); expect(p.source).toBe("lomadee");
+  });
   it("maps price, store, affiliate link, source and category", () => {
     const p = normalizeLomadeeProduct(base, { name: "Candide" }, "https://lmdee.link/x", "2026-11-05T00:00:00Z");
     expect(p.objectID).toBe("lomadee-de93faa0-5a21-2691");
