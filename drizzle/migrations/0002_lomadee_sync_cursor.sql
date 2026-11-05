@@ -1,0 +1,1 @@
+ALTER TABLE public.catalog_imports ADD COLUMN IF NOT EXISTS next_page integer;

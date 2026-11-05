@@ -16,3 +16,4 @@
 - Homepage price-alert intake uses a validated public server function to write only to a private subscriber table; success follows persistence, duplicates are idempotent, and no subscriber data is exposed to visitors.
 - Server-side Algolia access (sync, product Q&A, sitemap) goes through getAlgoliaIndexingConfig in src/lib/algolia-indexing.server.ts with the fixed index name; the connection key is gateway-only and fails as a direct Algolia key.
 - Run Awin streaming ingestion in GitHub Actions, posting bounded batches to OIDC-verified server routes; persist before indexing and qualify Awin IDs to avoid collisions with other partners.
+- Lomadee sync runs inside the app (admin server function + 20-min managed cron) under a fixed per-run call budget with a stored page cursor, because the API allows only 60 requests/min; per-product affiliate links come from the Custom shortener and are reused while the product URL is unchanged.

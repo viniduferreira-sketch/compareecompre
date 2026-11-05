@@ -72,7 +72,7 @@ type MeliItem = {
 export const getProductDetail = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ id: z.string().min(3).max(130).regex(/^[\w.-]+$/) }).parse(data))
   .handler(async ({ data }): Promise<ProductDetail | null> => {
-    if (data.id.startsWith("awin-")) {
+    if (data.id.startsWith("awin-") || data.id.startsWith("lomadee-")) {
       const { getAwinProductDetail } = await import("@/lib/awin-product.server");
       return getAwinProductDetail(data.id);
     }

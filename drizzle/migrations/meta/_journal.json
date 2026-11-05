@@ -15,6 +15,13 @@
       "when": 1793906110754,
       "tag": "0001_awin_catalog_imports",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793911509185,
+      "tag": "0002_lomadee_sync_cursor",
+      "breakpoints": true
     }
   ]
 }

@@ -62,6 +62,7 @@ export type Database = {
           finished_at: string | null
           github_run_id: string | null
           id: string
+          next_page: number | null
           source: string
           status: string
           updated_at: string
@@ -72,6 +73,7 @@ export type Database = {
           finished_at?: string | null
           github_run_id?: string | null
           id?: string
+          next_page?: number | null
           source?: string
           status?: string
           updated_at?: string
@@ -82,6 +84,7 @@ export type Database = {
           finished_at?: string | null
           github_run_id?: string | null
           id?: string
+          next_page?: number | null
           source?: string
           status?: string
           updated_at?: string

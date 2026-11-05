@@ -17,11 +17,11 @@ export async function getAwinProductDetail(id: string): Promise<ProductDetail | 
       return fetch(input, { ...init, headers });
     } },
   });
-  const { data, error } = await db.from("partner_catalog").select("record").eq("object_id", id).eq("source", "awin").maybeSingle();
+  const { data, error } = await db.from("partner_catalog").select("record").eq("object_id", id).eq("source", id.startsWith("lomadee-") ? "lomadee" : "awin").maybeSingle();
   if (error || !data) return null;
   const p = data.record as unknown as AwinProduct;
   return {
-    id: p.objectID, source: "awin", store: p.store, title: p.title,
+    id: p.objectID, source: id.startsWith("lomadee-") ? "lomadee" : "awin", store: p.store, title: p.title,
     images: p.images.length ? p.images : p.imageUrl ? [p.imageUrl] : [],
     price: isOfferExpired(p) ? null : p.price,
     originalPrice: p.originalPrice, discountPercent: p.discountPercent,

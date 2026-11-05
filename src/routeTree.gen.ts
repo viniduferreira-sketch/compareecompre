@@ -21,6 +21,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as ProdutoIdRouteImport } from './routes/produto.$id'
 import { Route as ApiPublicAwinImportRouteImport } from './routes/api/public/awin/import'
 import { Route as ApiPublicHooksSyncAlgoliaRouteImport } from './routes/api/public/hooks/sync-algolia'
+import { Route as ApiPublicHooksSyncLomadeeRouteImport } from './routes/api/public/hooks/sync-lomadee'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +83,12 @@ const ApiPublicHooksSyncAlgoliaRoute =
     path: '/api/public/hooks/sync-algolia',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksSyncLomadeeRoute =
+  ApiPublicHooksSyncLomadeeRouteImport.update({
+    id: '/api/public/hooks/sync-lomadee',
+    path: '/api/public/hooks/sync-lomadee',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/produto/$id': typeof ProdutoIdRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
+  '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -108,6 +116,7 @@ export interface FileRoutesByTo {
   '/produto/$id': typeof ProdutoIdRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
+  '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,6 +132,7 @@ export interface FileRoutesById {
   '/produto/$id': typeof ProdutoIdRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
+  '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/produto/$id'
     | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
+    | '/api/public/hooks/sync-lomadee'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/produto/$id'
     | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
+    | '/api/public/hooks/sync-lomadee'
   id:
     | '__root__'
     | '/'
@@ -165,6 +177,7 @@ export interface FileRouteTypes {
     | '/produto/$id'
     | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
+    | '/api/public/hooks/sync-lomadee'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -179,6 +192,7 @@ export interface RootRouteChildren {
   ProdutoIdRoute: typeof ProdutoIdRoute
   ApiPublicAwinImportRoute: typeof ApiPublicAwinImportRoute
   ApiPublicHooksSyncAlgoliaRoute: typeof ApiPublicHooksSyncAlgoliaRoute
+  ApiPublicHooksSyncLomadeeRoute: typeof ApiPublicHooksSyncLomadeeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -267,6 +281,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksSyncAlgoliaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/sync-lomadee': {
+      id: '/api/public/hooks/sync-lomadee'
+      path: '/api/public/hooks/sync-lomadee'
+      fullPath: '/api/public/hooks/sync-lomadee'
+      preLoaderRoute: typeof ApiPublicHooksSyncLomadeeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -293,6 +314,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProdutoIdRoute: ProdutoIdRoute,
   ApiPublicAwinImportRoute: ApiPublicAwinImportRoute,
   ApiPublicHooksSyncAlgoliaRoute: ApiPublicHooksSyncAlgoliaRoute,
+  ApiPublicHooksSyncLomadeeRoute: ApiPublicHooksSyncLomadeeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
