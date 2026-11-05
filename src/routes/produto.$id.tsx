@@ -31,6 +31,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { formatBRL } from "@/components/marketplace/OfferCard";
+import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -296,9 +297,10 @@ function ProductPage() {
                     ) : null}
                   </div>
 
-                  <p className="shrink-0 text-xs text-muted-foreground sm:text-right">
-                      Melhor oferta em: <span className="font-semibold text-foreground">{data.store}</span>
-                  </p>
+                  <div className="flex shrink-0 flex-col gap-2 text-xs text-muted-foreground sm:items-end sm:text-right">
+                    <StoreLogo store={data.store} className="h-10 w-28 rounded-md" />
+                    <p>Melhor oferta em: <span className="font-semibold text-foreground">{data.store}</span></p>
+                  </div>
                 </div>
 
                 <Button variant="ink" className="mt-4 h-10 w-full text-sm" asChild>

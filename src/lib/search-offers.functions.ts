@@ -5,6 +5,7 @@ export type Offer = {
   title: string;
   imageUrl: string | null;
   store: string;
+  storeLogoUrl?: string | null;
   price: number;
   originalPrice: number | null;
   discountPercent: number | null;

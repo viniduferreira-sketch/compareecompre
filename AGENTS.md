@@ -10,6 +10,8 @@
 <!-- LOVABLE:END -->
 
 - Keep category names, search terms, image descriptions, blob token roles, shape variants and uploaded image paths in the typed category configuration; shortcut cards and header navigation consume it to avoid diverging categories.
+- Normalize public merchant identity, logo and affiliate aliases through storefront-record; use one shared official-logo registry for cards, detail pages and store discovery to prevent inconsistent attribution.
+- Discover active storefront merchants with availability-filtered Algolia facets; request candidates per merchant and interleave them so catalog size cannot dominate homepage rails.
 - Resolve category artwork from category-named PNG/WebP files in public/categorias or assets/CDN pointers under src/assets/categorias, with neutral missing/broken-image placeholders; style-reference uploads are not embedded as product cutouts.
 - Render category shortcuts as design-system links to the existing query-string search, with a reusable decorative SVG blob and tokenized colors; this preserves current search behavior without adding duplicate category routes.
 - Measure the sticky header with ResizeObserver for anchor offsets; its height changes when search and navigation wrap on smaller screens.

@@ -93,7 +93,7 @@ function FilterSidebar({
         <section key={filter.id} className="border-b border-border pb-5">
           <h3 className="mb-2.5 text-sm font-bold">{filter.name}</h3>
           <ul className="space-y-2">
-            {filter.values.slice(0, 8).map((value) => (
+            {(filter.id === "store" ? filter.values : filter.values.slice(0, 8)).map((value) => (
               <li key={value.id}>
                 <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
                   <input
@@ -235,10 +235,11 @@ function Home() {
   const run = searchOffers;
   const loadHome = getHomeOffers;
   const { q } = Route.useSearch();
-  const [term, setTerm] = useState(q ?? "");
+  const initialCategory = SITE_CATEGORIES.find((name) => name.localeCompare(q ?? "", "pt-BR", { sensitivity: "base" }) === 0);
+  const [term, setTerm] = useState(initialCategory ? "" : q ?? "");
   const [sort, setSort] = useState<OfferSort>("relevance");
   const [page, setPage] = useState(1);
-  const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
+  const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>(initialCategory ? [{ id: "categoryName", value: initialCategory }] : []);
   const toggleFilter = (filter: ActiveFilter) => {
     setPage(1);
     setActiveFilters((current) => current.some((item) => item.id === filter.id && item.value === filter.value)

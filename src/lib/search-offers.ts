@@ -2,10 +2,11 @@ import { liteClient } from "algoliasearch/lite";
 import { z } from "zod";
 import { selectVisibleOffers } from "./offer-freshness";
 import { interleaveByStore } from "./storefront-mix";
+import { storefrontIdentity, type StorefrontRecord } from "./storefront-record";
 import type { Offer, OfferFilter, OfferSort, SearchOffersResult, CategoryCover } from "./search-offers.functions";
 export type { Offer, OfferFilter, OfferSort } from "./search-offers.functions";
 
-type AlgoliaOffer = {
+type AlgoliaOffer = StorefrontRecord & {
   objectID: string;
   title: string;
   imageUrl: string | null;
@@ -68,7 +69,6 @@ function facetsToFilters(facets?: Record<string, Record<string, number>>): Offer
     const mappedValues = Object.entries(values)
       .filter(([name]) => name && name !== "null")
       .sort(([, left], [, right]) => right - left)
-      .slice(0, 12)
       .map(([name, results]) => ({ id: name, name: name === "true" ? "Sim" : name === "false" ? "Não" : name, results }));
     return mappedValues.length > 0
       ? [{ id, name: labels[id] ?? id, values: mappedValues }]
@@ -98,11 +98,14 @@ export async function searchOffers({ data: input }: { data: { query: string; lim
           page,
           hitsPerPage: limit,
           facets: ["store", "categoryName", "brand", "freeShipping"],
+          maxValuesPerFacet: 1000,
+          filters: 'price > 0 AND NOT status:"unavailable"',
           ...(facetFilters.length > 0 ? { facetFilters } : {}),
           typoTolerance: true,
           attributesToRetrieve: [
             "objectID", "title", "imageUrl", "store", "price", "originalPrice",
             "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at",
+            "merchant_name", "loja", "storeLogoUrl", "merchant_logo", "store_logo", "aw_deep_link",
           ],
         }
       });
@@ -112,12 +115,11 @@ export async function searchOffers({ data: input }: { data: { query: string; lim
           id: hit.objectID,
           title: hit.title,
           imageUrl: hit.imageUrl,
-          store: hit.store,
+          ...storefrontIdentity(hit),
           price: hit.price,
           originalPrice: hit.originalPrice,
           discountPercent: hit.discountPercent,
           freeShipping: Boolean(hit.freeShipping),
-          affiliateUrl: hit.affiliateUrl,
           category: hit.category,
           sellerCount: hit.sellerCount,
           source: hit.source,
@@ -155,24 +157,25 @@ export async function getHomeOffers(): Promise<{
         { name: "Beleza", query: "" },
         { name: "Esportes", query: "" },
       ];
-      const ATTRS = ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at"];
+      const ATTRS = ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at", "merchant_name", "loja", "storeLogoUrl", "merchant_logo", "store_logo", "aw_deep_link"];
+      const activeFilter = 'price > 0 AND NOT status:"unavailable"';
       const storesResponse = await client.searchSingleIndex<AlgoliaOffer>({
         indexName,
-        searchParams: { query: "", hitsPerPage: 0, facets: ["store"], maxValuesPerFacet: 12, filters: "price > 0" },
-      }).catch(() => null);
+        searchParams: { query: "", hitsPerPage: 0, facets: ["store"], maxValuesPerFacet: 1000, filters: activeFilter },
+      });
       const storeNames = Object.keys(storesResponse?.facets?.["store"] ?? {}).filter((name) => name && name !== "null");
       const storeGroups = storeNames.length > 0 ? storeNames.map((name) => [[`store:${name}`]]) : [[]];
       // Each rail asks every active store separately, then interleaves, so one big catalog never fills a rail alone.
       const perStore = (index: string, params: Record<string, unknown>) => Promise.all(storeGroups.map((facetFilters) =>
         client.searchSingleIndex<AlgoliaOffer>({
           indexName: index,
-          searchParams: { query: "", hitsPerPage: 14, attributesToRetrieve: ATTRS, ...params, ...(facetFilters.length ? { facetFilters } : {}) },
+          searchParams: { query: "", hitsPerPage: 42, attributesToRetrieve: ATTRS, ...params, ...(facetFilters.length ? { facetFilters } : {}) },
         }).catch(() => ({ hits: [] as AlgoliaOffer[] })),
       ));
       const [urgentResponses, priceDropsResponses, popularResponses, categoryResponses] = await Promise.all([
-        perStore(indexName, { filters: "price > 0 AND discountPercent >= 10" }),
-        perStore(`${indexName}_price_asc`, { filters: "price > 0" }),
-        perStore(indexName, { filters: "price > 0" }),
+        perStore(indexName, { filters: `${activeFilter} AND discountPercent >= 10` }),
+        perStore(`${indexName}_price_asc`, { filters: activeFilter }),
+        perStore(indexName, { filters: activeFilter }),
         Promise.all(categoryCoversConfig.map(({ name, query }) =>
           client.searchSingleIndex<AlgoliaOffer>({
             indexName,
@@ -192,12 +195,11 @@ export async function getHomeOffers(): Promise<{
           id: hit.objectID,
           title: hit.title,
           imageUrl: hit.imageUrl,
-          store: hit.store,
+          ...storefrontIdentity(hit),
           price: hit.price,
           originalPrice: hit.originalPrice,
           discountPercent: hit.discountPercent,
           freeShipping: Boolean(hit.freeShipping),
-          affiliateUrl: hit.affiliateUrl,
           category: hit.category,
           sellerCount: hit.sellerCount,
           source: hit.source,

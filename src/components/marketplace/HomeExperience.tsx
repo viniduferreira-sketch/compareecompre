@@ -29,7 +29,7 @@ export function TrustBanner() {
 }
 
 export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ name: string; count: number }>; onSelect?: (store: string) => void }) {
-  const active = stores.length > 0 ? stores.slice(0, 8) : [{ name: "Mercado Livre", count: 0 }];
+  const active = stores.filter((store) => store.count > 0);
   return (
     <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
       <div className="max-w-2xl">
@@ -42,21 +42,22 @@ export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ na
 
       <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {active.map((store) => (
-          <button
+          <Button
+            variant="outline"
             type="button"
             key={store.name}
             onClick={() => onSelect?.(store.name)}
             aria-label={`Ver ofertas de ${store.name}`}
-            className="flex min-h-32 flex-col justify-between rounded-lg border border-store bg-store p-4 text-left shadow-card transition-transform duration-200 hover:-translate-y-1 motion-reduce:transition-none"
+            className="h-auto min-h-36 items-start whitespace-normal flex-col justify-between gap-4 rounded-lg border-store bg-store p-4 text-left shadow-card transition-transform duration-200 hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none"
           >
-            <StoreLogo store={store.name} className="size-10 rounded-md text-xs" />
+            <StoreLogo store={store.name} className="h-10 w-28 rounded-md text-xs" />
             <div>
               <h3 className="font-display text-base font-extrabold text-store-foreground">{store.name}</h3>
               <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-store-foreground/75">
-                <Check className="size-3.5" /> {store.count > 0 ? `${store.count.toLocaleString("pt-BR")} ofertas monitoradas` : "Loja monitorada"}
+                <Check className="size-3.5 shrink-0" /> {`${store.count.toLocaleString("pt-BR")} ${store.count === 1 ? "oferta monitorada" : "ofertas monitoradas"}`}
               </p>
             </div>
-          </button>
+          </Button>
         ))}
       </div>
     </section>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { officialStoreLogo } from "@/lib/store-logos";
 
 // Known merchant domains; unknown stores fall back to an initials badge (never a fake logo).
 const STORE_DOMAINS: Record<string, string> = {
@@ -28,22 +29,24 @@ export function storeDomain(store: string) {
   return STORE_DOMAINS[key] ?? Object.entries(STORE_DOMAINS).find(([name]) => key.startsWith(name))?.[1] ?? null;
 }
 
-export function StoreLogo({ store, className }: { store: string; className?: string }) {
-  const domain = storeDomain(store);
-  const [failed, setFailed] = useState(false);
+export function StoreLogo({ store, logoUrl, className }: { store: string; logoUrl?: string | null | undefined; className?: string }) {
+  const official = officialStoreLogo(store);
+  const sources = [...new Set([logoUrl?.startsWith("https://") ? logoUrl : null, official?.url].filter((url): url is string => Boolean(url)))];
+  const [failedUrls, setFailedUrls] = useState<string[]>([]);
+  const src = sources.find((url) => !failedUrls.includes(url));
   const initials = store.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join("").toUpperCase();
 
   return (
-    <span className={cn("inline-flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-card text-[9px] font-extrabold text-foreground", className)} aria-hidden="true">
-      {domain && !failed ? (
+    <span className={cn("inline-flex h-6 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-card text-[9px] font-extrabold text-foreground", className, src === official?.url && official?.inverse && "bg-ink")}>
+      {src ? (
         <img
-          src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
-          alt=""
-          width={20}
-          height={20}
+          src={src}
+          alt={`Logotipo de ${store}`}
+          width={112}
+          height={40}
           loading="lazy"
           className="size-full object-contain"
-          onError={() => setFailed(true)}
+          onError={() => setFailedUrls((urls) => [...urls, src])}
         />
       ) : (
         initials

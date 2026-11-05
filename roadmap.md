@@ -1,8 +1,12 @@
 # Roadmap
 
+- [x] Exibir logotipos oficiais nos cards, detalhes e lojas monitoradas.
+- [x] Listar todas as lojas ativas com contagens reais e equilibrar a rotação das vitrines.
+- [x] Adicionar categorias circulares abaixo da busca e validar desktop/celular.
+
 - [x] Importar o feed Awin com normalização, persistência e lotes no índice existente, preservando produtos de outras fontes.
 - [x] Preparar disparo administrativo protegido e status da importação Awin.
-- [ ] Ativar e validar execução Awin no GitHub: aguarda publicação do endpoint, sincronização do workflow no repositório e primeiro login da conta administrativa.
+- [x] Ativar execução Awin: importação concluída com sucesso conforme confirmação do usuário e catálogo real presente na vitrine.
 
 - [x] Restore offers with legacy-safe 48-hour freshness and empty-list fallback; hide unavailable records without deleting.
 - [x] Synchronize seven categories now with timestamps (upsert only) and verify index counts.

@@ -82,19 +82,23 @@ export function Header({
       </div>
 
       <nav className="border-t border-border">
-        <ul className="mx-auto flex max-w-7xl gap-6 overflow-x-auto px-4 py-2 text-xs [scrollbar-width:none] lg:px-8 [&::-webkit-scrollbar]:hidden">
-          {CATEGORIES.map((category) => (
-            <li key={category}>
-              <button
-                type="button"
+        <ul className="mx-auto flex max-w-7xl items-center justify-between gap-5 overflow-x-auto px-4 py-3 text-xs [scrollbar-width:none] lg:px-8 [&::-webkit-scrollbar]:hidden">
+          {CATEGORY_ITEMS.map(({ name, term: categoryTerm, icon: Icon }) => (
+            <li key={name} className="shrink-0">
+              <Button
+                variant="ghost"
+                aria-label={`Ver ofertas de ${name}`}
                 onClick={() => {
-                  setTerm(category);
-                  onSearch(category);
+                  setTerm(categoryTerm);
+                  onSearch(categoryTerm);
                 }}
-                className="whitespace-nowrap font-semibold text-muted-foreground transition-colors hover:text-primary"
+                className="h-auto flex-col gap-1.5 px-2 py-0 text-xs font-semibold text-muted-foreground hover:bg-transparent hover:text-primary"
               >
-                {category}
-              </button>
+                <span className="flex size-11 items-center justify-center rounded-full border border-primary/15 bg-primary/10 text-primary">
+                  {Icon && <Icon className="size-5" strokeWidth={1.75} aria-hidden="true" />}
+                </span>
+                {name}
+              </Button>
             </li>
           ))}
         </ul>

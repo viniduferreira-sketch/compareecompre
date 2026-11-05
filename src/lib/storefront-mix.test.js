@@ -15,3 +15,13 @@ test("rail alternates stores instead of filling with one", () => {
   assert.equal(mixed.filter((o) => o.store === "Kabum").length, 2);
 });
 test("a small store does not shrink the rail", () => assert.equal(interleaveByStore([offers("ML", 10), offers("Kabum", 1)], 6, 3).length, 6));
+
+test("Mercado Livre, Kabum and Promo Farma share a rail equally", () => {
+  const mixed = interleaveByStore([offers("Mercado Livre", 100), offers("Kabum", 40), offers("Promo Farma", 20)], 12, 7);
+  for (const store of ["Mercado Livre", "Kabum", "Promo Farma"]) assert.equal(mixed.filter((offer) => offer.store === store).length, 4);
+});
+test("rotation changes hourly while remaining stable within a seed", () => {
+  const groups = [offers("Mercado Livre", 42), offers("Kabum", 42), offers("Promo Farma", 42)];
+  assert.deepEqual(interleaveByStore(groups, 14, 10), interleaveByStore(groups, 14, 10));
+  assert.notDeepEqual(interleaveByStore(groups, 14, 10), interleaveByStore(groups, 14, 11));
+});

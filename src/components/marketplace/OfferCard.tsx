@@ -36,7 +36,7 @@ export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
           </span>
         ) : null}
         <span className="absolute left-3 top-3 flex max-w-[70%] items-center gap-1.5 rounded-full bg-store py-1 pl-1 pr-2.5 text-[11px] font-semibold text-store-foreground shadow-card">
-          <StoreLogo store={offer.store} />
+          <StoreLogo store={offer.store} logoUrl={offer.storeLogoUrl} />
           <span className="truncate">{offer.store}</span>
         </span>
         {offer.discountPercent ? (
