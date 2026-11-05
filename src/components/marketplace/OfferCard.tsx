@@ -3,6 +3,7 @@ import { ExternalLink, Truck } from "lucide-react";
 
 
 import { Button } from "@/components/ui/button";
+import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import type { Offer } from "@/lib/search-offers.functions";
 
 export const formatBRL = (value: number) =>
@@ -34,8 +35,9 @@ export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
             {rank}
           </span>
         ) : null}
-        <span className="absolute left-3 top-3 rounded-full bg-store px-2.5 py-1 text-[11px] font-semibold text-store-foreground shadow-card">
-          {offer.store}
+        <span className="absolute left-3 top-3 flex max-w-[70%] items-center gap-1.5 rounded-full bg-store py-1 pl-1 pr-2.5 text-[11px] font-semibold text-store-foreground shadow-card">
+          <StoreLogo store={offer.store} />
+          <span className="truncate">{offer.store}</span>
         </span>
         {offer.discountPercent ? (
           <span className="absolute right-3 top-3 rounded-full bg-savings px-2.5 py-1 text-[11px] font-bold text-savings-foreground shadow-card">

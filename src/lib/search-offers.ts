@@ -58,6 +58,7 @@ function emptyResult(offset: number, limit = RESULTS_PER_PAGE): SearchOffersResu
 
 function facetsToFilters(facets?: Record<string, Record<string, number>>): OfferFilter[] {
   const labels: Record<string, string> = {
+    store: "Loja",
     categoryName: "Categoria",
     brand: "Marca",
     freeShipping: "Frete grátis",
@@ -67,7 +68,7 @@ function facetsToFilters(facets?: Record<string, Record<string, number>>): Offer
       .filter(([name]) => name && name !== "null")
       .sort(([, left], [, right]) => right - left)
       .slice(0, 12)
-      .map(([name, results]) => ({ id: name, name: name === "true" ? "Sim" : name, results }));
+      .map(([name, results]) => ({ id: name, name: name === "true" ? "Sim" : name === "false" ? "Não" : name, results }));
     return mappedValues.length > 0
       ? [{ id, name: labels[id] ?? id, values: mappedValues }]
       : [];
@@ -75,7 +76,10 @@ function facetsToFilters(facets?: Record<string, Record<string, number>>): Offer
 }
 
 export async function searchOffers({ data: input }: { data: { query: string; limit?: number; offset?: number; sort?: OfferSort; filters?: Array<{ id: string; value: string }> } }): Promise<SearchOffersResult> {
-    const data = z.object({ query: z.string().min(1).max(120), offset: z.number().int().min(0).max(10000).optional(), sort: z.enum(["relevance", "price_asc", "price_desc"]).optional() }).parse(input);
+    const data = z.object({ query: z.string().max(120), offset: z.number().int().min(0).max(10000).optional(), sort: z.enum(["relevance", "price_asc", "price_desc"]).optional(), filters: z.array(z.object({ id: z.enum(["store", "categoryName", "brand", "freeShipping"]), value: z.string().min(1).max(200) })).max(20).optional() }).parse(input);
+    const byFacet = new Map<string, string[]>();
+    for (const filter of data.filters ?? []) byFacet.set(filter.id, [...(byFacet.get(filter.id) ?? []), `${filter.id}:${filter.value}`]);
+    const facetFilters = [...byFacet.values()];
     const limit = RESULTS_PER_PAGE;
     const offset = data.offset ?? 0;
     const page = Math.floor(offset / limit);
@@ -92,7 +96,8 @@ export async function searchOffers({ data: input }: { data: { query: string; lim
           query: data.query,
           page,
           hitsPerPage: limit,
-          facets: ["categoryName", "brand", "freeShipping"],
+          facets: ["store", "categoryName", "brand", "freeShipping"],
+          ...(facetFilters.length > 0 ? { facetFilters } : {}),
           typoTolerance: true,
           attributesToRetrieve: [
             "objectID", "title", "imageUrl", "store", "price", "originalPrice",
@@ -135,6 +140,7 @@ export async function getHomeOffers(): Promise<{
     priceDrops: Offer[];
     popular: Offer[];
     categoryCovers: Record<string, CategoryCover>;
+    stores: Array<{ name: string; count: number }>;
     debugError?: string;
   }> {
     try {
@@ -148,7 +154,7 @@ export async function getHomeOffers(): Promise<{
         { name: "Beleza", query: "" },
         { name: "Esportes", query: "" },
       ];
-      const [urgentResponse, priceDropsResponse, popularResponse, categoryResponses] = await Promise.all([
+      const [urgentResponse, priceDropsResponse, popularResponse, categoryResponses, storesResponse] = await Promise.all([
         client.searchSingleIndex<AlgoliaOffer>({
           indexName,
           searchParams: {
@@ -187,6 +193,10 @@ export async function getHomeOffers(): Promise<{
             }
           }),
         )),
+        client.searchSingleIndex<AlgoliaOffer>({
+          indexName,
+          searchParams: { query: "", hitsPerPage: 0, facets: ["store"], maxValuesPerFacet: 12 },
+        }).catch(() => null),
       ]);
 
       const mapHits = (hits: AlgoliaOffer[]) => hits.flatMap((hit) => {
@@ -230,11 +240,15 @@ export async function getHomeOffers(): Promise<{
         priceDrops: selectVisibleOffers(mapHits(priceDropsResponse.hits)),
         popular: selectVisibleOffers(mapHits(popularResponse.hits)),
         categoryCovers,
+        stores: Object.entries(storesResponse?.facets?.["store"] ?? {})
+          .filter(([name]) => name && name !== "null")
+          .sort(([, a], [, b]) => b - a)
+          .map(([name, count]) => ({ name, count })),
       };
     } catch (error) {
       console.error("Homepage offers failed", error);
       const e = error as { status?: number; message?: string };
       const debugError = `Erro da Algolia${e.status ? ` (status ${e.status})` : ""}: ${e.message ?? String(error)}`;
-      return { urgent: [], priceDrops: [], popular: [], categoryCovers: {}, debugError };
+      return { urgent: [], priceDrops: [], popular: [], categoryCovers: {}, stores: [], debugError };
     }
   }

@@ -1,11 +1,11 @@
-import { BadgeCheck, BellRing, Building2, Check, Mail, ShieldCheck, Sparkles, Store } from "lucide-react";
+import { BadgeCheck, BellRing, Check, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Button } from "@/components/ui/button";
 import { subscribeToPriceAlerts } from "@/lib/price-alert-signup.functions";
 
-const FUTURE_STORES = ["Nova loja", "Nova loja", "Nova loja"];
+import { StoreLogo } from "@/components/marketplace/StoreLogo";
 
 export function TrustBanner() {
   return (
@@ -28,7 +28,8 @@ export function TrustBanner() {
   );
 }
 
-export function MonitoredStores() {
+export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ name: string; count: number }>; onSelect?: (store: string) => void }) {
+  const active = stores.length > 0 ? stores.slice(0, 8) : [{ name: "Mercado Livre", count: 0 }];
   return (
     <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
       <div className="max-w-2xl">
@@ -40,27 +41,22 @@ export function MonitoredStores() {
       </div>
 
       <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <article className="flex min-h-32 flex-col justify-between rounded-lg border border-store bg-store p-4 shadow-card">
-          <span className="flex size-9 items-center justify-center rounded-md bg-card text-store-foreground">
-            <Store className="size-5" />
-          </span>
-          <div>
-            <h3 className="font-display text-base font-extrabold text-store-foreground">Mercado Livre</h3>
-            <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-store-foreground/75">
-              <Check className="size-3.5" /> Loja monitorada
-            </p>
-          </div>
-        </article>
-        {FUTURE_STORES.map((label, index) => (
-          <article key={`${label}-${index}`} className="flex min-h-32 flex-col justify-between rounded-lg border border-dashed border-border bg-card p-4">
-            <span className="flex size-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
-              <Building2 className="size-5" />
-            </span>
+        {active.map((store) => (
+          <button
+            type="button"
+            key={store.name}
+            onClick={() => onSelect?.(store.name)}
+            aria-label={`Ver ofertas de ${store.name}`}
+            className="flex min-h-32 flex-col justify-between rounded-lg border border-store bg-store p-4 text-left shadow-card transition-transform duration-200 hover:-translate-y-1 motion-reduce:transition-none"
+          >
+            <StoreLogo store={store.name} className="size-10 rounded-md text-xs" />
             <div>
-              <h3 className="text-sm font-bold text-foreground">{label}</h3>
-              <p className="mt-1 text-xs text-muted-foreground">Integração em breve</p>
+              <h3 className="font-display text-base font-extrabold text-store-foreground">{store.name}</h3>
+              <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-store-foreground/75">
+                <Check className="size-3.5" /> {store.count > 0 ? `${store.count.toLocaleString("pt-BR")} ofertas monitoradas` : "Loja monitorada"}
+              </p>
             </div>
-          </article>
+          </button>
         ))}
       </div>
     </section>

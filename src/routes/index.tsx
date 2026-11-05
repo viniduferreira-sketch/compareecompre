@@ -54,12 +54,18 @@ export const Route = createFileRoute("/")({
 
 const PAGE_SIZE = 40;
 
+type ActiveFilter = { id: string; value: string };
+
 function FilterSidebar({
   filters,
   isLoading,
+  active = [],
+  onToggle,
 }: {
   filters: OfferFilter[];
   isLoading: boolean;
+  active?: ActiveFilter[];
+  onToggle?: (filter: ActiveFilter) => void;
 }) {
   if (isLoading) {
     return (
@@ -87,8 +93,17 @@ function FilterSidebar({
           <h3 className="mb-2.5 text-sm font-bold">{filter.name}</h3>
           <ul className="space-y-2">
             {filter.values.slice(0, 8).map((value) => (
-              <li key={value.id} className="text-sm text-foreground">
-                {value.name} <span className="text-xs tabular-nums text-muted-foreground">({value.results})</span>
+              <li key={value.id}>
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-primary"
+                    checked={active.some((item) => item.id === filter.id && item.value === value.id)}
+                    onChange={() => onToggle?.({ id: filter.id, value: value.id })}
+                  />
+                  <span className="min-w-0 flex-1 truncate">{value.name}</span>
+                  <span className="text-xs tabular-nums text-muted-foreground">({value.results})</span>
+                </label>
               </li>
             ))}
           </ul>
@@ -152,7 +167,11 @@ function SearchResults({
   isLoading,
   onSort,
   onPage,
+  activeFilters,
+  onToggleFilter,
 }: {
+  activeFilters: ActiveFilter[];
+  onToggleFilter: (filter: ActiveFilter) => void;
   term: string;
   offers: Offer[];
   filters: OfferFilter[];
@@ -186,7 +205,7 @@ function SearchResults({
       </div>
 
       <div className="grid items-start gap-7 md:grid-cols-[210px_minmax(0,1fr)] lg:grid-cols-[230px_minmax(0,1fr)]">
-        <FilterSidebar filters={filters} isLoading={isLoading} />
+        <FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter} />
         <div className="min-w-0">
           {isLoading ? (
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
@@ -218,23 +237,32 @@ function Home() {
   const [term, setTerm] = useState(q ?? "");
   const [sort, setSort] = useState<OfferSort>("relevance");
   const [page, setPage] = useState(1);
+  const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
+  const toggleFilter = (filter: ActiveFilter) => {
+    setPage(1);
+    setActiveFilters((current) => current.some((item) => item.id === filter.id && item.value === filter.value)
+      ? current.filter((item) => !(item.id === filter.id && item.value === filter.value))
+      : [...current, filter]);
+  };
+  const isSearching = term.length > 0 || activeFilters.length > 0;
 
   const startSearch = (nextTerm: string) => {
     setTerm(nextTerm);
+    setActiveFilters([]);
     setPage(1);
   };
 
   const search = useQuery({
-    queryKey: ["offers", "search", term, sort, page],
-    enabled: term.length > 0,
+    queryKey: ["offers", "search", term, sort, page, activeFilters],
+    enabled: isSearching,
     queryFn: () => run({
-      data: { query: term, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, sort },
+      data: { query: term, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, sort, filters: activeFilters as Array<{ id: "store" | "categoryName" | "brand" | "freeShipping"; value: string }> },
     }),
   });
   const homeOffers = useQuery({
     queryKey: ["offers", "home"],
     queryFn: () => loadHome(),
-    enabled: term.length === 0,
+    enabled: !isSearching,
     staleTime: 15 * 60 * 1000,
   });
   const validOffers = (search.data?.offers ?? []).filter(
@@ -247,9 +275,11 @@ function Home() {
       <Header onSearch={startSearch} initialTerm={term} />
 
       <main>
-        {term ? (
+        {isSearching ? (
           <SearchResults
-            term={term}
+            activeFilters={activeFilters}
+            onToggleFilter={toggleFilter}
+            term={term || activeFilters.map((item) => item.value).join(", ")}
             offers={validOffers}
             filters={search.data?.availableFilters ?? []}
             sort={sort}
@@ -285,7 +315,10 @@ function Home() {
               debugError={homeOffers.data?.debugError}
             />
             <TrustBanner />
-            <MonitoredStores />
+            <MonitoredStores
+              stores={homeOffers.data?.stores ?? []}
+              onSelect={(store) => { setTerm(""); setPage(1); setActiveFilters([{ id: "store", value: store }]); window.scrollTo({ top: 0 }); }}
+            />
             <ProductRail
               eyebrow="Escolha de quem pesquisa"
               title="Os mais buscados da semana"

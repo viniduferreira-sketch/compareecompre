@@ -246,7 +246,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     indexName,
     indexSettings: {
       searchableAttributes: ["title", "brand", "categoryName"],
-      attributesForFaceting: ["searchable(categoryName)", "searchable(brand)", "freeShipping", "filterOnly(status)"],
+      attributesForFaceting: ["searchable(store)", "searchable(categoryName)", "searchable(brand)", "freeShipping", "filterOnly(status)"],
       typoTolerance: true,
       removeStopWords: ["pt"],
       ignorePlurals: ["pt"],
