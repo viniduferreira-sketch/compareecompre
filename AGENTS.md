@@ -15,3 +15,4 @@
 - Measure the sticky header with ResizeObserver for anchor offsets; its height changes when search and navigation wrap on smaller screens.
 - Homepage price-alert intake uses a validated public server function to write only to a private subscriber table; success follows persistence, duplicates are idempotent, and no subscriber data is exposed to visitors.
 - Server-side Algolia access (sync, product Q&A, sitemap) goes through getAlgoliaIndexingConfig in src/lib/algolia-indexing.server.ts with the fixed index name; the connection key is gateway-only and fails as a direct Algolia key.
+- Run Awin streaming ingestion in GitHub Actions, posting bounded batches to OIDC-verified server routes; persist before indexing and qualify Awin IDs to avoid collisions with other partners.
