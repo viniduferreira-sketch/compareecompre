@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { toSiteCategory } from "./storefront-mix";
 
 export const awinRowSchema = z.record(z.string().max(30000));
 export type AwinRow = z.infer<typeof awinRowSchema>;
@@ -50,7 +51,8 @@ export function normalizeAwinProduct(row: AwinRow, syncedAt: string) {
     originalPrice,
     discountPercent: originalPrice ? Math.round((originalPrice - price) / originalPrice * 100) : null,
     category: text(row["category_name"] || row["merchant_category"], 300) || null,
-    categoryName: text(row["category_name"] || row["merchant_category"], 300) || null,
+    categoryName: toSiteCategory(text(row["category_name"] || row["merchant_category"], 300))
+      ?? toSiteCategory(text(row["merchant_category"], 300)),
     brand: text(row["brand_name"], 200) || null,
     description: text(row["description"] || row["product_short_description"]),
     attributes: [["Marca", row["brand_name"]], ["Modelo", row["product_model"]], ["Cor", row["colour"]], ["Dimensões", row["dimensions"]], ["Especificações", row["specifications"]]]

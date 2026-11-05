@@ -10,6 +10,7 @@ import { PopularCategories } from "@/components/marketplace/PopularCategories";
 import { ProductRail } from "@/components/marketplace/ProductRail";
 import { SiteFooter } from "@/components/marketplace/SiteFooter";
 import { MonitoredStores, PriceAlertSignup, TrustBanner } from "@/components/marketplace/HomeExperience";
+import { SITE_CATEGORIES } from "@/lib/storefront-mix";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -247,8 +248,10 @@ function Home() {
   const isSearching = term.length > 0 || activeFilters.length > 0;
 
   const startSearch = (nextTerm: string) => {
-    setTerm(nextTerm);
-    setActiveFilters([]);
+    // Category tabs filter strictly by the category field instead of free-text matching.
+    const category = SITE_CATEGORIES.find((name) => name.localeCompare(nextTerm, "pt-BR", { sensitivity: "base" }) === 0);
+    setTerm(category ? "" : nextTerm);
+    setActiveFilters(category ? [{ id: "categoryName", value: category }] : []);
     setPage(1);
   };
 

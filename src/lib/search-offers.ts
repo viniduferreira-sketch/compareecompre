@@ -1,6 +1,7 @@
 import { liteClient } from "algoliasearch/lite";
 import { z } from "zod";
 import { selectVisibleOffers } from "./offer-freshness";
+import { interleaveByStore } from "./storefront-mix";
 import type { Offer, OfferFilter, OfferSort, SearchOffersResult, CategoryCover } from "./search-offers.functions";
 export type { Offer, OfferFilter, OfferSort } from "./search-offers.functions";
 
@@ -154,34 +155,24 @@ export async function getHomeOffers(): Promise<{
         { name: "Beleza", query: "" },
         { name: "Esportes", query: "" },
       ];
-      const [urgentResponse, priceDropsResponse, popularResponse, categoryResponses, storesResponse] = await Promise.all([
+      const ATTRS = ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at"];
+      const storesResponse = await client.searchSingleIndex<AlgoliaOffer>({
+        indexName,
+        searchParams: { query: "", hitsPerPage: 0, facets: ["store"], maxValuesPerFacet: 12, filters: "price > 0" },
+      }).catch(() => null);
+      const storeNames = Object.keys(storesResponse?.facets?.["store"] ?? {}).filter((name) => name && name !== "null");
+      const storeGroups = storeNames.length > 0 ? storeNames.map((name) => [[`store:${name}`]]) : [[]];
+      // Each rail asks every active store separately, then interleaves, so one big catalog never fills a rail alone.
+      const perStore = (index: string, params: Record<string, unknown>) => Promise.all(storeGroups.map((facetFilters) =>
         client.searchSingleIndex<AlgoliaOffer>({
-          indexName,
-          searchParams: {
-            query: "",
-            hitsPerPage: 14,
-            filters: "price > 0 AND discountPercent >= 10",
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at"],
-          }
-        }),
-        client.searchSingleIndex<AlgoliaOffer>({
-          indexName: `${indexName}_price_asc`,
-          searchParams: {
-            query: "",
-            hitsPerPage: 14,
-            filters: "price > 0",
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at"],
-          }
-        }),
-        client.searchSingleIndex<AlgoliaOffer>({
-          indexName,
-          searchParams: {
-            query: "iphone",
-            hitsPerPage: 14,
-            typoTolerance: true,
-            attributesToRetrieve: ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at"],
-          }
-        }),
+          indexName: index,
+          searchParams: { query: "", hitsPerPage: 14, attributesToRetrieve: ATTRS, ...params, ...(facetFilters.length ? { facetFilters } : {}) },
+        }).catch(() => ({ hits: [] as AlgoliaOffer[] })),
+      ));
+      const [urgentResponses, priceDropsResponses, popularResponses, categoryResponses] = await Promise.all([
+        perStore(indexName, { filters: "price > 0 AND discountPercent >= 10" }),
+        perStore(`${indexName}_price_asc`, { filters: "price > 0" }),
+        perStore(indexName, { filters: "price > 0" }),
         Promise.all(categoryCoversConfig.map(({ name, query }) =>
           client.searchSingleIndex<AlgoliaOffer>({
             indexName,
@@ -193,12 +184,8 @@ export async function getHomeOffers(): Promise<{
             }
           }),
         )),
-        client.searchSingleIndex<AlgoliaOffer>({
-          indexName,
-          searchParams: { query: "", hitsPerPage: 0, facets: ["store"], maxValuesPerFacet: 12 },
-        }).catch(() => null),
       ]);
-
+      const seed = Math.floor(Date.now() / 3600000);
       const mapHits = (hits: AlgoliaOffer[]) => hits.flatMap((hit) => {
         if (!Number.isFinite(hit.price) || hit.price <= 0) return [];
         return [{
@@ -236,9 +223,9 @@ export async function getHomeOffers(): Promise<{
       }));
 
       return {
-        urgent: selectVisibleOffers(mapHits(urgentResponse.hits)),
-        priceDrops: selectVisibleOffers(mapHits(priceDropsResponse.hits)),
-        popular: selectVisibleOffers(mapHits(popularResponse.hits)),
+        urgent: interleaveByStore(urgentResponses.map((r) => selectVisibleOffers(mapHits(r.hits))), 14, seed),
+        priceDrops: interleaveByStore(priceDropsResponses.map((r) => selectVisibleOffers(mapHits(r.hits))), 14, seed + 1),
+        popular: interleaveByStore(popularResponses.map((r) => selectVisibleOffers(mapHits(r.hits))), 14, seed + 2),
         categoryCovers,
         stores: Object.entries(storesResponse?.facets?.["store"] ?? {})
           .filter(([name]) => name && name !== "null")
