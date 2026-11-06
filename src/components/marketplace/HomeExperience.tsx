@@ -37,7 +37,7 @@ export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ na
       <Carousel opts={{ align: "start", dragFree: true, containScroll: "trimSnaps" }} aria-label="Lojas monitoradas" className="mt-2 px-9">
         <CarouselContent className="-ml-2 cursor-grab touch-pan-y active:cursor-grabbing">
         {active.map((store, index) => (
-          <CarouselItem key={store.name} aria-label={`${index + 1} de ${active.length}: ${store.name}`} className="basis-[88px] pl-2">
+          <CarouselItem key={store.name} aria-label={`${index + 1} de ${active.length}: ${store.name}`} className="basis-[108px] pl-2">
           <Button
             variant="ghost"
             type="button"
@@ -45,11 +45,11 @@ export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ na
             aria-label={`Ver ofertas de ${store.name}`}
             className="group flex h-auto w-full flex-col justify-start gap-1.5 whitespace-normal rounded-none p-1 text-center hover:bg-transparent"
           >
-            <span className="flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-card transition-colors duration-200 group-hover:border-primary/40 motion-reduce:transition-none">
-              <StoreLogo store={store.name} logoUrl={store.logoUrl} className="h-8 w-11 rounded-sm text-[10px]" />
+            <span className="flex size-[88px] shrink-0 items-center justify-center rounded-full border border-border bg-card transition-colors duration-200 group-hover:border-primary/40 motion-reduce:transition-none">
+              <StoreLogo store={store.name} logoUrl={store.logoUrl} className="h-11 w-[60px] rounded-sm text-[11px]" />
             </span>
             <div className="w-full">
-              <h3 className="w-full truncate text-[11px] font-medium leading-4 text-foreground">{store.name}</h3>
+              <h3 className="w-full truncate text-xs font-medium leading-4 text-foreground">{store.name}</h3>
               <p className="text-[9px] leading-3 text-muted-foreground">
                 {`${store.count.toLocaleString("pt-BR")} ${store.count === 1 ? "oferta" : "ofertas"}`}
               </p>
@@ -58,8 +58,8 @@ export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ na
           </CarouselItem>
         ))}
         </CarouselContent>
-        <CarouselPrevious aria-label="Lojas anteriores" title="Lojas anteriores" className="left-0 top-8 size-7 bg-card shadow-sm" />
-        <CarouselNext aria-label="Próximas lojas" title="Próximas lojas" className="right-0 top-8 size-7 bg-card shadow-sm" />
+        <CarouselPrevious aria-label="Lojas anteriores" title="Lojas anteriores" className="left-0 top-10 size-8 bg-card shadow-sm" />
+        <CarouselNext aria-label="Próximas lojas" title="Próximas lojas" className="right-0 top-10 size-8 bg-card shadow-sm" />
       </Carousel>
     </section>
   );
