@@ -51,14 +51,14 @@ export function ProductRail({
 
       <div
         ref={railRef}
-        className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-5 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+        className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-5 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
       >
         {isLoading
           ? Array.from({ length: 5 }).map((_, index) => (
-              <Skeleton key={index} className="h-[400px] w-[250px] shrink-0 rounded-lg sm:w-[270px]" />
+              <Skeleton key={index} className="h-[290px] w-[160px] shrink-0 rounded-lg sm:w-[192px]" />
             ))
           : offers.map((offer, index) => (
-              <div key={offer.id} className="w-[250px] shrink-0 snap-start sm:w-[270px]">
+              <div key={offer.id} className="w-[160px] shrink-0 snap-start sm:w-[192px]">
                 <OfferCard offer={offer} {...(ranked ? { rank: index + 1 } : {})} />
               </div>
             ))}

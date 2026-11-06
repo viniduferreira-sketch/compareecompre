@@ -1,8 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, Truck } from "lucide-react";
+import { Truck } from "lucide-react";
 
-
-import { Button } from "@/components/ui/button";
 import { ProductImage } from "@/components/marketplace/ProductImage";
 import type { Offer } from "@/lib/search-offers.functions";
 
@@ -11,69 +9,53 @@ export const formatBRL = (value: number) =>
 
 export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lift">
-      <Link
-        to="/produto/$id"
-        params={{ id: offer.id }}
-        className="relative block aspect-square w-full overflow-hidden bg-muted"
-        aria-label={`Ver detalhes de ${offer.title}`}
-      >
+    <Link
+      to="/produto/$id"
+      params={{ id: offer.id }}
+      aria-label={`Ver detalhes de ${offer.title}`}
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card p-3 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+    >
+      <div className="relative h-40 w-full overflow-hidden rounded-md bg-muted">
         <ProductImage
           src={offer.imageUrl}
           alt={offer.title}
           loading="lazy"
-          className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
           placeholderClassName="rounded-none"
         />
-        {rank ? (
-          <span className="absolute bottom-3 left-3 flex size-9 items-center justify-center rounded-full bg-ink font-display text-sm font-extrabold text-ink-foreground shadow-card">
-            {rank}
-          </span>
-        ) : null}
         {offer.discountPercent || offer.freeShipping ? (
-          <div className="absolute left-3 right-3 top-3 flex flex-wrap items-center gap-1.5">
+          <div className="absolute left-1.5 right-1.5 top-1.5 flex flex-wrap items-center gap-1">
             {offer.discountPercent ? (
-              <span className="rounded-full bg-savings px-2.5 py-1 text-[11px] font-bold text-savings-foreground shadow-card">
+              <span className="rounded-full bg-savings px-2 py-0.5 text-[10px] font-bold text-savings-foreground shadow-card">
                 -{offer.discountPercent}%
               </span>
             ) : null}
             {offer.freeShipping ? (
-              <span className="flex items-center gap-1 rounded-full bg-card px-2.5 py-1 text-[11px] font-semibold text-savings shadow-card">
+              <span className="flex items-center gap-1 rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold text-savings shadow-card">
                 <Truck className="size-3" /> Frete grátis
               </span>
             ) : null}
           </div>
         ) : null}
-      </Link>
-
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <Link
-          to="/produto/$id"
-          params={{ id: offer.id }}
-          className="line-clamp-2 text-left text-sm font-medium leading-snug text-foreground transition-colors hover:text-primary"
-        >
-          {offer.title}
-        </Link>
-
-        <div className="mt-auto space-y-1">
-          {offer.originalPrice ? (
-            <p className="text-xs text-muted-foreground line-through">
-              {formatBRL(offer.originalPrice)}
-            </p>
-          ) : (
-            <p className="text-xs text-transparent select-none">—</p>
-          )}
-          <p className="font-display text-2xl font-bold text-foreground">{formatBRL(offer.price)}</p>
-        </div>
-
-        <div>
-          <Button className="w-full bg-brand text-brand-foreground hover:bg-brand/90" asChild>
-            <Link to="/produto/$id" params={{ id: offer.id }}>
-              Ver detalhes <ChevronRight className="size-4" />
-            </Link>
-          </Button>
-        </div>
+        {rank ? (
+          <span className="absolute bottom-1.5 left-1.5 flex size-7 items-center justify-center rounded-full bg-ink font-display text-xs font-extrabold text-ink-foreground shadow-card">
+            {rank}
+          </span>
+        ) : null}
       </div>
-    </article>
+
+      <h3 className="mt-3 line-clamp-2 min-h-10 text-sm font-medium leading-5 text-foreground transition-colors group-hover:text-primary">
+        {offer.title}
+      </h3>
+
+      <div className="mt-auto pt-2">
+        {offer.originalPrice ? (
+          <p className="text-xs text-muted-foreground line-through">{formatBRL(offer.originalPrice)}</p>
+        ) : (
+          <p className="select-none text-xs text-transparent">—</p>
+        )}
+        <p className="font-display text-xl font-bold text-foreground">{formatBRL(offer.price)}</p>
+      </div>
+    </Link>
   );
 }

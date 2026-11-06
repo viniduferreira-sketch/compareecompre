@@ -209,7 +209,7 @@ function SearchResults({
         <FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter} />
         <div className="min-w-0">
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {Array.from({ length: 9 }).map((_, index) => <Skeleton key={index} className="h-80 rounded-lg" />)}
             </div>
           ) : offers.length === 0 ? (
@@ -218,7 +218,7 @@ function SearchResults({
               <p className="mt-1 text-sm text-muted-foreground">Tente buscar outro termo ou remover os filtros.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {offers.map((offer) => <OfferCard key={`${offer.store}-${offer.id}`} offer={offer} />)}
             </div>
           )}
