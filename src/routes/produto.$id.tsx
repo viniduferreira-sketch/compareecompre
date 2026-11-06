@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import {
+  BadgeCheck,
   BellRing,
   ChevronRight,
   ExternalLink,
@@ -204,6 +205,9 @@ function ProductPage() {
                   {data.title}
                 </h1>
                 {data.rating ? <RatingStars rating={data.rating} /> : null}
+                <span className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-zebra px-2 py-1 text-xs font-medium text-graphite">
+                  <BadgeCheck className="size-3.5 text-graphite" aria-hidden /> Preços monitorados em lojas oficiais
+                </span>
               </div>
 
               <div className="flex shrink-0 items-center gap-1.5">
@@ -331,10 +335,10 @@ function ProductPage() {
             <CompareOffers product={data} />
 
             {data.last_synced_at && <p className="mt-3 text-xs text-muted-foreground">Preço atualizado em {new Date(data.last_synced_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}</p>}
-            <Tabs defaultValue={data.source !== "mercadolivre" ? "specs" : "pros"} className="mt-8">
+            <Tabs defaultValue="specs" className="mt-8">
               <TabsList className="flex w-full justify-start gap-1 overflow-x-auto rounded-lg bg-muted/60 p-1 text-xs">
-                {(data.pros.length > 0 || data.cons.length > 0) && <TabsTrigger value="pros">Prós e Contras</TabsTrigger>}
                 <TabsTrigger value="specs">Ficha técnica</TabsTrigger>
+                {(data.pros.length > 0 || data.cons.length > 0) && <TabsTrigger value="pros">Prós e Contras</TabsTrigger>}
                 {data.source === "mercadolivre" && <TabsTrigger value="history">Histórico de preços</TabsTrigger>}
               </TabsList>
 

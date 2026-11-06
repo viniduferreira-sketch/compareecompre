@@ -272,19 +272,25 @@ export async function compareOffers(product: { id: string; title: string; ean?: 
         attributesToRetrieve: ["objectID", "title", "store", "price", "affiliateUrl", "source", "status", "last_synced_at", "ean", "gtin", "merchant_name", "loja", "storeLogoUrl", "merchant_logo", "store_logo", "aw_deep_link"],
       },
     });
-    const best = new Map<string, ComparedOffer>();
-    for (const hit of selectVisibleOffers(response.hits.map((h) => ({ ...h, id: h.objectID })))) {
-      if (!Number.isFinite(hit.price) || hit.price <= 0) continue;
-      if (hit.objectID !== product.id && !isSameProduct(product, { title: hit.title, ean: hit.ean ?? hit.gtin ?? null })) continue;
-      const identity = storefrontIdentity(hit);
-      const offer: ComparedOffer = { id: hit.objectID, ...identity, price: hit.price, source: hit.source, last_synced_at: hit.last_synced_at };
-      if (!identity.affiliateUrl) continue;
-      const current = best.get(identity.store);
-      if (!current || offer.price < current.price) best.set(identity.store, offer);
-    }
-    return [...best.values()].sort((l, r) => l.price - r.price);
+    return groupComparedOffers(product, response.hits);
   } catch (error) {
     console.error("Price comparison failed", error);
     return [];
   }
+}
+
+type CompareHit = AlgoliaOffer & { ean?: string | null; gtin?: string | null };
+/** Keeps matching offers from each store and the cheapest per store, cheapest first. */
+export function groupComparedOffers(product: { id: string; title: string; ean?: string | null }, hits: CompareHit[]): ComparedOffer[] {
+  const best = new Map<string, ComparedOffer>();
+  for (const hit of selectVisibleOffers(hits.map((h) => ({ ...h, id: h.objectID })))) {
+    if (!Number.isFinite(hit.price) || hit.price <= 0) continue;
+    if (hit.objectID !== product.id && !isSameProduct(product, { title: hit.title, ean: hit.ean ?? hit.gtin ?? null })) continue;
+    const identity = storefrontIdentity(hit);
+    if (!identity.affiliateUrl) continue;
+    const offer: ComparedOffer = { id: hit.objectID, ...identity, price: hit.price, source: hit.source, last_synced_at: hit.last_synced_at };
+    const current = best.get(identity.store);
+    if (!current || offer.price < current.price) best.set(identity.store, offer);
+  }
+  return [...best.values()].sort((l, r) => l.price - r.price);
 }
