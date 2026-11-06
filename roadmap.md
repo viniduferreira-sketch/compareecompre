@@ -1,5 +1,9 @@
 # Roadmap
 
+- [x] Remover barra de categorias do cabeçalho, preservando acesso a Cupons.
+- [x] Transformar lojas monitoradas em carrossel circular com setas e arrastar.
+- [x] Validar navegação, logos, categorias ilustradas e celular.
+
 - [x] Criar /cupons com ofertas reais, código copiável e link rastreado.
 - [x] Ampliar sincronização Lomadee para lojas disponíveis, incluindo Shopee quando autorizada (API de produtos Shopee retornou vazia).
 - [x] Validar cupons, catálogo, navegação e apresentação no celular.

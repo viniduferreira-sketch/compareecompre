@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Button } from "@/components/ui/button";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { subscribeToPriceAlerts } from "@/lib/price-alert-signup.functions";
 
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
@@ -40,26 +41,33 @@ export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ na
         </p>
       </div>
 
-      <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {active.map((store) => (
+      <Carousel opts={{ align: "start", dragFree: true, containScroll: "trimSnaps" }} aria-label="Lojas monitoradas" className="mt-8 px-10 sm:px-12">
+        <CarouselContent className="-ml-3 cursor-grab touch-pan-y active:cursor-grabbing sm:-ml-5">
+        {active.map((store, index) => (
+          <CarouselItem key={store.name} aria-label={`${index + 1} de ${active.length}: ${store.name}`} className="basis-[140px] pl-3 sm:basis-[164px] sm:pl-5">
           <Button
-            variant="outline"
+            variant="ghost"
             type="button"
-            key={store.name}
             onClick={() => onSelect?.(store.name)}
             aria-label={`Ver ofertas de ${store.name}`}
-            className="h-auto min-h-36 items-start whitespace-normal flex-col justify-between gap-4 rounded-lg border-store bg-store p-4 text-left shadow-card transition-transform duration-200 hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none"
+            className="group flex h-auto w-full flex-col justify-start gap-3 whitespace-normal rounded-none p-1 text-center hover:bg-transparent"
           >
-            <StoreLogo store={store.name} className="h-10 w-28 rounded-md text-xs" />
-            <div>
-              <h3 className="font-display text-base font-extrabold text-store-foreground">{store.name}</h3>
-              <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-store-foreground/75">
-                <Check className="size-3.5 shrink-0" /> {`${store.count.toLocaleString("pt-BR")} ${store.count === 1 ? "oferta monitorada" : "ofertas monitoradas"}`}
+            <span className="flex size-24 shrink-0 items-center justify-center rounded-full border border-border bg-card transition-colors duration-200 group-hover:border-primary/40 motion-reduce:transition-none sm:size-28">
+              <StoreLogo store={store.name} className="h-12 w-[72px] rounded-sm text-xs sm:w-[84px]" />
+            </span>
+            <div className="w-full">
+              <h3 className="flex min-h-10 items-center justify-center break-words text-sm font-semibold leading-5 text-foreground">{store.name}</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {`${store.count.toLocaleString("pt-BR")} ${store.count === 1 ? "oferta" : "ofertas"}`}
               </p>
             </div>
           </Button>
+          </CarouselItem>
         ))}
-      </div>
+        </CarouselContent>
+        <CarouselPrevious aria-label="Lojas anteriores" title="Lojas anteriores" className="left-0 top-14 size-9 bg-card shadow-sm" />
+        <CarouselNext aria-label="Próximas lojas" title="Próximas lojas" className="right-0 top-14 size-9 bg-card shadow-sm" />
+      </Carousel>
     </section>
   );
 }
