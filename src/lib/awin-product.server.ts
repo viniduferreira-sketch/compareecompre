@@ -19,7 +19,14 @@ export async function getAwinProductDetail(id: string): Promise<ProductDetail | 
   });
   const { data, error } = await db.from("partner_catalog").select("record").eq("object_id", id).eq("source", id.startsWith("lomadee-") ? "lomadee" : "awin").maybeSingle();
   if (error || !data) return null;
-  const p = data.record as unknown as AwinProduct;
+  const p = data.record as unknown as AwinProduct & Record<string, unknown>;
+  const num = (v: unknown) => (typeof v === "number" ? v : typeof v === "string" ? Number(v.replace(",", ".")) : NaN);
+  const ratingValue = num(p["rating"] ?? p["average_rating"] ?? p["reviews_rating"]);
+  const ratingCount = num(p["review_count"] ?? p["reviews"] ?? p["number_of_reviews"]);
+  const source = id.startsWith("lomadee-") ? "lomadee" : "awin";
+  const rating = ratingValue > 0 && ratingValue <= 5 && ratingCount > 0 ? { value: ratingValue, count: Math.round(ratingCount), source } : null;
+  const eanRaw = p["ean"] ?? p["gtin"] ?? p["product_GTIN"];
+  const ean = typeof eanRaw === "string" && /^\d{8,14}$/.test(eanRaw) ? eanRaw : null;
   return {
     id: p.objectID, source: id.startsWith("lomadee-") ? "lomadee" : "awin", store: p.store, title: p.title,
     images: p.images.length ? p.images : p.imageUrl ? [p.imageUrl] : [],
@@ -27,6 +34,6 @@ export async function getAwinProductDetail(id: string): Promise<ProductDetail | 
     originalPrice: p.originalPrice, discountPercent: p.discountPercent,
     freeShipping: p.freeShipping, affiliateUrl: p.affiliateUrl,
     sellerCount: 1, category: p.category, description: p.description,
-    attributes: p.attributes, pros: [], cons: [], qa: [], last_synced_at: p.last_synced_at,
+    attributes: p.attributes, pros: [], cons: [], qa: [], last_synced_at: p.last_synced_at, rating, ean,
   };
 }

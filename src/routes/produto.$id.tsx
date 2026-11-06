@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { CompareOffers, FormattedDescription, RatingStars, SpecsTable } from "@/components/marketplace/ProductDetailSections";
 import { getProductDetail } from "@/lib/product-detail.functions";
 
 export const Route = createFileRoute("/produto/$id")({
@@ -198,9 +199,12 @@ function ProductPage() {
             </nav>
 
             <header className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 lg:flex lg:items-center lg:justify-between">
-              <h1 className="min-w-0 font-display text-lg font-bold leading-tight text-foreground sm:text-xl">
-                {data.title}
-              </h1>
+              <div className="min-w-0">
+                <h1 className="font-display text-lg font-bold leading-tight text-graphite sm:text-xl">
+                  {data.title}
+                </h1>
+                {data.rating ? <RatingStars rating={data.rating} /> : null}
+              </div>
 
               <div className="flex shrink-0 items-center gap-1.5">
                 <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2.5 py-1.5">
@@ -270,10 +274,17 @@ function ProductPage() {
                 ) : null}
               </div>
 
-              <div className="rounded-xl border border-savings bg-card p-4">
-                <span className="inline-block rounded-md bg-savings px-2 py-0.5 text-[10px] font-semibold text-savings-foreground">
-                  Menor preço
-                </span>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="inline-block rounded-md border border-deal-strong/50 bg-deal-soft px-2 py-0.5 text-[10px] font-semibold text-deal-strong">
+                    Menor preço
+                  </span>
+                  {data.discountPercent && data.discountPercent > 0 ? (
+                    <span className="inline-block rounded-md bg-brand px-2 py-0.5 text-[10px] font-semibold text-brand-foreground">
+                      {data.discountPercent}% OFF
+                    </span>
+                  ) : null}
+                </div>
 
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
@@ -303,7 +314,7 @@ function ProductPage() {
                   </div>
                 </div>
 
-                <Button variant="ink" className="mt-4 h-10 w-full text-sm" asChild>
+                <Button className="mt-4 h-10 w-full rounded-md bg-brand text-sm text-brand-foreground hover:bg-brand/90" asChild>
                   <a href={data.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">
                     Ver melhor oferta <ExternalLink className="size-3.5" />
                   </a>
@@ -316,6 +327,8 @@ function ProductPage() {
                 </p>
               </div>
             </section>
+
+            <CompareOffers product={data} />
 
             {data.last_synced_at && <p className="mt-3 text-xs text-muted-foreground">Preço atualizado em {new Date(data.last_synced_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}</p>}
             <Tabs defaultValue={data.source !== "mercadolivre" ? "specs" : "pros"} className="mt-8">
@@ -351,41 +364,27 @@ function ProductPage() {
               </TabsContent>
 
               <TabsContent value="specs" className="mt-3">
-                <div className="grid gap-5 rounded-xl border border-border bg-card p-5 text-xs md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+                <div className="grid gap-6 rounded-xl border border-border bg-card p-5">
                   <div className="overflow-x-auto">
-                    <h2 className="mb-3 font-display text-lg font-semibold">Informações básicas</h2>
-                    <table className="w-full min-w-[320px] overflow-hidden rounded-xl text-sm">
-                      <tbody>
-                        {[
-                          ["Marca", attribute("marca")],
-                          ["Ano de lançamento", attribute("ano")],
-                          ["Linha", attribute("linha")],
-                          ["Modelo", attribute("modelo")],
-                          ["Cores", attribute("cor")],
-                          ...data.attributes
-                            .filter(
-                              (item) =>
-                                !/marca|ano|linha|modelo|cor/i.test(item.name),
-                            )
-                            .slice(0, 5)
-                            .map((item) => [item.name, item.value] as const),
-                        ].map(([label, value], index) => (
-                          <tr key={`${label}-${index}`} className={index % 2 === 0 ? "bg-muted/50" : ""}>
-                            <th scope="row" className="w-2/5 px-3 py-2 text-left font-medium text-muted-foreground">
-                              {label}
-                            </th>
-                            <td className="px-3 py-2 text-foreground">{value}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <h2 className="mb-3 font-display text-lg font-semibold text-graphite">Informações básicas</h2>
+                    <SpecsTable
+                      rows={[
+                        ["Marca", attribute("marca")] as const,
+                        ["Modelo", attribute("modelo")] as const,
+                        ["Cor", attribute("cor")] as const,
+                        ["Linha", attribute("linha")] as const,
+                        ["Ano de lançamento", attribute("ano")] as const,
+                        ...data.attributes
+                          .filter((item) => !/marca|ano|linha|modelo|cor/i.test(item.name))
+                          .slice(0, 8)
+                          .map((item) => [item.name, item.value] as const),
+                      ].filter(([, value]) => value !== "—")}
+                    />
                   </div>
 
                   <div>
-                    <h2 className="mb-2 font-display text-sm font-semibold">Descrição</h2>
-                    <p className="whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
-                      {data.description}
-                    </p>
+                    <h2 className="mb-3 font-display text-lg font-semibold text-graphite">Descrição</h2>
+                    <FormattedDescription text={data.description} />
                   </div>
                 </div>
               </TabsContent>

@@ -25,6 +25,9 @@ export type ProductDetail = {
   pros: string[];
   cons: string[];
   qa: PartnerQA[];
+  /** Real partner rating only; null hides the stars (never mocked). */
+  rating?: { value: number; count: number; source: string } | null;
+  ean?: string | null;
 };
 
 function isPartnerQA(value: unknown): value is PartnerQA {

@@ -41,6 +41,12 @@
   --color-ink: var(--ink);
   --color-ink-foreground: var(--ink-foreground);
   --color-savings: var(--savings);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-graphite: var(--graphite);
+  --color-zebra: var(--zebra);
+  --color-deal-soft: var(--deal-soft);
+  --color-deal-strong: var(--deal-strong);
   --color-savings-foreground: var(--savings-foreground);
   --color-store: var(--store);
   --color-store-foreground: var(--store-foreground);
@@ -93,6 +99,12 @@
   --ink: oklch(0.24 0.045 260);
   --ink-foreground: oklch(0.98 0.005 85);
   --savings: oklch(0.66 0.16 150);
+  --brand: #f27224;
+  --brand-foreground: #ffffff;
+  --graphite: #2d3436;
+  --zebra: #f9fafb;
+  --deal-soft: #f0fdf4;
+  --deal-strong: #166534;
   --savings-foreground: oklch(0.99 0.01 150);
   --store: oklch(0.9 0.13 95);
   --store-foreground: oklch(0.3 0.06 70);
@@ -166,6 +178,12 @@
   --ink: oklch(0.16 0.02 265);
   --ink-foreground: oklch(0.97 0.008 85);
   --savings: oklch(0.7 0.16 150);
+  --brand: #f27224;
+  --brand-foreground: #ffffff;
+  --graphite: #e5e7eb;
+  --zebra: oklch(0.22 0.01 265);
+  --deal-soft: oklch(0.25 0.05 150);
+  --deal-strong: #86efac;
   --savings-foreground: oklch(0.16 0.03 150);
   --store: oklch(0.85 0.13 95);
   --store-foreground: oklch(0.25 0.05 70);
