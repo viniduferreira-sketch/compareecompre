@@ -13,15 +13,15 @@ export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
       to="/produto/$id"
       params={{ id: offer.id }}
       aria-label={`Ver detalhes de ${offer.title}`}
-      className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card p-3 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card p-3 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
-      <div className="relative h-40 w-full overflow-hidden rounded-md bg-muted">
+      <div className="relative h-40 w-full overflow-hidden rounded-md">
         <ProductImage
           src={offer.imageUrl}
           alt={offer.title}
           loading="lazy"
           className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
-          placeholderClassName="rounded-none"
+          placeholderClassName="rounded-none bg-card"
         />
         {offer.discountPercent || offer.freeShipping ? (
           <div className="absolute left-1.5 right-1.5 top-1.5 flex flex-wrap items-center gap-1">
