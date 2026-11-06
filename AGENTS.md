@@ -20,3 +20,4 @@
 - Run Awin streaming ingestion in GitHub Actions, posting bounded batches to OIDC-verified server routes; persist before indexing and qualify Awin IDs to avoid collisions with other partners.
 - Lomadee sync uses one shared per-run request budget for brands, coupons and products, persisting merchant/page/item cursors and visiting authorized stores round-robin so large catalogs cannot starve other stores; product Custom links are reused only while the destination is unchanged.
 - Coupons live separately from product search and retain partner source, official merchant identity, exact code, validity and provider-issued tracked links; only currently valid, authorized coupons are publicly readable.
+- Use the shared BrandLogo home link for all visual brand placements, with a separate contrast asset for dark surfaces; browser icons are global root-head links to actual public files.

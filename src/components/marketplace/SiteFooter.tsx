@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { CreditCard, LockKeyhole, ShieldCheck, Tag } from "lucide-react";
+import { CreditCard, LockKeyhole, ShieldCheck } from "lucide-react";
+import { BrandLogo } from "./BrandLogo";
 
 const linkClass = "text-sm text-footer-muted transition-colors hover:text-footer-accent";
 
@@ -8,12 +9,7 @@ export function SiteFooter() {
     <footer className="mt-14 border-t border-footer-border bg-footer text-footer-foreground">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-8">
         <div>
-          <Link to="/" className="inline-flex items-center gap-2 font-display text-lg font-extrabold text-footer-foreground">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Tag className="size-4" />
-            </span>
-            Compare <span className="text-footer-accent">e Compre</span>
-          </Link>
+          <BrandLogo footer />
           <p className="mt-4 max-w-sm text-sm leading-6 text-footer-muted">
             Buscamos nas melhores lojas da internet para você encontrar o menor preço com rapidez e confiança.
           </p>

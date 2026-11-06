@@ -1,9 +1,10 @@
-import { Search, Tag, Ticket } from "lucide-react";
+import { Search, Ticket } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "./BrandLogo";
 
 export function Header({
   onSearch,
@@ -48,15 +49,7 @@ export function Header({
       )}
     >
       <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 md:flex md:gap-8 lg:px-8">
-        <a
-          href="/"
-          className="flex w-fit shrink-0 items-center gap-2"
-        >
-          <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-glow"><Tag className="size-4" /></span>
-          <span className="font-display text-lg font-extrabold text-foreground">
-            Compare <span className="text-primary">e Compre</span>
-          </span>
-        </a>
+        <BrandLogo />
 
         <form
           className="col-span-2 row-start-2 flex min-w-0 flex-1 items-center gap-2 rounded-xl border-2 border-transparent bg-muted p-1 pl-3.5 transition-colors focus-within:border-primary/30 focus-within:bg-card md:mx-auto md:max-w-2xl"

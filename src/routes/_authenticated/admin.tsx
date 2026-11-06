@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Download, LogOut, RefreshCw, ExternalLink, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/marketplace/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { getImportStatus, startAwinImport, startLomadeeSync, startCouponSync } from "@/lib/admin-import.functions";
 
@@ -38,7 +39,7 @@ function AdminImports() {
   const active = imports.some((job) => job.source !== "lomadee" && (job.status === "queued" || job.status === "running"));
   return <main className="mx-auto min-h-screen max-w-5xl px-5 py-10 text-foreground">
     <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
-      <div><Link to="/" className="text-sm font-semibold text-primary">Compare e Compre</Link><h1 className="mt-2 text-2xl font-bold">Importações de parceiros</h1></div>
+      <div><BrandLogo /><h1 className="mt-2 text-2xl font-bold">Importações de parceiros</h1></div>
       <Button variant="outline" onClick={async () => { await client.cancelQueries(); client.clear(); await supabase.auth.signOut(); await navigate({ to: "/auth", replace: true }); }}><LogOut className="size-4" />Sair</Button>
     </header>
     <div className="flex flex-wrap items-center gap-3 py-6">

@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { BrandLogo } from "@/components/marketplace/BrandLogo";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { lovable } from "@/integrations/lovable";
@@ -31,7 +32,7 @@ function AuthPage() {
     finally { setPending(false); }
   }
   return <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 text-foreground">
-    <Link to="/" className="text-lg font-bold text-primary">Compare e Compre</Link>
+    <BrandLogo />
     <h1 className="mt-6 text-2xl font-semibold">Acesso administrativo</h1>
     <div className="mt-8 flex flex-col gap-3">
       <Button disabled={pending} variant="outline" className="google-sign-in h-11" onClick={() => login("google")}>
