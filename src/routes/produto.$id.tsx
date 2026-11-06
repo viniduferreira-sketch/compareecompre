@@ -205,8 +205,8 @@ function ProductPage() {
                   {data.title}
                 </h1>
                 {data.rating ? <RatingStars rating={data.rating} /> : null}
-                <span className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-zebra px-2 py-1 text-xs font-medium text-graphite">
-                  <BadgeCheck className="size-3.5 text-graphite" aria-hidden /> Preços monitorados em lojas oficiais
+                <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-seal-border bg-seal-soft px-3 py-1.5 text-xs font-semibold text-seal-foreground">
+                  <BadgeCheck className="size-5 fill-seal text-seal-soft" strokeWidth={2} aria-hidden /> Preços monitorados em lojas oficiais
                 </span>
               </div>
 

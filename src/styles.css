@@ -42,6 +42,10 @@
   --color-ink-foreground: var(--ink-foreground);
   --color-savings: var(--savings);
   --color-brand: var(--brand);
+  --color-seal: var(--seal);
+  --color-seal-soft: var(--seal-soft);
+  --color-seal-border: var(--seal-border);
+  --color-seal-foreground: var(--seal-foreground);
   --color-brand-foreground: var(--brand-foreground);
   --color-graphite: var(--graphite);
   --color-zebra: var(--zebra);
@@ -100,6 +104,10 @@
   --ink-foreground: oklch(0.98 0.005 85);
   --savings: oklch(0.66 0.16 150);
   --brand: #f27224;
+  --seal: #f59e0b;
+  --seal-soft: #fffbeb;
+  --seal-border: #fde68a;
+  --seal-foreground: #92400e;
   --brand-foreground: #ffffff;
   --graphite: #2d3436;
   --zebra: #f9fafb;
@@ -178,6 +186,10 @@
   --ink: oklch(0.16 0.02 265);
   --ink-foreground: oklch(0.97 0.008 85);
   --savings: oklch(0.7 0.16 150);
+  --seal: #fbbf24;
+  --seal-soft: oklch(0.27 0.05 80);
+  --seal-border: oklch(0.45 0.09 80);
+  --seal-foreground: #fde68a;
   --brand: #f27224;
   --brand-foreground: #ffffff;
   --graphite: #e5e7eb;
