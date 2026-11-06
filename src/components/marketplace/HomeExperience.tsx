@@ -32,32 +32,25 @@ export function TrustBanner() {
 export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ name: string; count: number; logoUrl?: string | null }>; onSelect?: (store: string) => void }) {
   const active = stores.filter((store) => store.count > 0);
   return (
-    <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
-      <div className="max-w-2xl">
-        <p className="text-xs font-bold uppercase text-primary">Autoridade e transparência</p>
-        <h2 className="mt-2 font-display text-2xl font-extrabold text-foreground md:text-3xl">Lojas monitoradas</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Acompanhamos ofertas publicadas em grandes lojas e mostramos a origem de cada preço antes do seu clique.
-        </p>
-      </div>
-
-      <Carousel opts={{ align: "start", dragFree: true, containScroll: "trimSnaps" }} aria-label="Lojas monitoradas" className="mt-8 px-10 sm:px-12">
-        <CarouselContent className="-ml-3 cursor-grab touch-pan-y active:cursor-grabbing sm:-ml-5">
+    <section className="mx-auto max-w-7xl px-5 py-4 lg:px-8">
+      <h2 className="font-display text-sm font-bold uppercase text-muted-foreground">Lojas monitoradas</h2>
+      <Carousel opts={{ align: "start", dragFree: true, containScroll: "trimSnaps" }} aria-label="Lojas monitoradas" className="mt-2 px-9">
+        <CarouselContent className="-ml-2 cursor-grab touch-pan-y active:cursor-grabbing">
         {active.map((store, index) => (
-          <CarouselItem key={store.name} aria-label={`${index + 1} de ${active.length}: ${store.name}`} className="basis-[140px] pl-3 sm:basis-[164px] sm:pl-5">
+          <CarouselItem key={store.name} aria-label={`${index + 1} de ${active.length}: ${store.name}`} className="basis-[88px] pl-2">
           <Button
             variant="ghost"
             type="button"
             onClick={() => onSelect?.(store.name)}
             aria-label={`Ver ofertas de ${store.name}`}
-            className="group flex h-auto w-full flex-col justify-start gap-3 whitespace-normal rounded-none p-1 text-center hover:bg-transparent"
+            className="group flex h-auto w-full flex-col justify-start gap-1.5 whitespace-normal rounded-none p-1 text-center hover:bg-transparent"
           >
-            <span className="flex size-24 shrink-0 items-center justify-center rounded-full border border-border bg-card transition-colors duration-200 group-hover:border-primary/40 motion-reduce:transition-none sm:size-28">
-              <StoreLogo store={store.name} logoUrl={store.logoUrl} className="h-12 w-[72px] rounded-sm text-xs sm:w-[84px]" />
+            <span className="flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-card transition-colors duration-200 group-hover:border-primary/40 motion-reduce:transition-none">
+              <StoreLogo store={store.name} logoUrl={store.logoUrl} className="h-8 w-11 rounded-sm text-[10px]" />
             </span>
             <div className="w-full">
-              <h3 className="flex min-h-10 items-center justify-center break-words text-sm font-semibold leading-5 text-foreground">{store.name}</h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <h3 className="w-full truncate text-[11px] font-medium leading-4 text-foreground">{store.name}</h3>
+              <p className="text-[9px] leading-3 text-muted-foreground">
                 {`${store.count.toLocaleString("pt-BR")} ${store.count === 1 ? "oferta" : "ofertas"}`}
               </p>
             </div>
@@ -65,8 +58,8 @@ export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ na
           </CarouselItem>
         ))}
         </CarouselContent>
-        <CarouselPrevious aria-label="Lojas anteriores" title="Lojas anteriores" className="left-0 top-14 size-9 bg-card shadow-sm" />
-        <CarouselNext aria-label="Próximas lojas" title="Próximas lojas" className="right-0 top-14 size-9 bg-card shadow-sm" />
+        <CarouselPrevious aria-label="Lojas anteriores" title="Lojas anteriores" className="left-0 top-8 size-7 bg-card shadow-sm" />
+        <CarouselNext aria-label="Próximas lojas" title="Próximas lojas" className="right-0 top-8 size-7 bg-card shadow-sm" />
       </Carousel>
     </section>
   );
@@ -117,7 +110,7 @@ export function PriceAlertSignup() {
             </span>
             <div>
               <p className="font-bold">Interesse registrado</p>
-              <p className="mt-1 text-xs text-muted-foreground">Estamos preparando os alertas personalizados.</p>
+              <p className="text-[9px] leading-3 text-muted-foreground">Estamos preparando os alertas personalizados.</p>
             </div>
           </div>
         ) : (

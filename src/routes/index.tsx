@@ -297,6 +297,10 @@ function Home() {
         ) : (
           <>
             <HeroCarousel onSearch={startSearch} />
+            <MonitoredStores
+              stores={homeOffers.data?.stores ?? []}
+              onSelect={(store) => { setTerm(""); setPage(1); setActiveFilters([{ id: "store", value: store }]); window.scrollTo({ top: 0 }); }}
+            />
             <PopularCategories
               onSearch={startSearch}
               covers={homeOffers.data?.categoryCovers ?? {}}
@@ -319,10 +323,6 @@ function Home() {
               debugError={homeOffers.data?.debugError}
             />
             <TrustBanner />
-            <MonitoredStores
-              stores={homeOffers.data?.stores ?? []}
-              onSelect={(store) => { setTerm(""); setPage(1); setActiveFilters([{ id: "store", value: store }]); window.scrollTo({ top: 0 }); }}
-            />
             <ProductRail
               eyebrow="Escolha de quem pesquisa"
               title="Os mais buscados da semana"
