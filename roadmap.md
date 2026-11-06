@@ -1,8 +1,9 @@
 # Roadmap
 
-- [ ] Criar /cupons com ofertas reais, código copiável e link rastreado.
-- [ ] Ampliar sincronização Lomadee para lojas disponíveis, incluindo Shopee quando autorizada.
-- [ ] Validar cupons, catálogo, navegação e apresentação no celular.
+- [x] Criar /cupons com ofertas reais, código copiável e link rastreado.
+- [x] Ampliar sincronização Lomadee para lojas disponíveis, incluindo Shopee quando autorizada (API de produtos Shopee retornou vazia).
+- [x] Validar cupons, catálogo, navegação e apresentação no celular.
+- [ ] Importar cupons Awin — conexão específica dispensada pelo usuário.
 
 - [x] Exibir logotipos oficiais nos cards, detalhes e lojas monitoradas.
 - [x] Listar todas as lojas ativas com contagens reais e equilibrar a rotação das vitrines.
