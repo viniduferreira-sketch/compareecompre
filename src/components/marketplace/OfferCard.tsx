@@ -1,10 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { ExternalLink, Truck } from "lucide-react";
+import { ChevronRight, Truck } from "lucide-react";
 
 
 import { Button } from "@/components/ui/button";
 import { ProductImage } from "@/components/marketplace/ProductImage";
-import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import type { Offer } from "@/lib/search-offers.functions";
 
 export const formatBRL = (value: number) =>
@@ -31,19 +30,23 @@ export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
             {rank}
           </span>
         ) : null}
-        <span className="absolute left-3 top-3 flex max-w-[70%] items-center gap-1.5 rounded-full bg-store py-1 pl-1 pr-2.5 text-[11px] font-semibold text-store-foreground shadow-card">
-          <StoreLogo store={offer.store} logoUrl={offer.storeLogoUrl} />
-          <span className="truncate">{offer.store}</span>
-        </span>
-        {offer.discountPercent ? (
-          <span className="absolute right-3 top-3 rounded-full bg-savings px-2.5 py-1 text-[11px] font-bold text-savings-foreground shadow-card">
-            -{offer.discountPercent}%
-          </span>
+        {offer.discountPercent || offer.freeShipping ? (
+          <div className="absolute left-3 right-3 top-3 flex flex-wrap items-center gap-1.5">
+            {offer.discountPercent ? (
+              <span className="rounded-full bg-savings px-2.5 py-1 text-[11px] font-bold text-savings-foreground shadow-card">
+                -{offer.discountPercent}%
+              </span>
+            ) : null}
+            {offer.freeShipping ? (
+              <span className="flex items-center gap-1 rounded-full bg-card px-2.5 py-1 text-[11px] font-semibold text-savings shadow-card">
+                <Truck className="size-3" /> Frete grátis
+              </span>
+            ) : null}
+          </div>
         ) : null}
       </Link>
 
       <div className="flex flex-1 flex-col gap-3 p-4">
-        <p className="text-[10px] font-bold uppercase text-muted-foreground">Oferta em {offer.store}</p>
         <Link
           to="/produto/$id"
           params={{ id: offer.id }}
@@ -61,18 +64,13 @@ export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
             <p className="text-xs text-transparent select-none">—</p>
           )}
           <p className="font-display text-2xl font-bold text-foreground">{formatBRL(offer.price)}</p>
-          {offer.freeShipping ? (
-            <p className="flex items-center gap-1.5 text-xs font-medium text-savings">
-              <Truck className="size-3.5" /> Frete grátis
-            </p>
-          ) : null}
         </div>
 
         <div>
-          <Button variant="hero" className="w-full" asChild>
-            <a href={offer.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">
-              Ver melhor oferta <ExternalLink className="size-4" />
-            </a>
+          <Button className="w-full bg-brand text-brand-foreground hover:bg-brand/90" asChild>
+            <Link to="/produto/$id" params={{ id: offer.id }}>
+              Ver detalhes <ChevronRight className="size-4" />
+            </Link>
           </Button>
         </div>
       </div>
