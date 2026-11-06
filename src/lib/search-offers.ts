@@ -143,7 +143,7 @@ export async function getHomeOffers(): Promise<{
     priceDrops: Offer[];
     popular: Offer[];
     categoryCovers: Record<string, CategoryCover>;
-    stores: Array<{ name: string; count: number }>;
+    stores: Array<{ name: string; count: number; logoUrl?: string | null }>;
     debugError?: string;
   }> {
     try {
@@ -224,6 +224,15 @@ export async function getHomeOffers(): Promise<{
           : [];
       }));
 
+      // Same logo source the product cards use: the partner-provided logo on each store's own records.
+      const storeLogos = new Map<string, string>();
+      for (const response of [...popularResponses, ...priceDropsResponses, ...urgentResponses]) {
+        for (const hit of response.hits) {
+          const identity = storefrontIdentity(hit);
+          if (identity.storeLogoUrl && !storeLogos.has(identity.store)) storeLogos.set(identity.store, identity.storeLogoUrl);
+        }
+      }
+
       return {
         urgent: interleaveByStore(urgentResponses.map((r) => selectVisibleOffers(mapHits(r.hits))), 14, seed),
         priceDrops: interleaveByStore(priceDropsResponses.map((r) => selectVisibleOffers(mapHits(r.hits))), 14, seed + 1),
@@ -232,7 +241,7 @@ export async function getHomeOffers(): Promise<{
         stores: Object.entries(storesResponse?.facets?.["store"] ?? {})
           .filter(([name]) => name && name !== "null")
           .sort(([, a], [, b]) => b - a)
-          .map(([name, count]) => ({ name, count })),
+          .map(([name, count]) => ({ name, count, logoUrl: storeLogos.get(name) ?? null })),
       };
     } catch (error) {
       console.error("Homepage offers failed", error);

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { ProductImage } from "@/components/marketplace/ProductImage";
 import { ExternalLink, Loader2, Truck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -50,9 +51,7 @@ export function CompareDialog({
 
             <div className="flex flex-col gap-5 sm:flex-row">
               <div className="mx-auto w-40 shrink-0 rounded-xl border border-border bg-muted p-3">
-                {offer.imageUrl ? (
-                  <img src={offer.imageUrl} alt={offer.title} className="h-32 w-full object-contain" />
-                ) : null}
+                <div className="h-32 w-full"><ProductImage src={offer.imageUrl} alt={offer.title} className="h-32 w-full object-contain" /></div>
               </div>
 
               <div className="flex-1 space-y-3">
@@ -94,13 +93,7 @@ export function CompareDialog({
                 <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
                   {alternatives.map((item) => (
                     <li key={item.id} className="flex items-center gap-3 bg-card p-3">
-                      {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.title}
-                          className="size-12 shrink-0 rounded-md object-contain"
-                        />
-                      ) : null}
+                      <span className="size-12 shrink-0"><ProductImage src={item.imageUrl} alt={item.title} className="size-12 rounded-md object-contain" /></span>
                       <div className="min-w-0 flex-1">
                         <p className="line-clamp-1 text-sm text-foreground">{item.title}</p>
                         <p className="flex items-center gap-2 text-xs text-muted-foreground">

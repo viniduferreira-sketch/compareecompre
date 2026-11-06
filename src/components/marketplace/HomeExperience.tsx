@@ -29,7 +29,7 @@ export function TrustBanner() {
   );
 }
 
-export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ name: string; count: number }>; onSelect?: (store: string) => void }) {
+export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ name: string; count: number; logoUrl?: string | null }>; onSelect?: (store: string) => void }) {
   const active = stores.filter((store) => store.count > 0);
   return (
     <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
@@ -53,7 +53,7 @@ export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ na
             className="group flex h-auto w-full flex-col justify-start gap-3 whitespace-normal rounded-none p-1 text-center hover:bg-transparent"
           >
             <span className="flex size-24 shrink-0 items-center justify-center rounded-full border border-border bg-card transition-colors duration-200 group-hover:border-primary/40 motion-reduce:transition-none sm:size-28">
-              <StoreLogo store={store.name} className="h-12 w-[72px] rounded-sm text-xs sm:w-[84px]" />
+              <StoreLogo store={store.name} logoUrl={store.logoUrl} className="h-12 w-[72px] rounded-sm text-xs sm:w-[84px]" />
             </span>
             <div className="w-full">
               <h3 className="flex min-h-10 items-center justify-center break-words text-sm font-semibold leading-5 text-foreground">{store.name}</h3>

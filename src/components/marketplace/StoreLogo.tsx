@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { officialStoreLogo } from "@/lib/store-logos";
@@ -34,12 +34,18 @@ export function StoreLogo({ store, logoUrl, className }: { store: string; logoUr
   const sources = [...new Set([logoUrl?.startsWith("https://") ? logoUrl : null, official?.url].filter((url): url is string => Boolean(url)))];
   const [failedUrls, setFailedUrls] = useState<string[]>([]);
   const src = sources.find((url) => !failedUrls.includes(url));
+  const ref = useRef<HTMLImageElement>(null);
+  useEffect(() => {
+    const img = ref.current;
+    if (src && img && img.complete && img.naturalWidth === 0) setFailedUrls((urls) => [...urls, src]);
+  }, [src]);
   const initials = store.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join("").toUpperCase();
 
   return (
-    <span className={cn("inline-flex h-6 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-card text-[9px] font-extrabold text-foreground", className, src === official?.url && official?.inverse && "bg-ink")}>
+    <span className={cn("inline-flex h-6 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-card text-[9px] font-extrabold text-foreground", className, src === official?.url && official?.inverse && "bg-ink", !src && "bg-muted font-bold text-graphite")}>
       {src ? (
         <img
+          ref={ref}
           src={src}
           alt={`Logotipo de ${store}`}
           width={112}
@@ -49,7 +55,7 @@ export function StoreLogo({ store, logoUrl, className }: { store: string; logoUr
           onError={() => setFailedUrls((urls) => [...urls, src])}
         />
       ) : (
-        initials
+        <span title={store} aria-label={`Loja ${store}`}>{initials}</span>
       )}
     </span>
   );

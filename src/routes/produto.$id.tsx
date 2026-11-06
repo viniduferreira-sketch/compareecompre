@@ -32,6 +32,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { formatBRL } from "@/components/marketplace/OfferCard";
+import { ProductImage } from "@/components/marketplace/ProductImage";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -247,15 +248,7 @@ function ProductPage() {
             <section className="mt-5 grid items-start gap-5 lg:grid-cols-2">
               <div className="rounded-xl border border-border bg-card p-3">
                 <div className="mx-auto flex aspect-square max-w-[320px] items-center justify-center overflow-hidden rounded-lg bg-muted/40">
-                  {data.images[activeImage] ? (
-                    <img
-                      src={data.images[activeImage]}
-                      alt={data.title}
-                      className="h-full w-full object-contain p-4"
-                    />
-                  ) : (
-                    <span className="text-xs text-muted-foreground">Sem imagem</span>
-                  )}
+                  <ProductImage src={data.images[activeImage]} alt={data.title} className="h-full w-full object-contain p-4" />
                 </div>
 
                 {data.images.length > 1 ? (
@@ -271,7 +264,7 @@ function ProductPage() {
                           index === activeImage ? "border-primary" : "border-border hover:border-primary/50",
                         )}
                       >
-                        <img src={image} alt="" className="h-full w-full object-contain" />
+                        <ProductImage src={image} alt="" className="h-full w-full object-contain" />
                       </button>
                     ))}
                   </div>
@@ -313,7 +306,7 @@ function ProductPage() {
                   </div>
 
                   <div className="flex shrink-0 flex-col gap-2 text-xs text-muted-foreground sm:items-end sm:text-right">
-                    <StoreLogo store={data.store} className="h-10 w-28 rounded-md" />
+                    <StoreLogo store={data.store} logoUrl={data.storeLogoUrl} className="h-10 w-28 rounded-md" />
                     <p>Melhor oferta em: <span className="font-semibold text-foreground">{data.store}</span></p>
                   </div>
                 </div>

@@ -3,6 +3,7 @@ import { ExternalLink, Truck } from "lucide-react";
 
 
 import { Button } from "@/components/ui/button";
+import { ProductImage } from "@/components/marketplace/ProductImage";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import type { Offer } from "@/lib/search-offers.functions";
 
@@ -18,18 +19,13 @@ export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
         className="relative block aspect-square w-full overflow-hidden bg-muted"
         aria-label={`Ver detalhes de ${offer.title}`}
       >
-        {offer.imageUrl ? (
-          <img
-            src={offer.imageUrl}
-            alt={offer.title}
-            loading="lazy"
-            className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-            Sem imagem
-          </div>
-        )}
+        <ProductImage
+          src={offer.imageUrl}
+          alt={offer.title}
+          loading="lazy"
+          className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+          placeholderClassName="rounded-none"
+        />
         {rank ? (
           <span className="absolute bottom-3 left-3 flex size-9 items-center justify-center rounded-full bg-ink font-display text-sm font-extrabold text-ink-foreground shadow-card">
             {rank}

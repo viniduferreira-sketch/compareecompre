@@ -31,7 +31,7 @@ export function RatingStars({ rating }: { rating: { value: number; count: number
   );
 }
 
-export function CompareOffers({ product }: { product: { id: string; title: string; ean?: string | null; store: string; price: number | null; affiliateUrl: string; source: string; last_synced_at?: string } }) {
+export function CompareOffers({ product }: { product: { id: string; title: string; ean?: string | null; store: string; storeLogoUrl?: string | null | undefined; price: number | null; affiliateUrl: string; source: string; last_synced_at?: string } }) {
   const { data, isPending } = useQuery({
     queryKey: ["compare-offers", product.id],
     queryFn: () => compareOffers(product),
@@ -39,7 +39,7 @@ export function CompareOffers({ product }: { product: { id: string; title: strin
   });
   const offers: ComparedOffer[] = [...(data ?? [])];
   if (product.price && !offers.some((o) => o.store === product.store)) {
-    offers.push({ id: product.id, store: product.store, price: product.price, affiliateUrl: product.affiliateUrl, source: product.source, ...(product.last_synced_at ? { last_synced_at: product.last_synced_at } : {}) });
+    offers.push({ id: product.id, store: product.store, storeLogoUrl: product.storeLogoUrl ?? null, price: product.price, affiliateUrl: product.affiliateUrl, source: product.source, ...(product.last_synced_at ? { last_synced_at: product.last_synced_at } : {}) });
   }
   offers.sort((l, r) => l.price - r.price);
 

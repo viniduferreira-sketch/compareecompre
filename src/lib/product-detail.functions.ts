@@ -9,6 +9,7 @@ export type ProductAttribute = { name: string; value: string };
 export type ProductDetail = {
   source: string;
   store: string;
+  storeLogoUrl?: string | null;
   last_synced_at?: string;
   id: string;
   title: string;

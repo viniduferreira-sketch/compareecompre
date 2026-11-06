@@ -44,7 +44,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
         <CarouselContent>
           <CarouselItem>
             <div className="relative min-h-[390px] overflow-hidden rounded-xl bg-card px-6 py-11 md:min-h-[440px] md:px-14 md:py-16">
-              <img src={heroImage} alt="Produtos de tecnologia e casa comparados pelo Compare e Compre" width={1600} height={900} className="absolute inset-0 h-full w-full object-cover object-center" />
+              <img onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} src={heroImage} alt="Produtos de tecnologia e casa comparados pelo Compare e Compre" width={1600} height={900} className="absolute inset-0 h-full w-full object-cover object-center" />
               <div className="absolute inset-0 bg-hero-scrim" />
               <div className="relative max-w-2xl">
               <span className="inline-flex items-center gap-2 rounded-md bg-card/90 px-3 py-1.5 text-xs font-bold uppercase text-foreground shadow-card">
@@ -76,7 +76,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
           */}
           <CarouselItem>
             <div className="relative min-h-[570px] overflow-hidden rounded-xl bg-beauty-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <img
+              <img onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
                 src={heroBeautyScene}
                 alt="Perfume, sérum facial e paleta de maquiagem sobre uma superfície de mármore rosado"
                 loading="lazy"
@@ -107,7 +107,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-kitchen-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <img
+              <img onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
                 src={heroKitchenScene}
                 alt="Cafeteira, liquidificador e torradeira em uma cozinha verde-sálvia"
                 loading="lazy"
@@ -134,7 +134,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[570px] overflow-hidden rounded-xl bg-electronics-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <img
+              <img onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
                 src={heroElectronicsScene}
                 alt="Caixa de som Bluetooth, tablet e câmera de ação em uma prateleira clara"
                 loading="lazy"
@@ -161,7 +161,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-phones-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <img
+              <img onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
                 src={heroPhonesScene}
                 alt="Smartphone, fones intra-auriculares e carregador portátil em um pedestal"
                 loading="lazy"
@@ -188,7 +188,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-gaming-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <img
+              <img onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
                 src={heroGamingScene}
                 alt="Console, headset gamer e teclado mecânico em uma mesa com iluminação violeta"
                 loading="lazy"
@@ -215,7 +215,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[610px] overflow-hidden rounded-xl bg-sports-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <img
+              <img onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
                 src={heroSportsScene}
                 alt="Tênis de corrida, garrafa térmica e relógio esportivo junto a uma pista"
                 loading="lazy"
@@ -242,7 +242,7 @@ export function HeroCarousel({ onSearch }: { onSearch: (term: string) => void })
 
           <CarouselItem>
             <div className="relative min-h-[590px] overflow-hidden rounded-xl bg-fashion-gradient px-6 py-10 md:min-h-[440px] md:px-14 md:py-16">
-              <img
+              <img onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
                 src={heroFashionScene}
                 alt="Jaqueta, bolsa e óculos de sol sobre uma superfície de mármore claro"
                 loading="lazy"

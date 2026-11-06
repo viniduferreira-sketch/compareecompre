@@ -5,7 +5,7 @@ import contrastLogo from "@/assets/approved-logo-contrast.png.asset.json";
 export function BrandLogo({ footer = false }: { footer?: boolean }) {
   return (
     <Link to="/" aria-label="Compare e Compre — página inicial" className="inline-flex w-fit shrink-0 items-center">
-      <img
+      <img onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
         src={footer ? contrastLogo.url : logo.url}
         alt="Compare e Compre — Encontre o menor preço"
         width={1438}

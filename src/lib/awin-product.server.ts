@@ -34,6 +34,6 @@ export async function getAwinProductDetail(id: string): Promise<ProductDetail | 
     originalPrice: p.originalPrice, discountPercent: p.discountPercent,
     freeShipping: p.freeShipping, affiliateUrl: p.affiliateUrl,
     sellerCount: 1, category: p.category, description: p.description,
-    attributes: p.attributes, pros: [], cons: [], qa: [], last_synced_at: p.last_synced_at, rating, ean,
+    attributes: p.attributes, pros: [], cons: [], qa: [], last_synced_at: p.last_synced_at, rating, ean, storeLogoUrl: [p["storeLogoUrl"], p["merchant_logo"], p["store_logo"]].find((v): v is string => typeof v === "string" && v.startsWith("https://")) ?? null,
   };
 }
