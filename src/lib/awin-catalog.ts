@@ -23,6 +23,22 @@ function text(value: string | undefined, max = 5000) {
   return (value ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
 }
 
+/** Same acceptance rules as the importer, with one stable reason per discarded row. */
+export function awinDiscardReason(row: AwinRow): string | null {
+  const externalId = (row["aw_product_id"] || row["merchant_product_id"] || "").trim();
+  const merchantId = (row["merchant_id"] || "").trim();
+  if (!externalId) return "missing_product_id";
+  if (!merchantId) return "missing_merchant_id";
+  if (!text(row["product_name"], 500)) return "missing_title";
+  if (!text(row["merchant_name"], 200)) return "missing_store";
+  if (!httpUrl(row["aw_deep_link"])) return "invalid_affiliate_url";
+  const price = amount(row["search_price"]);
+  if (!price || price <= 0 || price > 1e9) return "invalid_price";
+  if (row["currency"] && row["currency"].toUpperCase() !== "BRL") return "unsupported_currency";
+  if (!/^[\w.-]{1,80}$/.test(externalId) || !/^[\w.-]{1,40}$/.test(merchantId)) return "invalid_id";
+  return null;
+}
+
 export function normalizeAwinProduct(row: AwinRow, syncedAt: string) {
   const externalId = (row["aw_product_id"] || row["merchant_product_id"] || "").trim();
   const merchantId = (row["merchant_id"] || "").trim();
@@ -30,9 +46,7 @@ export function normalizeAwinProduct(row: AwinRow, syncedAt: string) {
   const title = text(row["product_name"], 500);
   const store = text(row["merchant_name"], 200);
   const affiliateUrl = httpUrl(row["aw_deep_link"]);
-  if (!externalId || !merchantId || !title || !store || !affiliateUrl || !price || price <= 0 || price > 1e9) return null;
-  if (row["currency"] && row["currency"].toUpperCase() !== "BRL") return null;
-  if (!/^[\w.-]{1,80}$/.test(externalId) || !/^[\w.-]{1,40}$/.test(merchantId)) return null;
+  if (awinDiscardReason(row) || !affiliateUrl || !price) return null;
   const stock = (row["in_stock"] ?? "").trim().toLowerCase();
   const sale = (row["is_for_sale"] ?? "").trim().toLowerCase();
   const stockStatus = (row["stock_status"] ?? "").trim().toLowerCase();

@@ -1,6 +1,7 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod";
-import { authorizedAwinWorkflow, awinRowSchema, normalizeAwinProduct } from "./awin-catalog";
+import { authorizedAwinWorkflow, awinRowSchema, normalizeAwinProduct, awinDiscardReason } from "./awin-catalog";
+import { addDiscard, type DiscardReasons } from "./import-discards";
 import { getAlgoliaIndexingConfig, ensureIdentifierFacets } from "./algolia-indexing.server";
 
 export const AWIN_REPOSITORY = "viniduferreira-sketch/compareecompre";
@@ -59,11 +60,15 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
     return { success, indexed };
   }
   if (job.status !== "running") throw new Error("Importação encerrada.");
-  const previous = await db.from("catalog_import_batches").select("indexed,skipped").eq("import_id", job.id).eq("batch", input.batch).maybeSingle();
+  const previous = await db.from("catalog_import_batches").select("indexed,skipped,discard_reasons").eq("import_id", job.id).eq("batch", input.batch).maybeSingle();
   if (previous.error) throw new Error("Não foi possível conferir o lote.");
   if (previous.data) return previous.data;
   const mapped = input.rows.map((row) => normalizeAwinProduct(row, new Date().toISOString()));
+  const reasons: DiscardReasons = {};
+  for (const row of input.rows) { const reason = awinDiscardReason(row); if (reason) addDiscard(reasons, reason); }
   const products = Array.from(new Map(mapped.flatMap((p) => p ? [[p.objectID, p] as const] : [])).values());
+  const duplicates = mapped.filter(Boolean).length - products.length;
+  if (duplicates) reasons["duplicate_in_batch"] = duplicates;
   if (products.length) {
     // Save the source of truth before indexing. A failed Algolia write retries these same IDs safely.
     const saved = await db.from("partner_catalog").upsert(products.map((record) => ({ object_id: record.objectID, source: "awin", record, last_synced_at: record.last_synced_at })), { onConflict: "object_id" });
@@ -72,7 +77,7 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
     await client.saveObjects({ indexName, objects: products, waitForTasks: true, batchSize: 100 });
   }
   const counts = { indexed: products.length, skipped: mapped.filter((p) => !p).length };
-  const savedBatch = await db.from("catalog_import_batches").upsert({ import_id: job.id, batch: input.batch, ...counts });
+  const savedBatch = await db.from("catalog_import_batches").upsert({ import_id: job.id, batch: input.batch, ...counts, discard_reasons: reasons });
   if (savedBatch.error) throw new Error("Não foi possível registrar o progresso.");
   await db.from("catalog_imports").update({ updated_at: new Date().toISOString() }).eq("id", job.id);
   return counts;

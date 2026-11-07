@@ -10,5 +10,5 @@
 
 ## Preparação para comparar preços entre lojas
 - [x] Etapa 1: preservar GTIN/modelo nos três parceiros, filtros aditivos no Algolia e contagens por parceiro no /admin (35 testes; contagens autenticadas conferidas; campos serão preenchidos nas próximas importações/revalidações, sem executar alterações de disponibilidade)
-- [ ] Etapa 2: diagnóstico KaBuM e motivos de descarte — aguarda conclusão da etapa 1 e OK do usuário
+- [x] Etapa 2: feed atual lido (279 linhas: 267 KaBuM + 12 Monsterpub/USD; zero celulares), seleção integral confirmada; motivos por lote e /admin implementados e testados sem importar produtos. Histórico não guarda motivos individuais nem snapshot do feed; não é possível provar os 12 históricos linha a linha.
 - [ ] Etapa 3: simulação de qualidade Awin/Lomadee — aguarda etapa 2 e OK do usuário

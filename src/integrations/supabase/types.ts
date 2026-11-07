@@ -29,18 +29,21 @@ export type Database = {
       catalog_import_batches: {
         Row: {
           batch: number
+          discard_reasons: Json | null
           import_id: string
           indexed: number
           skipped: number
         }
         Insert: {
           batch: number
+          discard_reasons?: Json | null
           import_id: string
           indexed?: number
           skipped?: number
         }
         Update: {
           batch?: number
+          discard_reasons?: Json | null
           import_id?: string
           indexed?: number
           skipped?: number

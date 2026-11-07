@@ -1,0 +1,2 @@
+ALTER TABLE public.catalog_import_batches ADD COLUMN discard_reasons jsonb;
+COMMENT ON COLUMN public.catalog_import_batches.discard_reasons IS 'Per-batch product discard counts by reason; NULL means not recorded by legacy importers. Existing admin-only RLS is preserved.';

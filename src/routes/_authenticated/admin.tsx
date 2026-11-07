@@ -10,6 +10,7 @@ import { getImportStatus, startAwinImport, startLomadeeSync, startCouponSync, re
 import type { MlQualityResult } from "@/lib/ml-quality.server";
 import { OutboundClickStats, outboundReportQuery } from "@/components/marketplace/OutboundClickStats";
 import { CatalogIdentifierStats, identifierStatsQuery } from "@/components/marketplace/CatalogIdentifierStats";
+import { discardLabels } from "@/lib/import-discards";
 
 const importsQuery = queryOptions({ queryKey: ["admin", "awin-imports"], queryFn: () => getImportStatus(), refetchInterval: 10000 });
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -135,7 +136,7 @@ function AdminImports() {
     )}
     <section aria-label="Últimas importações" className="overflow-x-auto">
       <table className="w-full min-w-[650px] text-left text-sm"><thead className="border-b border-border text-muted-foreground"><tr>{["Solicitada em", "Parceiro", "Status", "Produtos", "Descartados", "Execução"].map((label) => <th key={label} className="p-3 font-medium">{label}</th>)}</tr></thead><tbody>
-        {imports.map((job) => <tr key={job.id} className="border-b border-border"><td className="p-3">{new Date(job.created_at).toLocaleString("pt-BR")}</td><td className="p-3">{job.source === "lomadee" ? "Lomadee" : job.source === "mercadolivre" ? "Mercado Livre" : "Awin"}</td><td className="p-3">{labels[job.status as keyof typeof labels]}{job.error && <p className="mt-1 max-w-xs text-xs text-destructive">{job.error}</p>}</td><td className="p-3">{job.indexed}</td><td className="p-3">{job.skipped}</td><td className="p-3">{job.github_run_id && <Button asChild variant="ghost" size="icon"><a title="Ver execução no GitHub" aria-label="Ver execução no GitHub" href={`https://github.com/viniduferreira-sketch/compareecompre/actions/runs/${job.github_run_id}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="size-4" /></a></Button>}</td></tr>)}
+        {imports.map((job) => <tr key={job.id} className="border-b border-border"><td className="p-3">{new Date(job.created_at).toLocaleString("pt-BR")}</td><td className="p-3">{job.source === "lomadee" ? "Lomadee" : job.source === "mercadolivre" ? "Mercado Livre" : "Awin"}</td><td className="p-3">{labels[job.status as keyof typeof labels]}{job.error && <p className="mt-1 max-w-xs text-xs text-destructive">{job.error}</p>}</td><td className="p-3">{job.indexed}</td><td className="p-3">{job.skipped}</td><td className="p-3">{job.github_run_id && <Button asChild variant="ghost" size="icon"><a title="Ver execução no GitHub" aria-label="Ver execução no GitHub" href={`https://github.com/viniduferreira-sketch/compareecompre/actions/runs/${job.github_run_id}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="size-4" /></a></Button>}{job.source !== "mercadolivre" && <div className="mt-1 min-w-40 text-xs text-muted-foreground">{Object.entries(job.discardReasons).map(([reason, count]) => <p key={reason}>{discardLabels[reason] ?? reason}: {count}</p>)}{!job.reasonsRecorded ? <p>Motivos não registrados nesta execução</p> : !Object.keys(job.discardReasons).length && <p>Sem descartes</p>}</div>}</td></tr>)}
       </tbody></table>
       {!imports.length && <p className="py-12 text-center text-muted-foreground">Nenhuma importação realizada.</p>}
     </section>

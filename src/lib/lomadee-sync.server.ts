@@ -1,5 +1,6 @@
 import { getAlgoliaIndexingConfig, ensureIdentifierFacets } from "./algolia-indexing.server";
-import { lomadeeObjectId, normalizeLomadeeProduct, type LomadeeBrand, type LomadeeProduct, type NormalizedLomadeeProduct } from "./lomadee-catalog";
+import { lomadeeObjectId, normalizeLomadeeProduct, lomadeeDiscardReason, type LomadeeBrand, type LomadeeProduct, type NormalizedLomadeeProduct } from "./lomadee-catalog";
+import { addDiscard, type DiscardReasons } from "./import-discards";
 import { lomadeeRequests } from "./lomadee-client.server";
 import { prioritizedMerchants, readLomadeeCursor } from "./lomadee-cursor";
 import { normalizeLomadeeCoupon, type LomadeeCampaign } from "./coupons";
@@ -17,6 +18,7 @@ export async function runLomadeeSync(options: { couponsOnly?: boolean } = {}): P
   const { data: job, error } = await db.from("catalog_imports").insert({ source: "lomadee", status: "running" }).select("id").single();
   if (error || !job) throw new Error("Já existe uma sincronização da Lomadee em andamento.");
   let indexed = 0, skipped = 0, coupons = 0;
+  const reasons: DiscardReasons = {};
   const emptyStores: string[] = [];
   try {
     const requests = lomadeeRequests(40);
@@ -69,11 +71,12 @@ export async function runLomadeeSync(options: { couponsOnly?: boolean } = {}): P
         let offset = Math.min(position.offset, products.length), linkCalls = 0;
         for (; offset < products.length; offset += 1) {
           const product = products[offset];
-          if (!product || product.organizationId !== merchant.id) { skipped += 1; continue; }
+          if (!product || product.organizationId !== merchant.id) { skipped += 1; addDiscard(reasons, "merchant_mismatch"); continue; }
           const id = lomadeeObjectId(product);
-          if (!id || !product.url || !normalizeLomadeeProduct(product, merchant, "https://lmdee.link/check", now)) { skipped += 1; continue; }
+          const reason = lomadeeDiscardReason(product, merchant, "https://lmdee.link/check");
+          if (!id || reason) { skipped += 1; addDiscard(reasons, reason ?? "invalid_id"); continue; }
           const previous = existing.get(id);
-          let link = previous?.productUrl === product.url ? previous.affiliateUrl ?? null : null;
+          let link = previous && previous.productUrl === product.url ? previous.affiliateUrl ?? null : null;
           if (!link) {
             if (requests.remaining <= 0 || linkCalls >= 4) break;
             linkCalls += 1;
@@ -81,7 +84,7 @@ export async function runLomadeeSync(options: { couponsOnly?: boolean } = {}): P
             link = channels.flatMap((c) => c.shortUrls ?? [])[0] ?? null;
           }
           const record = normalizeLomadeeProduct(product, merchant, link, now);
-          if (record) ready.push(record); else skipped += 1;
+          if (record) ready.push(record); else { skipped += 1; addDiscard(reasons, lomadeeDiscardReason(product, merchant, link) ?? "invalid_affiliate_url"); }
         }
         if (ready.length) {
           const saved = await db.from("partner_catalog").upsert(ready.map((record) => ({ object_id: record.objectID, source: "lomadee", record, last_synced_at: now })), { onConflict: "object_id" });
@@ -96,14 +99,14 @@ export async function runLomadeeSync(options: { couponsOnly?: boolean } = {}): P
         if (checkpoint.error) throw new Error("Falha ao salvar continuação da importação.");
       }
     }
-    const batch = await db.from("catalog_import_batches").upsert({ import_id: job.id, batch: 0, indexed, skipped });
+    const batch = await db.from("catalog_import_batches").upsert({ import_id: job.id, batch: 0, indexed, skipped, discard_reasons: reasons });
     if (batch.error) throw new Error("Falha ao registrar resultado da importação.");
     const result = await db.from("catalog_imports").update({ status: "completed", sync_cursor: JSON.parse(JSON.stringify(cursor)), next_page: cursor.couponPage, finished_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", job.id);
     if (result.error) throw new Error("Falha ao concluir importação.");
     console.info("Lomadee sync completed", { indexed, coupons, skipped, emptyStores });
     return { id: job.id, indexed, coupons, skipped, nextPage: cursor.couponPage, emptyStores };
   } catch (e) {
-    await db.from("catalog_import_batches").upsert({ import_id: job.id, batch: 0, indexed, skipped });
+    await db.from("catalog_import_batches").upsert({ import_id: job.id, batch: 0, indexed, skipped, discard_reasons: reasons });
     await db.from("catalog_imports").update({ status: "failed", sync_cursor: JSON.parse(JSON.stringify(cursor)), error: e instanceof Error ? e.message.slice(0, 300) : "Falha na sincronização.", finished_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", job.id);
     throw e;
   }

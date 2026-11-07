@@ -42,6 +42,21 @@ export function lomadeeObjectId(product: LomadeeProduct): string | null {
   return `lomadee-${org}-${id}`;
 }
 
+export function lomadeeDiscardReason(product: LomadeeProduct, brand: LomadeeBrand | undefined, affiliateUrl: string | null): string | null {
+  if (!lomadeeObjectId(product)) return "invalid_id";
+  if (!text(product.name, 500)) return "missing_title";
+  if (!httpsUrl(product.url)) return "invalid_product_url";
+  const offers = (product.options ?? []).flatMap((option) => (option.pricing ?? []).map((p) => ({ option, price: Number(p.price) })))
+    .filter((o) => Number.isFinite(o.price) && o.price > 0 && o.price < 1e7);
+  const available = offers.filter((o) => o.option.available !== false);
+  const pool = available.length ? available : offers;
+  if (!pool.length) return "invalid_price";
+  const best = pool.reduce((a, b) => b.price < a.price ? b : a);
+  if (!text(brand?.name, 200) && !text(best.option.seller, 200)) return "missing_store";
+  if (!httpsUrl(affiliateUrl ?? undefined)) return "invalid_affiliate_url";
+  return null;
+}
+
 /** Returns null when the product lacks a title, price, product URL or store. */
 export function normalizeLomadeeProduct(
   product: LomadeeProduct,
