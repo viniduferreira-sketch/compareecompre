@@ -233,18 +233,24 @@ export type Database = {
       }
       price_alert_subscribers: {
         Row: {
+          consent_at: string | null
+          consent_text_version: string | null
           created_at: string
           email: string
           id: string
           source: string
         }
         Insert: {
+          consent_at?: string | null
+          consent_text_version?: string | null
           created_at?: string
           email: string
           id?: string
           source?: string
         }
         Update: {
+          consent_at?: string | null
+          consent_text_version?: string | null
           created_at?: string
           email?: string
           id?: string

@@ -29,6 +29,13 @@
       "when": 1793913971147,
       "tag": "0003_partner_coupons",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794027605434,
+      "tag": "0004_add_price_alert_consent",
+      "breakpoints": true
     }
   ]
 }

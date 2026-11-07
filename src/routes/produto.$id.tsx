@@ -1,7 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   BadgeCheck,
-  BellRing,
   ChevronRight,
   ExternalLink,
   Heart,
@@ -35,7 +34,6 @@ import { formatBRL } from "@/components/marketplace/OfferCard";
 import { ProductImage } from "@/components/marketplace/ProductImage";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { CompareOffers, FormattedDescription, RatingStars, SpecsTable } from "@/components/marketplace/ProductDetailSections";
@@ -160,7 +158,6 @@ function ProductPage() {
   const data = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const [activeImage, setActiveImage] = useState(0);
-  const [alert, setAlert] = useState(false);
   const [favorite, setFavorite] = useState(false);
   const [helpful, setHelpful] = useState<boolean | null>(null);
   const [period, setPeriod] = useState(PERIODS[0]?.days ?? 40);
@@ -212,11 +209,6 @@ function ProductPage() {
               </div>
 
               <div className="flex shrink-0 items-center gap-1.5">
-                <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2.5 py-1.5">
-                  <BellRing className="size-3.5 text-muted-foreground" />
-                  <span className="hidden text-xs text-foreground sm:inline">Criar alerta de preço</span>
-                  <Switch checked={alert} onCheckedChange={setAlert} aria-label="Criar alerta de preço" />
-                </div>
                 <Button
                   variant="outline"
                   size="icon"
