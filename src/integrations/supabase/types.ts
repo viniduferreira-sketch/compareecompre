@@ -162,6 +162,72 @@ export type Database = {
           },
         ]
       }
+      outbound_click_budget: {
+        Row: {
+          minute: string
+          singleton: boolean
+          used: number
+        }
+        Insert: {
+          minute: string
+          singleton?: boolean
+          used: number
+        }
+        Update: {
+          minute?: string
+          singleton?: boolean
+          used?: number
+        }
+        Relationships: []
+      }
+      outbound_clicks: {
+        Row: {
+          category: string | null
+          created_at: string
+          device: string
+          id: string
+          offer_id: string
+          page_type: string
+          placement: string
+          referrer_host: string | null
+          source: string
+          store_name: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          device: string
+          id?: string
+          offer_id: string
+          page_type: string
+          placement: string
+          referrer_host?: string | null
+          source: string
+          store_name: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          device?: string
+          id?: string
+          offer_id?: string
+          page_type?: string
+          placement?: string
+          referrer_host?: string | null
+          source?: string
+          store_name?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       partner_catalog: {
         Row: {
           last_synced_at: string
@@ -319,6 +385,8 @@ export type Database = {
         Args: { _cron_secret: string }
         Returns: number
       }
+      outbound_click_report: { Args: never; Returns: Json }
+      record_outbound_click: { Args: { payload: Json }; Returns: boolean }
       release_offer_sync_category: {
         Args: { _category: string; _execution_id: string }
         Returns: undefined

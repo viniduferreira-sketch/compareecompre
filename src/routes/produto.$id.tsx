@@ -38,6 +38,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { CompareOffers, FormattedDescription, RatingStars, SpecsTable } from "@/components/marketplace/ProductDetailSections";
 import { getProductDetail } from "@/lib/product-detail.functions";
+import { recordOutboundClick } from "@/lib/outbound-clicks";
 
 export const Route = createFileRoute("/produto/$id")({
   staticData: { sitemap: true },
@@ -304,7 +305,7 @@ function ProductPage() {
                 </div>
 
                 <Button className="mt-4 h-10 w-full rounded-md bg-brand text-sm text-brand-foreground hover:bg-brand/90" asChild>
-                  <a href={data.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">
+                  <a href={data.affiliateUrl} onClick={() => recordOutboundClick(data, "best_offer")} target="_blank" rel="noopener noreferrer sponsored">
                     Ver melhor oferta <ExternalLink className="size-3.5" />
                   </a>
                 </Button>

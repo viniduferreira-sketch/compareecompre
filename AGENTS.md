@@ -23,3 +23,4 @@
 - Coupons live separately from product search and retain partner source, official merchant identity, exact code, validity and provider-issued tracked links; only currently valid, authorized coupons are publicly readable.
 - Use the shared BrandLogo home link for all visual brand placements, with a separate contrast asset for dark surfaces; browser icons are global root-head links to actual public files.
 - Product-page store comparison runs client-side via the public Algolia key (title/EAN match, cheapest per store); ratings render only from real partner fields, never mocked.
+- Outbound partner anchors use a nonblocking beacon to a validated same-origin public intake; an atomic database-wide 300/minute budget stores no visitor identifiers, and reports aggregate in PostgreSQL under admin-only RLS to avoid truncated client-side counts.

@@ -7,18 +7,19 @@ import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/marketplace/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { getImportStatus, startAwinImport, startLomadeeSync, startCouponSync } from "@/lib/admin-import.functions";
+import { OutboundClickStats, outboundReportQuery } from "@/components/marketplace/OutboundClickStats";
 
 const importsQuery = queryOptions({ queryKey: ["admin", "awin-imports"], queryFn: () => getImportStatus(), refetchInterval: 10000 });
 export const Route = createFileRoute("/_authenticated/admin")({
   staticData: { sitemap: false },
   head: () => ({ meta: [
-    { title: "Importações Awin | Compare e Compre" },
-    { name: "description", content: "Controle administrativo de importações do catálogo Awin do Compare e Compre." },
-    { property: "og:title", content: "Importações Awin | Compare e Compre" },
-    { property: "og:description", content: "Área administrativa do catálogo Compare e Compre." },
+    { title: "Importações e cliques | Compare e Compre" },
+    { name: "description", content: "Controle administrativo das importações e estatísticas de cliques de saída do Compare e Compre." },
+    { property: "og:title", content: "Importações e cliques | Compare e Compre" },
+    { property: "og:description", content: "Área administrativa do catálogo e cliques de saída do Compare e Compre." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex,nofollow" },
   ] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(importsQuery),
+  loader: async ({ context }) => { await Promise.all([context.queryClient.ensureQueryData(importsQuery), context.queryClient.ensureQueryData(outboundReportQuery)]); },
   errorComponent: () => <main className="mx-auto max-w-xl p-8"><h1 className="text-xl font-semibold">Acesso restrito</h1><p className="mt-3 text-muted-foreground">Esta conta não tem permissão para consultar importações.</p><Button asChild variant="outline" className="mt-5"><Link to="/auth">Trocar conta</Link></Button></main>,
   component: AdminImports,
 });
@@ -72,5 +73,6 @@ function AdminImports() {
       </tbody></table>
       {!imports.length && <p className="py-12 text-center text-muted-foreground">Nenhuma importação realizada.</p>}
     </section>
+    <OutboundClickStats />
   </main>;
 }

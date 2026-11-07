@@ -7,6 +7,7 @@ import { Header } from "@/components/marketplace/Header";
 import { SiteFooter } from "@/components/marketplace/SiteFooter";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import { getActiveCoupons } from "@/lib/coupons.functions";
+import { recordOutboundClick } from "@/lib/outbound-clicks";
 
 const couponsQuery = queryOptions({ queryKey: ["active-coupons"], queryFn: () => getActiveCoupons(), staleTime: 60_000 });
 export const Route = createFileRoute("/cupons")({
@@ -46,7 +47,7 @@ function CouponCard({ coupon }: { coupon: CouponRow }) {
     {error && <p role="alert" className="mt-2 text-xs text-destructive">{error}</p>}
     <div className="mt-auto pt-5">
       <p className="mb-3 text-xs text-muted-foreground">{coupon.expires_at ? `Válido até ${new Date(coupon.expires_at).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}` : "Validade não informada pela loja"}</p>
-      <Button asChild className="w-full"><a href={coupon.affiliate_url} target="_blank" rel="sponsored noopener noreferrer">Ir para a loja<ExternalLink className="size-4" /></a></Button>
+      <Button asChild className="w-full"><a href={coupon.affiliate_url} onClick={() => recordOutboundClick(coupon, "coupon_store")} target="_blank" rel="sponsored noopener noreferrer">Ir para a loja<ExternalLink className="size-4" /></a></Button>
       <p className="mt-3 text-xs text-muted-foreground">Verificado em {new Date(coupon.last_synced_at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" })}</p>
     </div>
   </article>;

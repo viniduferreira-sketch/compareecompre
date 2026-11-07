@@ -5,6 +5,7 @@ import { formatBRL } from "@/components/marketplace/OfferCard";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import { compareOffers, type ComparedOffer } from "@/lib/search-offers";
 import { cn } from "@/lib/utils";
+import { recordOutboundClick } from "@/lib/outbound-clicks";
 
 const SOURCE_LABEL: Record<string, string> = { mercadolivre: "Mercado Livre", awin: "Awin", lomadee: "Lomadee" };
 
@@ -31,7 +32,7 @@ export function RatingStars({ rating }: { rating: { value: number; count: number
   );
 }
 
-export function CompareOffers({ product }: { product: { id: string; title: string; ean?: string | null; store: string; storeLogoUrl?: string | null | undefined; price: number | null; affiliateUrl: string; source: string; last_synced_at?: string } }) {
+export function CompareOffers({ product }: { product: { id: string; title: string; ean?: string | null; store: string; storeLogoUrl?: string | null | undefined; price: number | null; affiliateUrl: string; source: string; category?: string | null; last_synced_at?: string } }) {
   const { data, isPending } = useQuery({
     queryKey: ["compare-offers", product.id],
     queryFn: () => compareOffers(product),
@@ -74,6 +75,7 @@ export function CompareOffers({ product }: { product: { id: string; title: strin
               <p className="font-display text-base font-bold text-graphite">{formatBRL(offer.price)}</p>
               <a
                 href={offer.affiliateUrl}
+                onClick={() => recordOutboundClick({ ...offer, category: product.category }, "compare_store")}
                 target="_blank"
                 rel="noopener noreferrer sponsored"
                 className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand px-4 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

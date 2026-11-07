@@ -20,6 +20,7 @@ import { Route as SobreNosRouteImport } from './routes/sobre-nos'
 import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ProdutoIdRouteImport } from './routes/produto.$id'
+import { Route as ApiPublicOutboundClickRouteImport } from './routes/api/public/outbound-click'
 import { Route as ApiPublicAwinImportRouteImport } from './routes/api/public/awin/import'
 import { Route as ApiPublicHooksSyncAlgoliaRouteImport } from './routes/api/public/hooks/sync-algolia'
 import { Route as ApiPublicHooksSyncLomadeeRouteImport } from './routes/api/public/hooks/sync-lomadee'
@@ -78,6 +79,11 @@ const ProdutoIdRoute = ProdutoIdRouteImport.update({
   path: '/produto/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOutboundClickRoute = ApiPublicOutboundClickRouteImport.update({
+  id: '/api/public/outbound-click',
+  path: '/api/public/outbound-click',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAwinImportRoute = ApiPublicAwinImportRouteImport.update({
   id: '/api/public/awin/import',
   path: '/api/public/awin/import',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
   '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
   '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
   '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/termos-de-uso'
     | '/admin'
     | '/produto/$id'
+    | '/api/public/outbound-click'
     | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
     | '/api/public/hooks/sync-lomadee'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/termos-de-uso'
     | '/admin'
     | '/produto/$id'
+    | '/api/public/outbound-click'
     | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
     | '/api/public/hooks/sync-lomadee'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/termos-de-uso'
     | '/_authenticated/admin'
     | '/produto/$id'
+    | '/api/public/outbound-click'
     | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
     | '/api/public/hooks/sync-lomadee'
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   SobreNosRoute: typeof SobreNosRoute
   TermosDeUsoRoute: typeof TermosDeUsoRoute
   ProdutoIdRoute: typeof ProdutoIdRoute
+  ApiPublicOutboundClickRoute: typeof ApiPublicOutboundClickRoute
   ApiPublicAwinImportRoute: typeof ApiPublicAwinImportRoute
   ApiPublicHooksSyncAlgoliaRoute: typeof ApiPublicHooksSyncAlgoliaRoute
   ApiPublicHooksSyncLomadeeRoute: typeof ApiPublicHooksSyncLomadeeRoute
@@ -287,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProdutoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/outbound-click': {
+      id: '/api/public/outbound-click'
+      path: '/api/public/outbound-click'
+      fullPath: '/api/public/outbound-click'
+      preLoaderRoute: typeof ApiPublicOutboundClickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/awin/import': {
       id: '/api/public/awin/import'
       path: '/api/public/awin/import'
@@ -333,6 +353,7 @@ const rootRouteChildren: RootRouteChildren = {
   SobreNosRoute: SobreNosRoute,
   TermosDeUsoRoute: TermosDeUsoRoute,
   ProdutoIdRoute: ProdutoIdRoute,
+  ApiPublicOutboundClickRoute: ApiPublicOutboundClickRoute,
   ApiPublicAwinImportRoute: ApiPublicAwinImportRoute,
   ApiPublicHooksSyncAlgoliaRoute: ApiPublicHooksSyncAlgoliaRoute,
   ApiPublicHooksSyncLomadeeRoute: ApiPublicHooksSyncLomadeeRoute,

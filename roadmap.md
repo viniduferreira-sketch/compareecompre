@@ -8,3 +8,9 @@
 - [x] Persist consent timestamp/version and test validation.
 - [x] Hide the product alert switch and update privacy policy.
 - [x] Verify the signup flow and save changes.
+
+# Anonymous outbound clicks
+- [x] Create private click storage, validated intake and shared abuse limit.
+- [x] Instrument existing partner links without changing destinations or design.
+- [x] Add admin statistics and privacy notice.
+- [x] Test persistence, access restrictions and nonblocking navigation.

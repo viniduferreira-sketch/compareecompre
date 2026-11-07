@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { formatBRL } from "@/components/marketplace/OfferCard";
 import { searchOffers, type Offer } from "@/lib/search-offers";
+import { recordOutboundClick } from "@/lib/outbound-clicks";
 
 export function CompareDialog({
   offer,
@@ -69,6 +70,7 @@ export function CompareDialog({
                   <Button variant="hero" size="lg" className="mt-3 w-full" asChild>
                     <a
                       href={best?.affiliateUrl}
+                      onClick={() => { if (best) recordOutboundClick(best, "compare_dialog_best"); }}
                       target="_blank"
                       rel="noopener noreferrer sponsored"
                     >
@@ -110,7 +112,7 @@ export function CompareDialog({
                       <div className="text-right">
                         <p className="font-display text-base font-bold">{formatBRL(item.price)}</p>
                         <Button variant="link" size="sm" className="h-auto p-0" asChild>
-                          <a href={item.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored">
+                          <a href={item.affiliateUrl} onClick={() => recordOutboundClick(item, "compare_dialog_alternative")} target="_blank" rel="noopener noreferrer sponsored">
                             Ver oferta
                           </a>
                         </Button>
