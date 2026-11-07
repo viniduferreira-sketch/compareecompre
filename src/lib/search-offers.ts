@@ -99,7 +99,7 @@ export async function searchOffers({ data: input }: { data: { query: string; lim
           hitsPerPage: limit,
           facets: ["store", "categoryName", "brand", "freeShipping"],
           maxValuesPerFacet: 1000,
-          filters: 'price > 0 AND NOT status:"unavailable"',
+          filters: 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected"',
           ...(facetFilters.length > 0 ? { facetFilters } : {}),
           typoTolerance: true,
           attributesToRetrieve: [
@@ -158,7 +158,7 @@ export async function getHomeOffers(): Promise<{
         { name: "Esportes", query: "" },
       ];
       const ATTRS = ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at", "merchant_name", "loja", "storeLogoUrl", "merchant_logo", "store_logo", "aw_deep_link"];
-      const activeFilter = 'price > 0 AND NOT status:"unavailable"';
+      const activeFilter = 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected"';
       const storesResponse = await client.searchSingleIndex<AlgoliaOffer>({
         indexName,
         searchParams: { query: "", hitsPerPage: 0, facets: ["store"], maxValuesPerFacet: 1000, filters: activeFilter },
@@ -182,7 +182,7 @@ export async function getHomeOffers(): Promise<{
             searchParams: {
               query,
               hitsPerPage: name === "Moda" ? 20 : 1,
-              filters: `price > 0 AND categoryName:"${name}" AND NOT status:"unavailable"`,
+              filters: `price > 0 AND categoryName:"${name}" AND NOT status:"unavailable" AND NOT quality_status:"rejected"`,
               attributesToRetrieve: ["title", "imageUrl"],
             }
           }),
@@ -276,7 +276,7 @@ export async function compareOffers(product: { id: string; title: string; ean?: 
       searchParams: {
         query: tokens(product.title).slice(0, 6).join(" "),
         hitsPerPage: 30,
-        filters: 'price > 0 AND NOT status:"unavailable"',
+        filters: 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected"',
         removeWordsIfNoResults: "allOptional",
         attributesToRetrieve: ["objectID", "title", "store", "price", "affiliateUrl", "source", "status", "last_synced_at", "ean", "gtin", "merchant_name", "loja", "storeLogoUrl", "merchant_logo", "store_logo", "aw_deep_link"],
       },

@@ -57,6 +57,16 @@ export const revalidateMlApply = createServerFn({ method: "POST" })
     return revalidateMercadoLivreOffers({ dryRun: false });
   });
 
+export const mlQualityDryRun = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    setResponseHeader("Cache-Control", "no-store");
+    const role = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (role.error || !role.data) throw new Error("Acesso restrito ao administrador.");
+    const { evaluateMercadoLivreQuality } = await import("@/lib/ml-quality.server");
+    return evaluateMercadoLivreQuality();
+  });
+
 export const startAwinImport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

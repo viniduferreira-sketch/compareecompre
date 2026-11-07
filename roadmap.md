@@ -1,11 +1,9 @@
-# Roadmap — Revalidação Mercado Livre
+# Roadmap — Filtro de qualidade Mercado Livre
 
-- [x] Confirmar endpoint/limite do multiget ML (20 IDs; bloqueado 403 p/ nosso token — uso de /products + /items do produto)
-- [x] src/lib/ml-revalidate.ts (classificação pura + disjuntor) + testes
-- [x] src/lib/ml-revalidate.server.ts (browse Algolia, verificação direta, gravação, catalog_imports)
-- [x] sync-offers.server.ts: revalidação após sync; item_id corrigido; status filtrável nas réplicas
-- [x] offer-freshness.ts: ML_STRICT_FRESHNESS (false)
-- [x] search-offers.ts: NOT status:unavailable nas capas de categoria
-- [x] product-detail + produto.$id.tsx: aviso de indisponível com link da categoria
-- [x] admin: botões "Revalidar ML (simulação)" e "Revalidar ML"
-- [x] Testes + validação Playwright + commit
+- [x] Sondar API: /users/{id} e /highlights/MLB/category/{id} funcionam; sold_quantity NÃO existe em nenhum payload
+- [x] src/lib/ml-quality.ts (ML_QUALITY_CONFIG + regras puras) + 16 testes
+- [x] src/lib/ml-quality.server.ts (avaliação: vendedor, procura, preço vs mediana, duplicidade; dry-run)
+- [x] admin: botão "Qualidade ML (simulação)" com contagens, motivos e listas
+- [x] Simulação real: 396 avaliados, 49 aprovados, 347 rejeitados; Galaxy A23 (MLB19602360) rejeitado por "vendedor sem reputação"
+- [x] Front-end: filtro NOT quality_status:"rejected" nas buscas; selo fixo removido (Loja oficial / vendedor condicionais)
+- [ ] Aguardar confirmação do usuário → botão "Aplicar qualidade ML" (grava quality_status/reason/checked_at) + integração no sync e na revalidação

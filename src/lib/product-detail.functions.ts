@@ -13,6 +13,9 @@ export type ProductDetail = {
   last_synced_at?: string;
   status?: string | undefined;
   categoryName?: string | null;
+  officialStore?: boolean;
+  sellerName?: string | null;
+  sellerLevel?: string | null;
   id: string;
   title: string;
   images: string[];
@@ -42,16 +45,30 @@ function isPartnerQA(value: unknown): value is PartnerQA {
     && (item["resposta"] === undefined || typeof item["resposta"] === "string");
 }
 
-type IndexedRecord = { qa: PartnerQA[]; status?: string | undefined; categoryName?: string | null };
+type IndexedRecord = {
+  qa: PartnerQA[];
+  status?: string | undefined;
+  categoryName?: string | null;
+  officialStore?: boolean;
+  sellerName?: string | null;
+  sellerLevel?: string | null;
+};
 
 async function getIndexedRecord(productId: string): Promise<IndexedRecord> {
   try {
     const { getAlgoliaIndexingConfig } = await import("@/lib/algolia-indexing.server");
     const { client, indexName } = getAlgoliaIndexingConfig();
-    const record = await client.getObject<{ qa?: unknown; status?: string; categoryName?: string | null }>({
+    const record = await client.getObject<{
+      qa?: unknown;
+      status?: string;
+      categoryName?: string | null;
+      official_store_id?: number | null;
+      seller_nickname?: string | null;
+      seller_level?: string | null;
+    }>({
       indexName,
       objectID: productId,
-      attributesToRetrieve: ["qa", "status", "categoryName"],
+      attributesToRetrieve: ["qa", "status", "categoryName", "official_store_id", "seller_nickname", "seller_level"],
     });
     return {
       qa: Array.isArray(record.qa)
@@ -59,6 +76,9 @@ async function getIndexedRecord(productId: string): Promise<IndexedRecord> {
         : [],
       status: record.status,
       categoryName: record.categoryName ?? null,
+      officialStore: !!record.official_store_id,
+      sellerName: record.seller_nickname ?? null,
+      sellerLevel: record.seller_level ?? null,
     };
   } catch (error) {
     console.warn("Indexed product record unavailable", productId, error);
@@ -163,6 +183,9 @@ export const getProductDetail = createServerFn({ method: "POST" })
       store: "Mercado Livre",
       status: indexed.status,
       categoryName: indexed.categoryName ?? null,
+      officialStore: indexed.officialStore ?? false,
+      sellerName: indexed.sellerName ?? null,
+      sellerLevel: indexed.sellerLevel ?? null,
       id: product.id,
       title: product.name,
       images,

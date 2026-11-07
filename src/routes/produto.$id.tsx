@@ -216,9 +216,15 @@ function ProductPage() {
                   {data.title}
                 </h1>
                 {data.rating ? <RatingStars rating={data.rating} /> : null}
-                <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-seal-border bg-seal-soft px-3 py-1.5 text-xs font-semibold text-seal-foreground">
-                  <BadgeCheck className="size-5 fill-seal text-seal-soft" strokeWidth={2} aria-hidden /> Preços monitorados em lojas oficiais
-                </span>
+                {data.officialStore ? (
+                  <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-seal-border bg-seal-soft px-3 py-1.5 text-xs font-semibold text-seal-foreground">
+                    <BadgeCheck className="size-5 fill-seal text-seal-soft" strokeWidth={2} aria-hidden /> Loja oficial
+                  </span>
+                ) : data.sellerName ? (
+                  <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                    Vendido por {data.sellerName}{data.sellerLevel ? ` · reputação ${data.sellerLevel}` : ""}
+                  </span>
+                ) : null}
               </div>
 
               <div className="flex shrink-0 items-center gap-1.5">
