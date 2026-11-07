@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { toSiteCategory } from "./storefront-mix";
+import { normalizeGtin, normalizeModel } from "./product-identifiers";
 
 export const awinRowSchema = z.record(z.string().max(30000));
 export type AwinRow = z.infer<typeof awinRowSchema>;
@@ -54,6 +55,8 @@ export function normalizeAwinProduct(row: AwinRow, syncedAt: string) {
     categoryName: toSiteCategory(text(row["category_name"] || row["merchant_category"], 300))
       ?? toSiteCategory(text(row["merchant_category"], 300)),
     brand: text(row["brand_name"], 200) || null,
+    gtin: normalizeGtin(row["ean"]) ?? normalizeGtin(row["product_GTIN"]),
+    model: normalizeModel(row["product_model"]) ?? normalizeModel(row["model_number"]),
     description: text(row["description"] || row["product_short_description"]),
     attributes: [["Marca", row["brand_name"]], ["Modelo", row["product_model"]], ["Cor", row["colour"]], ["Dimensões", row["dimensions"]], ["Especificações", row["specifications"]]]
       .flatMap(([name, value]) => value && name ? [{ name, value: text(value), source: "awin" }] : []),

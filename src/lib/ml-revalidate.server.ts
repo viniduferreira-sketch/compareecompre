@@ -1,10 +1,11 @@
-import { getAlgoliaIndexingConfig } from "./algolia-indexing.server";
+import { getAlgoliaIndexingConfig, CATALOG_FACETS } from "./algolia-indexing.server";
+import { mercadoLivreIdentifiers, type CatalogAttribute } from "./product-identifiers";
 import { classifyMeliItemsList, classifyMeliProduct, shouldAbortRevalidation } from "./ml-revalidate";
 
 const STALE_AFTER_HOURS = 12;
 const MAX_ITEMS_PER_RUN = 200;
 const PRODUCT_LOOKUP_CONCURRENCY = 4;
-const FACETING = ["searchable(store)", "searchable(categoryName)", "searchable(brand)", "freeShipping", "filterOnly(status)"];
+const FACETING = CATALOG_FACETS;
 
 export type MlRevalidationResult = {
   dryRun: boolean;
@@ -45,6 +46,8 @@ type CandidateOutcome =
       title?: string;
       imageUrl?: string;
       permalink?: string;
+      gtin: string | null;
+      model: string | null;
     };
 
 function wait(ms: number) {
@@ -93,7 +96,7 @@ async function ensureStatusFilterable(client: ReturnType<typeof getAlgoliaIndexi
 async function checkCandidate(record: StaleRecord, headers: Record<string, string>): Promise<CandidateOutcome> {
   const productRes = await fetchWithBackoff(`https://api.mercadolibre.com/products/${encodeURIComponent(record.objectID)}`, headers);
   const productBody = productRes.ok
-    ? ((await productRes.json()) as { status?: string; name?: string; permalink?: string; pictures?: Array<{ url?: string; secure_url?: string }> })
+    ? ((await productRes.json()) as { status?: string; name?: string; permalink?: string; attributes?: CatalogAttribute[]; pictures?: Array<{ url?: string; secure_url?: string }> })
     : null;
   const productVerdict = classifyMeliProduct(productRes.status, productBody);
   if (productVerdict === "unknown") console.warn("Mercado Livre revalidation product unknown", record.objectID, productRes.status);
@@ -115,6 +118,7 @@ async function checkCandidate(record: StaleRecord, headers: Record<string, strin
   return {
     kind: "active",
     record,
+    ...mercadoLivreIdentifiers(productBody?.attributes),
     itemId: cheapest.item_id?.trim() ?? "",
     price,
     originalPrice: cheapest.original_price && cheapest.original_price > price ? cheapest.original_price : null,
@@ -223,6 +227,8 @@ export async function revalidateMercadoLivreOffers(options: { dryRun?: boolean; 
       }
       updates.push({
         objectID: outcome.record.objectID,
+        gtin: outcome.gtin,
+        model: outcome.model,
         ...(outcome.title ? { title: outcome.title } : {}),
         ...(outcome.imageUrl ? { imageUrl: outcome.imageUrl } : {}),
         price: outcome.price,

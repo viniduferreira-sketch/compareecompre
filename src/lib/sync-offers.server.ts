@@ -1,4 +1,5 @@
-import { getAlgoliaIndexingConfig } from "@/lib/algolia-indexing.server";
+import { getAlgoliaIndexingConfig, CATALOG_FACETS } from "@/lib/algolia-indexing.server";
+import { mercadoLivreIdentifiers } from "./product-identifiers";
 import { fetchQA_MercadoLivre, type PartnerQA } from "@/lib/partner-qa.server";
 
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
@@ -7,7 +8,7 @@ const TARGET_OFFERS_PER_CATEGORY = 100;
 const MAX_SEARCH_PAGES_PER_QUERY = 10;
 const MAX_SEARCH_OFFSET = 100; // Mercado Livre rejects larger offsets on products/search.
 const SEARCH_PAGE_SIZE = 50;
-const ITEM_LOOKUP_CONCURRENCY = 25;
+const ITEM_LOOKUP_CONCURRENCY = 6;
 
 const MENU_CATEGORIES = [
   { name: "Eletrônicos", queries: ["smart tv", "fone bluetooth", "caixa de som", "tablet", "câmera digital", "smartwatch", "monitor"] },
@@ -67,6 +68,8 @@ type AlgoliaOffer = {
   category: string | null;
   categoryName: string | null;
   brand: string | null;
+  gtin: string | null;
+  model: string | null;
   sellerCount: number;
   qa: PartnerQA[];
   source: "mercadolivre";
@@ -140,6 +143,8 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
 
   const mapProduct = async (product: CatalogProduct, categoryName: string): Promise<AlgoliaOffer | null> => {
     try {
+      // Direct /products/{id} revalidation also captures these; never infer from titles.
+      const identifiers = mercadoLivreIdentifiers(product.attributes);
       const response = await fetchWithRetry(
         `https://api.mercadolibre.com/products/${encodeURIComponent(product.id)}/items?limit=20`,
         { headers },
@@ -175,6 +180,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
         category: cheapest.category_id ?? product.domain_id ?? null,
         categoryName,
         brand,
+        ...identifiers,
         sellerCount: items.length,
          qa,
         source: "mercadolivre",
@@ -246,7 +252,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     indexName,
     indexSettings: {
       searchableAttributes: ["title", "brand", "categoryName"],
-      attributesForFaceting: ["searchable(store)", "searchable(categoryName)", "searchable(brand)", "freeShipping", "filterOnly(status)"],
+      attributesForFaceting: CATALOG_FACETS,
       typoTolerance: true,
       removeStopWords: ["pt"],
       ignorePlurals: ["pt"],

@@ -1,7 +1,7 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod";
 import { authorizedAwinWorkflow, awinRowSchema, normalizeAwinProduct } from "./awin-catalog";
-import { getAlgoliaIndexingConfig } from "./algolia-indexing.server";
+import { getAlgoliaIndexingConfig, ensureIdentifierFacets } from "./algolia-indexing.server";
 
 export const AWIN_REPOSITORY = "viniduferreira-sketch/compareecompre";
 export const AWIN_AUDIENCE = "compareecompre-awin-import";
@@ -27,6 +27,7 @@ export const importRequestSchema = z.discriminatedUnion("action", [
 export async function handleAwinImport(runId: string, input: z.infer<typeof importRequestSchema>) {
   const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
   if (input.action === "start") {
+    await ensureIdentifierFacets();
     // Clear only abandoned jobs, not catalog records. Workflow concurrency prevents simultaneous downloads.
     await db.from("catalog_imports").update({ status: "failed", error: "Execução interrompida; solicite novamente." }).in("status", ["queued", "running"]).lt("updated_at", new Date(Date.now() - 3 * 3600_000).toISOString());
     const feedUrl = process.env["AWIN_FEED_URL"];

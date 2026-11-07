@@ -1,4 +1,4 @@
-import { getAlgoliaIndexingConfig } from "./algolia-indexing.server";
+import { getAlgoliaIndexingConfig, ensureIdentifierFacets } from "./algolia-indexing.server";
 import { lomadeeObjectId, normalizeLomadeeProduct, type LomadeeBrand, type LomadeeProduct, type NormalizedLomadeeProduct } from "./lomadee-catalog";
 import { lomadeeRequests } from "./lomadee-client.server";
 import { prioritizedMerchants, readLomadeeCursor } from "./lomadee-cursor";
@@ -47,6 +47,7 @@ export async function runLomadeeSync(options: { couponsOnly?: boolean } = {}): P
       if (cursor.couponPage === 1) break;
     }
     if (!options.couponsOnly) {
+      await ensureIdentifierFacets();
       const merchants = prioritizedMerchants([...brands].filter(([, b]) => b.network?.active !== false && b.channels?.some((c) => c.shortUrls?.length)).map(([id, brand]) => ({ id, ...brand })));
       let start = Math.max(0, merchants.findIndex((m) => m.id === cursor.merchantId));
       const { client, indexName } = getAlgoliaIndexingConfig();

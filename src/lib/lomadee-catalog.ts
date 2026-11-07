@@ -1,4 +1,5 @@
 import { toSiteCategory } from "./storefront-mix";
+import { normalizeGtin } from "./product-identifiers";
 
 // Pure normalization for Lomadee affiliate products (GET /affiliate/products).
 // Missing data stays empty; nothing is invented to fill gaps.
@@ -12,6 +13,7 @@ export type LomadeeProduct = {
   url?: string;
   images?: Array<{ url?: string }>;
   categories?: Array<{ name?: string }>;
+  metadata?: Array<{ key?: string; value?: string | number }>;
   options?: Array<{
     available?: boolean;
     seller?: string;
@@ -78,6 +80,8 @@ export function normalizeLomadeeProduct(
     category: rawCategories[0] ?? null,
     categoryName,
     brand: brandName,
+    gtin: (product.metadata ?? []).filter((entry) => entry.key?.toLowerCase() === "ean").map((entry) => normalizeGtin(entry.value)).find(Boolean) ?? null,
+    model: null,
     description: text(product.description),
     attributes: brandName ? [{ name: "Marca", value: brandName, source: "lomadee" }] : [],
     freeShipping: false,
