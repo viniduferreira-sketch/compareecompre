@@ -182,7 +182,7 @@ export async function getHomeOffers(): Promise<{
             searchParams: {
               query,
               hitsPerPage: name === "Moda" ? 20 : 1,
-              filters: `price > 0 AND categoryName:"${name}"`,
+              filters: `price > 0 AND categoryName:"${name}" AND NOT status:"unavailable"`,
               attributesToRetrieve: ["title", "imageUrl"],
             }
           }),

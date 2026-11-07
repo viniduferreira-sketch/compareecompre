@@ -186,6 +186,18 @@ function ProductPage() {
               Voltar para a home
             </Link>
           </p>
+        ) : data.status === "unavailable" ? (
+          <div className="rounded-2xl border border-border bg-card p-12 text-center">
+            <h1 className="font-display text-lg font-bold text-graphite">Este produto não está mais disponível</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              A oferta de "{data.title}" foi encerrada ou está sem estoque na loja parceira.
+            </p>
+            <Button asChild className="mt-5 bg-brand text-brand-foreground hover:bg-brand/90">
+              <Link to="/" search={{ q: data.categoryName ?? data.title.split(" ").slice(0, 3).join(" ") }}>
+                Buscar ofertas em {data.categoryName ?? "produtos similares"}
+              </Link>
+            </Button>
+          </div>
         ) : (
           <>
             <nav aria-label="Trilha de navegação" className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">

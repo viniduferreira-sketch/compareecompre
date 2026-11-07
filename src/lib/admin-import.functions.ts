@@ -37,6 +37,26 @@ export const startCouponSync = createServerFn({ method: "POST" })
     return runLomadeeSync({ couponsOnly: true });
   });
 
+export const revalidateMlDryRun = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    setResponseHeader("Cache-Control", "no-store");
+    const role = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (role.error || !role.data) throw new Error("Acesso restrito ao administrador.");
+    const { revalidateMercadoLivreOffers } = await import("@/lib/ml-revalidate.server");
+    return revalidateMercadoLivreOffers({ dryRun: true });
+  });
+
+export const revalidateMlApply = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    setResponseHeader("Cache-Control", "no-store");
+    const role = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (role.error || !role.data) throw new Error("Acesso restrito ao administrador.");
+    const { revalidateMercadoLivreOffers } = await import("@/lib/ml-revalidate.server");
+    return revalidateMercadoLivreOffers({ dryRun: false });
+  });
+
 export const startAwinImport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

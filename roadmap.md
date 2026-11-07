@@ -1,16 +1,11 @@
-# Global brand update
-- [x] Apply the approved full logo to header, footer and remaining brand placements.
-- [x] Replace browser and mobile icons with the approved tag icon.
-- [x] Verify desktop/mobile rendering, home links and public icons.
+# Roadmap — Revalidação Mercado Livre
 
-# Email waiting list consent
-- [x] Update signup wording, mandatory consent and cancellation contact.
-- [x] Persist consent timestamp/version and test validation.
-- [x] Hide the product alert switch and update privacy policy.
-- [x] Verify the signup flow and save changes.
-
-# Anonymous outbound clicks
-- [x] Create private click storage, validated intake and shared abuse limit.
-- [x] Instrument existing partner links without changing destinations or design.
-- [x] Add admin statistics and privacy notice.
-- [x] Test persistence, access restrictions and nonblocking navigation.
+- [x] Confirmar endpoint/limite do multiget ML (20 IDs; bloqueado 403 p/ nosso token — uso de /products + /items do produto)
+- [x] src/lib/ml-revalidate.ts (classificação pura + disjuntor) + testes
+- [x] src/lib/ml-revalidate.server.ts (browse Algolia, verificação direta, gravação, catalog_imports)
+- [x] sync-offers.server.ts: revalidação após sync; item_id corrigido; status filtrável nas réplicas
+- [x] offer-freshness.ts: ML_STRICT_FRESHNESS (false)
+- [x] search-offers.ts: NOT status:unavailable nas capas de categoria
+- [x] product-detail + produto.$id.tsx: aviso de indisponível com link da categoria
+- [x] admin: botões "Revalidar ML (simulação)" e "Revalidar ML"
+- [x] Testes + validação Playwright + commit

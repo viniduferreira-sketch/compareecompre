@@ -11,6 +11,8 @@ export type ProductDetail = {
   store: string;
   storeLogoUrl?: string | null;
   last_synced_at?: string;
+  status?: string | undefined;
+  categoryName?: string | null;
   id: string;
   title: string;
   images: string[];
@@ -40,21 +42,27 @@ function isPartnerQA(value: unknown): value is PartnerQA {
     && (item["resposta"] === undefined || typeof item["resposta"] === "string");
 }
 
-async function getIndexedQA(productId: string): Promise<PartnerQA[]> {
+type IndexedRecord = { qa: PartnerQA[]; status?: string | undefined; categoryName?: string | null };
+
+async function getIndexedRecord(productId: string): Promise<IndexedRecord> {
   try {
     const { getAlgoliaIndexingConfig } = await import("@/lib/algolia-indexing.server");
     const { client, indexName } = getAlgoliaIndexingConfig();
-    const record = await client.getObject<{ qa?: unknown }>({
+    const record = await client.getObject<{ qa?: unknown; status?: string; categoryName?: string | null }>({
       indexName,
       objectID: productId,
-      attributesToRetrieve: ["qa"],
+      attributesToRetrieve: ["qa", "status", "categoryName"],
     });
-    return Array.isArray(record.qa)
-      ? record.qa.filter(isPartnerQA).sort((left, right) => Date.parse(right.data) - Date.parse(left.data))
-      : [];
+    return {
+      qa: Array.isArray(record.qa)
+        ? record.qa.filter(isPartnerQA).sort((left, right) => Date.parse(right.data) - Date.parse(left.data))
+        : [],
+      status: record.status,
+      categoryName: record.categoryName ?? null,
+    };
   } catch (error) {
-    console.warn("Indexed product Q&A unavailable", productId, error);
-    return [];
+    console.warn("Indexed product record unavailable", productId, error);
+    return { qa: [] };
   }
 }
 
@@ -129,7 +137,8 @@ export const getProductDetail = createServerFn({ method: "POST" })
       .map((picture) => picture.secure_url ?? picture.url)
       .filter((url): url is string => Boolean(url))
       .slice(0, 8);
-    const qa = await getIndexedQA(product.id);
+    const indexed = await getIndexedRecord(product.id);
+    const qa = indexed.qa;
 
     const attributeValue = (needle: string) =>
       attributes.find((attribute) => attribute.name.toLowerCase().includes(needle))?.value ?? null;
@@ -152,6 +161,8 @@ export const getProductDetail = createServerFn({ method: "POST" })
     return {
       source: "mercadolivre",
       store: "Mercado Livre",
+      status: indexed.status,
+      categoryName: indexed.categoryName ?? null,
       id: product.id,
       title: product.name,
       images,

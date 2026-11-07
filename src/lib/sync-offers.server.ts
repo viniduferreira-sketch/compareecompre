@@ -43,7 +43,7 @@ type CatalogProduct = {
 };
 
 type CatalogItem = {
-  id?: string;
+  item_id?: string;
   title?: string;
   thumbnail?: string;
   price?: number;
@@ -158,7 +158,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
         ? cheapest.original_price
         : null;
       const brand = product.attributes?.find((attribute) => attribute.id === "BRAND")?.value_name ?? null;
-       const itemId = cheapest.id?.trim() ?? "";
+       const itemId = cheapest.item_id?.trim() ?? "";
        const qa = itemId ? await fetchQA_MercadoLivre(itemId, headers, fetchWithRetry) : [];
 
       return {
@@ -274,6 +274,16 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     message: `${records.length} ofertas sincronizadas em ${Object.keys(categories).length} categorias.`,
   };
   console.info("Algolia sync completed", { ...result, durationMs: Date.now() - startedAt });
+
+  // After the category sync, revalidate stale Mercado Livre records directly against
+  // the items API (never by absence from the search). Failures here must not fail the sync.
+  try {
+    const { revalidateMercadoLivreOffers } = await import("@/lib/ml-revalidate.server");
+    const revalidation = await revalidateMercadoLivreOffers();
+    console.info("Mercado Livre revalidation finished", revalidation);
+  } catch (error) {
+    console.error("Mercado Livre revalidation failed", error);
+  }
   return result;
 }
 
