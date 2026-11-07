@@ -4,7 +4,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { subscribeToPriceAlerts } from "@/lib/price-alert-signup.functions";
 import { priceAlertSignupSchema } from "@/lib/price-alert-signup";
@@ -146,7 +145,16 @@ export function PriceAlertSignup() {
               </Button>
             </div>
             <div className="flex items-start gap-2 px-3 pb-1 pt-3">
-              <Checkbox id="price-alert-consent" required checked={consent} disabled={pending} onCheckedChange={(value) => setConsent(value === true)} className="mt-0.5 shrink-0" />
+              <input
+                id="price-alert-consent"
+                name="consent"
+                type="checkbox"
+                required
+                checked={consent}
+                disabled={pending}
+                onChange={(event) => setConsent(event.target.checked)}
+                className="mt-0.5 size-4 shrink-0 cursor-pointer accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed"
+              />
               <label htmlFor="price-alert-consent" className="text-xs leading-5 text-card-foreground">
                 Concordo em receber e-mails do Compare e Compre e aceito a{" "}
                 <Link to="/politica-de-privacidade" className="font-semibold text-primary underline underline-offset-2">Política de Privacidade</Link>
