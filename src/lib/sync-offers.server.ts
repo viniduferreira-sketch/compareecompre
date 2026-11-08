@@ -1,6 +1,8 @@
 import { getAlgoliaIndexingConfig, CATALOG_FACETS } from "@/lib/algolia-indexing.server";
 import { mercadoLivreIdentifiers } from "./product-identifiers";
 import { fetchQA_MercadoLivre, type PartnerQA } from "@/lib/partner-qa.server";
+import { ADULT_CONTENT_REASON, hasAdultContent } from "./content-policy";
+import { addDiscard, type DiscardReasons } from "./import-discards";
 
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 const DEFAULT_INDEX_NAME = "produtos_mercado_livre";
@@ -30,6 +32,7 @@ export type SyncOffersResult = {
   skipped: number;
   discovered: number;
   categories: Record<string, number>;
+  discardReasons: DiscardReasons;
   message: string;
 };
 
@@ -39,6 +42,7 @@ type CatalogProduct = {
   id: string;
   name: string;
   domain_id?: string;
+  keywords?: unknown;
   pictures?: Array<{ url?: string }>;
   attributes?: Array<{ id?: string; value_name?: string }>;
 };
@@ -140,9 +144,14 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
   const categories: Record<string, number> = {};
   let discovered = 0;
   let skipped = 0;
+  const discardReasons: DiscardReasons = {};
 
   const mapProduct = async (product: CatalogProduct, categoryName: string): Promise<AlgoliaOffer | null> => {
     try {
+      if (hasAdultContent(product.name, product.domain_id, product.keywords)) {
+        addDiscard(discardReasons, ADULT_CONTENT_REASON);
+        return null;
+      }
       // Direct /products/{id} revalidation also captures these; never infer from titles.
       const identifiers = mercadoLivreIdentifiers(product.attributes);
       const response = await fetchWithRetry(
@@ -158,6 +167,10 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
       if (items.length === 0) return null;
 
       const cheapest = items.reduce((best, item) => Number(item.price) < Number(best.price) ? item : best);
+      if (hasAdultContent(cheapest.title, cheapest.category_id)) {
+        addDiscard(discardReasons, ADULT_CONTENT_REASON);
+        return null;
+      }
       const price = Number(cheapest.price);
       const originalPrice = cheapest.original_price && cheapest.original_price > price
         ? cheapest.original_price
@@ -277,6 +290,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     skipped,
     discovered,
     categories,
+    discardReasons,
     message: `${records.length} ofertas sincronizadas em ${Object.keys(categories).length} categorias.`,
   };
   console.info("Algolia sync completed", { ...result, durationMs: Date.now() - startedAt });

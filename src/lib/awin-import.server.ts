@@ -63,9 +63,12 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
   const previous = await db.from("catalog_import_batches").select("indexed,skipped,discard_reasons").eq("import_id", job.id).eq("batch", input.batch).maybeSingle();
   if (previous.error) throw new Error("Não foi possível conferir o lote.");
   if (previous.data) return previous.data;
-  const mapped = input.rows.map((row) => normalizeAwinProduct(row, new Date().toISOString()));
+  const allowlist = await db.from("awin_allowed_merchants").select("merchant_name");
+  if (allowlist.error) throw new Error("Não foi possível ler os anunciantes Awin permitidos.");
+  const allowedMerchants = (allowlist.data ?? []).map((row) => row.merchant_name);
+  const mapped = input.rows.map((row) => normalizeAwinProduct(row, new Date().toISOString(), allowedMerchants));
   const reasons: DiscardReasons = {};
-  for (const row of input.rows) { const reason = awinDiscardReason(row); if (reason) addDiscard(reasons, reason); }
+  for (const row of input.rows) { const reason = awinDiscardReason(row, allowedMerchants); if (reason) addDiscard(reasons, reason); }
   const products = Array.from(new Map(mapped.flatMap((p) => p ? [[p.objectID, p] as const] : [])).values());
   const duplicates = mapped.filter(Boolean).length - products.length;
   if (duplicates) reasons["duplicate_in_batch"] = duplicates;

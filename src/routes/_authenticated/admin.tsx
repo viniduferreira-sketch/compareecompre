@@ -11,6 +11,7 @@ import type { MlQualityResult } from "@/lib/ml-quality.server";
 import { OutboundClickStats, outboundReportQuery } from "@/components/marketplace/OutboundClickStats";
 import { CatalogIdentifierStats, identifierStatsQuery } from "@/components/marketplace/CatalogIdentifierStats";
 import { discardLabels } from "@/lib/import-discards";
+import { AwinAllowlist, awinAllowlistQuery } from "@/components/marketplace/AwinAllowlist";
 
 const importsQuery = queryOptions({ queryKey: ["admin", "awin-imports"], queryFn: () => getImportStatus(), refetchInterval: 10000 });
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
     { property: "og:description", content: "Área administrativa do catálogo e cliques de saída do Compare e Compre." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex,nofollow" },
   ] }),
-  loader: async ({ context }) => { await Promise.all([context.queryClient.ensureQueryData(importsQuery), context.queryClient.ensureQueryData(outboundReportQuery), context.queryClient.ensureQueryData(identifierStatsQuery)]); },
+  loader: async ({ context }) => { await Promise.all([context.queryClient.ensureQueryData(importsQuery), context.queryClient.ensureQueryData(outboundReportQuery), context.queryClient.ensureQueryData(identifierStatsQuery), context.queryClient.ensureQueryData(awinAllowlistQuery)]); },
   errorComponent: () => <main className="mx-auto max-w-xl p-8"><h1 className="text-xl font-semibold">Acesso restrito</h1><p className="mt-3 text-muted-foreground">Esta conta não tem permissão para consultar importações.</p><Button asChild variant="outline" className="mt-5"><Link to="/auth">Trocar conta</Link></Button></main>,
   component: AdminImports,
 });
@@ -134,6 +135,7 @@ function AdminImports() {
         )}
       </section>
     )}
+    <AwinAllowlist />
     <section aria-label="Últimas importações" className="overflow-x-auto">
       <table className="w-full min-w-[650px] text-left text-sm"><thead className="border-b border-border text-muted-foreground"><tr>{["Solicitada em", "Parceiro", "Status", "Produtos", "Descartados", "Execução"].map((label) => <th key={label} className="p-3 font-medium">{label}</th>)}</tr></thead><tbody>
         {imports.map((job) => <tr key={job.id} className="border-b border-border"><td className="p-3">{new Date(job.created_at).toLocaleString("pt-BR")}</td><td className="p-3">{job.source === "lomadee" ? "Lomadee" : job.source === "mercadolivre" ? "Mercado Livre" : "Awin"}</td><td className="p-3">{labels[job.status as keyof typeof labels]}{job.error && <p className="mt-1 max-w-xs text-xs text-destructive">{job.error}</p>}</td><td className="p-3">{job.indexed}</td><td className="p-3">{job.skipped}</td><td className="p-3">{job.github_run_id && <Button asChild variant="ghost" size="icon"><a title="Ver execução no GitHub" aria-label="Ver execução no GitHub" href={`https://github.com/viniduferreira-sketch/compareecompre/actions/runs/${job.github_run_id}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="size-4" /></a></Button>}{job.source !== "mercadolivre" && <div className="mt-1 min-w-40 text-xs text-muted-foreground">{Object.entries(job.discardReasons).map(([reason, count]) => <p key={reason}>{discardLabels[reason] ?? reason}: {count}</p>)}{!job.reasonsRecorded ? <p>Motivos não registrados nesta execução</p> : !Object.keys(job.discardReasons).length && <p>Sem descartes</p>}</div>}</td></tr>)}

@@ -26,6 +26,21 @@ export type Database = {
         }
         Relationships: []
       }
+      awin_allowed_merchants: {
+        Row: {
+          created_at: string
+          merchant_name: string
+        }
+        Insert: {
+          created_at?: string
+          merchant_name: string
+        }
+        Update: {
+          created_at?: string
+          merchant_name?: string
+        }
+        Relationships: []
+      }
       catalog_import_batches: {
         Row: {
           batch: number

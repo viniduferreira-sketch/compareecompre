@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { toSiteCategory } from "./storefront-mix";
 import { normalizeGtin, normalizeModel } from "./product-identifiers";
+import { ADULT_CONTENT_REASON, MERCHANT_NOT_ALLOWED_REASON, hasAdultContent } from "./content-policy";
+import { isAwinMerchantAllowed } from "./awin-allowlist";
 
 export const awinRowSchema = z.record(z.string().max(30000));
 export type AwinRow = z.infer<typeof awinRowSchema>;
@@ -24,13 +26,18 @@ function text(value: string | undefined, max = 5000) {
 }
 
 /** Same acceptance rules as the importer, with one stable reason per discarded row. */
-export function awinDiscardReason(row: AwinRow): string | null {
+export function awinDiscardReason(row: AwinRow, allowedMerchants?: readonly string[]): string | null {
   const externalId = (row["aw_product_id"] || row["merchant_product_id"] || "").trim();
   const merchantId = (row["merchant_id"] || "").trim();
   if (!externalId) return "missing_product_id";
   if (!merchantId) return "missing_merchant_id";
   if (!text(row["product_name"], 500)) return "missing_title";
   if (!text(row["merchant_name"], 200)) return "missing_store";
+  if (allowedMerchants && !isAwinMerchantAllowed(row["merchant_name"] ?? "", allowedMerchants)) return MERCHANT_NOT_ALLOWED_REASON;
+  if (hasAdultContent(
+    row["merchant_name"], row["product_name"], row["category_name"], row["merchant_category"],
+    row["keywords"], row["search_keywords"],
+  )) return ADULT_CONTENT_REASON;
   if (!httpUrl(row["aw_deep_link"])) return "invalid_affiliate_url";
   const price = amount(row["search_price"]);
   if (!price || price <= 0 || price > 1e9) return "invalid_price";
@@ -39,14 +46,14 @@ export function awinDiscardReason(row: AwinRow): string | null {
   return null;
 }
 
-export function normalizeAwinProduct(row: AwinRow, syncedAt: string) {
+export function normalizeAwinProduct(row: AwinRow, syncedAt: string, allowedMerchants?: readonly string[]) {
   const externalId = (row["aw_product_id"] || row["merchant_product_id"] || "").trim();
   const merchantId = (row["merchant_id"] || "").trim();
   const price = amount(row["search_price"]);
   const title = text(row["product_name"], 500);
   const store = text(row["merchant_name"], 200);
   const affiliateUrl = httpUrl(row["aw_deep_link"]);
-  if (awinDiscardReason(row) || !affiliateUrl || !price) return null;
+  if (awinDiscardReason(row, allowedMerchants) || !affiliateUrl || !price) return null;
   const stock = (row["in_stock"] ?? "").trim().toLowerCase();
   const sale = (row["is_for_sale"] ?? "").trim().toLowerCase();
   const stockStatus = (row["stock_status"] ?? "").trim().toLowerCase();
