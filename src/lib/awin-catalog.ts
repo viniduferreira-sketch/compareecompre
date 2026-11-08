@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { toSiteCategory } from "./storefront-mix";
 import { normalizeGtin, normalizeModel } from "./product-identifiers";
-import { ADULT_CONTENT_REASON, MERCHANT_NOT_ALLOWED_REASON, hasAdultContent } from "./content-policy";
+import { ADULT_CONTENT_REASON, MERCHANT_NOT_ALLOWED_REASON, getAdultContentMatch } from "./content-policy";
 import { isAwinMerchantAllowed } from "./awin-allowlist";
 
 export const awinRowSchema = z.record(z.string().max(30000));
@@ -34,10 +34,11 @@ export function awinDiscardReason(row: AwinRow, allowedMerchants?: readonly stri
   if (!text(row["product_name"], 500)) return "missing_title";
   if (!text(row["merchant_name"], 200)) return "missing_store";
   if (allowedMerchants && !isAwinMerchantAllowed(row["merchant_name"] ?? "", allowedMerchants)) return MERCHANT_NOT_ALLOWED_REASON;
-  if (hasAdultContent(
-    row["merchant_name"], row["product_name"], row["category_name"], row["merchant_category"],
-    row["keywords"], row["search_keywords"],
-  )) return ADULT_CONTENT_REASON;
+  if (getAdultContentMatch({
+    store: row["merchant_name"],
+    category: [row["category_name"], row["merchant_category"]],
+    title: row["product_name"],
+  })) return ADULT_CONTENT_REASON;
   if (!httpUrl(row["aw_deep_link"])) return "invalid_affiliate_url";
   const price = amount(row["search_price"]);
   if (!price || price <= 0 || price > 1e9) return "invalid_price";

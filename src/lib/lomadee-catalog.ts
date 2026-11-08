@@ -1,6 +1,6 @@
 import { toSiteCategory } from "./storefront-mix";
 import { normalizeGtin } from "./product-identifiers";
-import { ADULT_CONTENT_REASON, hasAdultContent } from "./content-policy";
+import { ADULT_CONTENT_REASON, getAdultContentMatch } from "./content-policy";
 
 // Pure normalization for Lomadee affiliate products (GET /affiliate/products).
 // Missing data stays empty; nothing is invented to fill gaps.
@@ -11,8 +11,6 @@ export type LomadeeProduct = {
   available?: boolean;
   name?: string;
   description?: string;
-  keywords?: unknown;
-  tags?: unknown;
   url?: string;
   images?: Array<{ url?: string }>;
   categories?: Array<{ name?: string }>;
@@ -49,10 +47,11 @@ export function lomadeeDiscardReason(product: LomadeeProduct, brand: LomadeeBran
   if (!lomadeeObjectId(product)) return "invalid_id";
   if (!text(product.name, 500)) return "missing_title";
   if (!httpsUrl(product.url)) return "invalid_product_url";
-  if (hasAdultContent(
-    product.name, product.categories, product.keywords, product.tags,
-    brand?.name, product.options?.map((option) => option.seller),
-  )) return ADULT_CONTENT_REASON;
+  if (getAdultContentMatch({
+    store: [brand?.name, product.options?.map((option) => option.seller)],
+    category: product.categories,
+    title: product.name,
+  })) return ADULT_CONTENT_REASON;
   const offers = (product.options ?? []).flatMap((option) => (option.pricing ?? []).map((p) => ({ option, price: Number(p.price) })))
     .filter((o) => Number.isFinite(o.price) && o.price > 0 && o.price < 1e7);
   const available = offers.filter((o) => o.option.available !== false);

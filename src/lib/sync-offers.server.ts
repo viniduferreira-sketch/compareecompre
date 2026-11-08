@@ -1,7 +1,7 @@
 import { getAlgoliaIndexingConfig, CATALOG_FACETS } from "@/lib/algolia-indexing.server";
 import { mercadoLivreIdentifiers } from "./product-identifiers";
 import { fetchQA_MercadoLivre, type PartnerQA } from "@/lib/partner-qa.server";
-import { ADULT_CONTENT_REASON, hasAdultContent } from "./content-policy";
+import { ADULT_CONTENT_REASON, getAdultContentMatch } from "./content-policy";
 import { addDiscard, type DiscardReasons } from "./import-discards";
 
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
@@ -42,7 +42,6 @@ type CatalogProduct = {
   id: string;
   name: string;
   domain_id?: string;
-  keywords?: unknown;
   pictures?: Array<{ url?: string }>;
   attributes?: Array<{ id?: string; value_name?: string }>;
 };
@@ -148,7 +147,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
 
   const mapProduct = async (product: CatalogProduct, categoryName: string): Promise<AlgoliaOffer | null> => {
     try {
-      if (hasAdultContent(product.name, product.domain_id, product.keywords)) {
+      if (getAdultContentMatch({ store: "Mercado Livre", category: product.domain_id, title: product.name })) {
         addDiscard(discardReasons, ADULT_CONTENT_REASON);
         return null;
       }
@@ -167,7 +166,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
       if (items.length === 0) return null;
 
       const cheapest = items.reduce((best, item) => Number(item.price) < Number(best.price) ? item : best);
-      if (hasAdultContent(cheapest.title, cheapest.category_id)) {
+      if (getAdultContentMatch({ store: "Mercado Livre", category: cheapest.category_id, title: cheapest.title })) {
         addDiscard(discardReasons, ADULT_CONTENT_REASON);
         return null;
       }

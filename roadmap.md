@@ -18,3 +18,7 @@
 - [x] Bloqueio permanente de conteúdo adulto nas três fontes, com termos centralizados e motivo "conteúdo adulto"; moeda BRL preservada
 - [x] Auditoria somente leitura: 18 registros pela regra literal (6 ML, 0 Awin, 12 Lomadee), 15 exemplos apresentados; nenhum registro escondido, apagado ou reindexado
 - [x] 28 testes aprovados, typecheck/build limpos e edição administrativa validada no navegador; etapa 3 não iniciada
+
+## Correção dos falsos positivos de conteúdo adulto
+- [x] Removidos adulto, vibrador e consolador; comparação por palavras/expressões inteiras e prioridade loja bloqueada (Monsterpub), categoria e título
+- [x] 50 testes aprovados; auditoria somente leitura de 7.191 registros: 0 bloqueados em todas as fontes, sem exemplos; nada apagado, escondido, reindexado ou publicado
