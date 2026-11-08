@@ -2,7 +2,9 @@ import { getAlgoliaIndexingConfig } from "./algolia-indexing.server";
 import {
   ML_QUALITY_CONFIG,
   groupKeyOf,
-  isTrustedSeller,
+  demandSignal,
+  isSensitiveCategory,
+  sellerTrust,
   pickGroupWinner,
   priceVerdict,
   type QualityVerdict,
@@ -205,21 +207,26 @@ export async function evaluateMercadoLivreQuality(options: { limit?: number } = 
       return;
     }
     seller.officialStoreId = cheapest.official_store_id ?? null;
-    const trusted = isTrustedSeller(seller);
+    const trust = sellerTrust(seller);
+    const trusted = trust.tier !== null;
 
     const highlights = cheapest.category_id ? await getHighlights(String(cheapest.category_id)) : null;
     const isBuyBoxWinner = !!product.buy_box_winner;
     // sold_quantity does not exist in the ML payload; competition between sellers
     // on the same catalog product is the available proxy for real demand.
-    const hasDemand =
-      isBuyBoxWinner ||
-      (highlights?.has(record.objectID) ?? false) ||
-      items.length >= ML_QUALITY_CONFIG.minSellersForDemand;
+    const demand = demandSignal({
+      isBestSeller: highlights?.has(record.objectID) ?? false,
+      sellerCount: items.length,
+      isBuyBoxWinner,
+    });
+    const hasDemand = demand !== null;
+    const sensitive = isSensitiveCategory({ siteCategory: record.categoryName, domainId: product.domain_id, title: record.title });
 
     let verdict: QualityVerdict;
     if (!trusted) verdict = { status: "rejected", reason: "vendedor sem reputação" };
+    else if (sensitive && trust.tier === "green") verdict = { status: "rejected", reason: "categoria sensível exige loja oficial ou Mercado Líder" };
     else if (!hasDemand) verdict = { status: "rejected", reason: "sem sinal de procura" };
-    else verdict = { status: "approved", reason: "" };
+    else verdict = { status: "approved", reason: `${trust.label} · procura: ${demand}${sensitive ? " · categoria sensível" : ""}` };
 
     evaluated.push({ record, seller, trusted, hasDemand, isBuyBoxWinner, price: cheapest.price, verdict });
   }

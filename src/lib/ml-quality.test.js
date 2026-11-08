@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   groupKeyOf,
   isTrustedSeller,
+  demandSignal,
+  isSensitiveCategory,
   median,
   normalizeModelTokens,
   pickGroupWinner,
@@ -18,15 +20,15 @@ describe("isTrustedSeller", () => {
     expect(isTrustedSeller({ powerSellerStatus: "silver" })).toBe(false);
   });
   it("approves green reputation with enough sales and positive ratio", () => {
-    expect(isTrustedSeller({ levelId: "5_green", completedSales: 500, positiveRatio: 0.95 })).toBe(true);
-    expect(isTrustedSeller({ levelId: "4_light_green", completedSales: 200, positiveRatio: 0.9 })).toBe(true);
+    expect(isTrustedSeller({ levelId: "5_green", completedSales: 1000, positiveRatio: 0.95 })).toBe(true);
+    expect(isTrustedSeller({ levelId: "4_light_green", completedSales: 5000, positiveRatio: 0.99 })).toBe(false);
   });
   it("rejects green reputation with too few sales or low ratio", () => {
-    expect(isTrustedSeller({ levelId: "5_green", completedSales: 199, positiveRatio: 0.99 })).toBe(false);
-    expect(isTrustedSeller({ levelId: "5_green", completedSales: 500, positiveRatio: 0.89 })).toBe(false);
+    expect(isTrustedSeller({ levelId: "5_green", completedSales: 999, positiveRatio: 0.99 })).toBe(false);
+    expect(isTrustedSeller({ levelId: "5_green", completedSales: 5000, positiveRatio: 0.94 })).toBe(false);
   });
-  it("accepts green level with sales when the API omits ratings", () => {
-    expect(isTrustedSeller({ levelId: "5_green", completedSales: 300, positiveRatio: null })).toBe(true);
+  it("rejects green level when the API omits ratings", () => {
+    expect(isTrustedSeller({ levelId: "5_green", completedSales: 3000, positiveRatio: null })).toBe(false);
   });
   it("rejects a seller with no reputation data (Galaxy A23 case)", () => {
     expect(isTrustedSeller({ officialStoreId: null, powerSellerStatus: null, levelId: null, completedSales: 0, positiveRatio: null })).toBe(false);
@@ -92,5 +94,28 @@ describe("pickGroupWinner", () => {
   });
   it("returns null for an empty group", () => {
     expect(pickGroupWinner([])).toBeNull();
+  });
+});
+
+describe("demandSignal", () => {
+  it("does not count buy box alone", () => {
+    expect(demandSignal({ isBestSeller: false, sellerCount: 1, isBuyBoxWinner: true })).toBeNull();
+  });
+  it("accepts best-seller or 3+ sellers", () => {
+    expect(demandSignal({ isBestSeller: true, sellerCount: 1, isBuyBoxWinner: false })).toBe("mais vendidos da categoria");
+    expect(demandSignal({ isBestSeller: false, sellerCount: 3, isBuyBoxWinner: false })).toBe("3 vendedores no mesmo produto");
+    expect(demandSignal({ isBestSeller: false, sellerCount: 2, isBuyBoxWinner: false })).toBeNull();
+  });
+});
+
+describe("isSensitiveCategory", () => {
+  it("flags sunscreen, supplements and baby items", () => {
+    expect(isSensitiveCategory({ title: "Protetor Solar Facial 99FPS" })).toBe(true);
+    expect(isSensitiveCategory({ domainId: "MLB-SUPPLEMENTS", title: "Pote 900g" })).toBe(true);
+    expect(isSensitiveCategory({ title: "Mamadeira anticólica" })).toBe(true);
+    expect(isSensitiveCategory({ siteCategory: "Beleza", title: "Secador" })).toBe(true);
+  });
+  it("does not flag ordinary electronics", () => {
+    expect(isSensitiveCategory({ siteCategory: "Eletrônicos", domainId: "MLB-MONITORS", title: "Monitor 144 FPS" })).toBe(false);
   });
 });

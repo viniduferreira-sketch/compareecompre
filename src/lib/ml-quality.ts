@@ -6,15 +6,27 @@ export const ML_QUALITY_CONFIG = {
   maxPriceToMedian: 1.6,
   minPriceToMedian: 0.5,
   minGroupSize: 3,
-  // Demand signal (sold_quantity is NOT present in any ML payload, so demand
-  // = category best-seller OR buy box winner OR several sellers competing)
-  minSoldQuantity: 10, // kept for reference only
+  // Demand signal: sold_quantity is NOT present in any ML payload, and winning the
+  // buy box alone does NOT count. Valid = category best-seller OR N+ sellers on the
+  // same catalog product.
   minSellersForDemand: 3,
-  // Seller reputation
-  minSellerSales: 200,
-  minPositiveRatio: 0.9,
+  buyBoxCountsAsDemand: false,
+  // Seller reputation (sellers that are neither official store nor Mercado Líder)
+  minSellerSales: 1000,
+  minPositiveRatio: 0.95,
+  requireRatingsForGreen: true,
   powerSellerStatuses: ["gold", "platinum"] as readonly string[],
-  reputationLevelPrefixes: ["4", "5"] as readonly string[],
+  reputationLevelPrefixes: ["5"] as readonly string[], // "5_green" only
+  // Sensitive categories: only official stores or Mercado Líder are accepted.
+  // Matched as whole words (case/accent-insensitive) on site category, ML domain and title.
+  sensitiveSiteCategories: ["beleza"] as readonly string[],
+  sensitiveTerms: [
+    "cosmetico", "cosmeticos", "maquiagem", "protetor solar", "filtro solar", "bloqueador solar",
+    "sunscreen", "sunscreens", "skin care", "skincare", "serum", "hidratante", "creme", "cremes",
+    "suplemento", "suplementos", "whey", "creatina", "vitamina", "vitaminas", "colageno", "termogenico",
+    "supplements", "medicamento", "medicamentos", "remedio", "farmacia", "drugs", "medicines",
+    "bebe", "bebes", "baby", "babies", "mamadeira", "fralda", "fraldas", "chupeta",
+  ] as readonly string[],
   sellerCacheHours: 24,
   // Execution
   sampleLimit: 400,
@@ -29,15 +41,46 @@ export type SellerInfo = {
   positiveRatio?: number | null; // null when the API does not return ratings
 };
 
-/** (a) Trusted seller: official store, Mercado Líder (gold/platinum), or green reputation with sales history. */
-export function isTrustedSeller(s: SellerInfo): boolean {
-  if (s.officialStoreId) return true;
-  if (s.powerSellerStatus && ML_QUALITY_CONFIG.powerSellerStatuses.includes(s.powerSellerStatus)) return true;
+export type SellerTrust = { tier: "official" | "leader" | "green" | null; label: string };
+
+/** (b) Trust tier: official store, Mercado Líder (gold/platinum), or strict green reputation. */
+export function sellerTrust(s: SellerInfo): SellerTrust {
+  if (s.officialStoreId) return { tier: "official", label: `loja oficial (#${s.officialStoreId})` };
+  if (s.powerSellerStatus && ML_QUALITY_CONFIG.powerSellerStatuses.includes(s.powerSellerStatus)) {
+    return { tier: "leader", label: `Mercado Líder ${s.powerSellerStatus}` };
+  }
   const levelOk = !!s.levelId && ML_QUALITY_CONFIG.reputationLevelPrefixes.some((p) => s.levelId!.startsWith(p));
-  const salesOk = (s.completedSales ?? 0) >= ML_QUALITY_CONFIG.minSellerSales;
-  // When the API omits ratings, the green level_id already encodes reputation.
-  const ratioOk = s.positiveRatio == null || s.positiveRatio >= ML_QUALITY_CONFIG.minPositiveRatio;
-  return levelOk && salesOk && ratioOk;
+  const sales = s.completedSales ?? 0;
+  const ratioOk = s.positiveRatio == null ? !ML_QUALITY_CONFIG.requireRatingsForGreen : s.positiveRatio >= ML_QUALITY_CONFIG.minPositiveRatio;
+  if (levelOk && sales >= ML_QUALITY_CONFIG.minSellerSales && ratioOk) {
+    const pct = s.positiveRatio == null ? "?" : `${Math.round(s.positiveRatio * 1000) / 10}%`;
+    return { tier: "green", label: `reputação verde, ${sales} vendas, ${pct} positivas` };
+  }
+  return { tier: null, label: "" };
+}
+
+export function isTrustedSeller(s: SellerInfo): boolean {
+  return sellerTrust(s).tier !== null;
+}
+
+/** (a) Demand signal. Buy box alone never counts unless the config says so. */
+export function demandSignal(input: { isBestSeller: boolean; sellerCount: number; isBuyBoxWinner: boolean }): string | null {
+  if (input.isBestSeller) return "mais vendidos da categoria";
+  if (input.sellerCount >= ML_QUALITY_CONFIG.minSellersForDemand) return `${input.sellerCount} vendedores no mesmo produto`;
+  if (ML_QUALITY_CONFIG.buyBoxCountsAsDemand && input.isBuyBoxWinner) return "buy box";
+  return null;
+}
+
+function normalizeText(v: string): string {
+  return ` ${v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim()} `;
+}
+
+/** (c) Sensitive category check on site category, ML domain id and title (whole words). */
+export function isSensitiveCategory(input: { siteCategory?: string | null; domainId?: string | null; title?: string | null }): boolean {
+  const site = normalizeText(input.siteCategory ?? "").trim();
+  if (site && ML_QUALITY_CONFIG.sensitiveSiteCategories.includes(site)) return true;
+  const hay = normalizeText(`${(input.domainId ?? "").replace(/^MLB-/, "").replace(/_/g, " ")} ${input.title ?? ""}`);
+  return ML_QUALITY_CONFIG.sensitiveTerms.some((t) => hay.includes(normalizeText(t)));
 }
 
 export function median(values: number[]): number {

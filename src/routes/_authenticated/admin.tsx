@@ -137,7 +137,7 @@ function AdminImports() {
             <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
               {qualityResult.approvedSample.map((s) => (
                 <li key={s.id} className="border-b border-border pb-1">
-                  <span className="font-mono">{s.id}</span> — {s.title.slice(0, 70)} — R$ {s.price.toFixed(2)} — {s.seller || "vendedor desconhecido"}
+                  <span className="font-mono">{s.id}</span> — {s.title.slice(0, 70)} — R$ {s.price.toFixed(2)} — {s.seller || "vendedor desconhecido"} — <span className="text-foreground">{s.reason}</span>
                 </li>
               ))}
             </ul>
