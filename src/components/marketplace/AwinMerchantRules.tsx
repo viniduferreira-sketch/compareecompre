@@ -1,0 +1,118 @@
+import { useState } from "react";
+import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { deleteAwinRule, getAwinRules, saveAwinRule, setAwinNotAllowedMark, simulateAwinFilter } from "@/lib/awin-rules.functions";
+import { discardLabels } from "@/lib/import-discards";
+
+export const awinRulesQuery = queryOptions({ queryKey: ["admin", "awin-rules"], queryFn: () => getAwinRules() });
+
+type Simulation = Awaited<ReturnType<typeof simulateAwinFilter>>;
+const label = (r: string) => discardLabels[r] ?? r;
+
+function RuleForm({ initial, onSaved }: { initial?: { merchant: string; category_terms: string[]; max_products: number }; onSaved: () => Promise<void> }) {
+  const save = useServerFn(saveAwinRule);
+  const [merchant, setMerchant] = useState(initial?.merchant ?? "");
+  const [terms, setTerms] = useState(initial?.category_terms.join(", ") ?? "");
+  const [max, setMax] = useState(String(initial?.max_products ?? 500));
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  return (
+    <form className="grid gap-2 md:grid-cols-[12rem_1fr_7rem_auto]" onSubmit={async (event) => {
+      event.preventDefault();
+      setPending(true); setError("");
+      try {
+        await save({ data: { merchant, categoryTerms: terms.split(",").map((t) => t.trim()).filter(Boolean), maxProducts: Number(max) } });
+        if (!initial) { setMerchant(""); setTerms(""); }
+        await onSaved();
+      } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível salvar."); }
+      finally { setPending(false); }
+    }}>
+      <Input aria-label="Loja (nome ou ID)" value={merchant} onChange={(e) => setMerchant(e.target.value)} placeholder="Loja (nome ou merchant_id)" disabled={pending || !!initial} maxLength={200} required />
+      <Input aria-label="Termos permitidos em merchant_category" value={terms} onChange={(e) => setTerms(e.target.value)} placeholder="Termos separados por vírgula" disabled={pending} />
+      <Input aria-label="Limite por importação" type="number" min={1} max={100000} value={max} onChange={(e) => setMax(e.target.value)} disabled={pending} required />
+      <Button type="submit" disabled={pending || !merchant.trim()}>{initial ? "Salvar" : "Adicionar"}</Button>
+      {error && <p role="alert" className="text-sm text-destructive md:col-span-4">{error}</p>}
+    </form>
+  );
+}
+
+export function AwinMerchantRules() {
+  const { data: rules } = useSuspenseQuery(awinRulesQuery);
+  const client = useQueryClient();
+  const remove = useServerFn(deleteAwinRule);
+  const simulate = useServerFn(simulateAwinFilter);
+  const markFn = useServerFn(setAwinNotAllowedMark);
+  const [sim, setSim] = useState<Simulation | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+  const refresh = async () => { await client.invalidateQueries({ queryKey: ["admin", "awin-rules"] }); };
+
+  const run = async (key: string, fn: () => Promise<void>) => {
+    setBusy(key); setMessage("");
+    try { await fn(); } catch (e) { setMessage(e instanceof Error ? e.message : "Falha na operação."); }
+    finally { setBusy(null); }
+  };
+
+  return (
+    <section aria-labelledby="awin-rules-title" className="mb-8 rounded-xl border border-border bg-card p-5">
+      <h2 id="awin-rules-title" className="text-base font-semibold">Regras por loja Awin</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Ordem: anunciante permitido → conteúdo adulto → moeda BRL → categoria do parceiro → limite. Os termos valem só para a categoria do parceiro (palavra inteira, sem diferenciar maiúsculas e acentos; plural simples aceito). Loja sem regra é descartada. Dentro do limite, entram primeiro produtos com GTIN, em estoque e com imagem.
+      </p>
+      <div className="mt-4 space-y-3">
+        {rules.map((rule) => (
+          <div key={rule.merchant} className="flex items-start gap-2">
+            <div className="flex-1"><RuleForm initial={rule} onSaved={refresh} /></div>
+            <Button type="button" variant="ghost" size="icon" aria-label={`Remover regra ${rule.merchant}`} disabled={!!busy}
+              onClick={() => run("del", async () => { await remove({ data: rule.merchant }); await refresh(); })}><Trash2 className="size-4" /></Button>
+          </div>
+        ))}
+        <RuleForm onSaved={refresh} />
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Button type="button" variant="outline" disabled={!!busy} onClick={() => run("sim", async () => setSim(await simulate()))}>
+          {busy === "sim" ? "Simulando…" : "Simular filtro Awin"}
+        </Button>
+        <Button type="button" variant="outline" disabled={!!busy} onClick={() => run("mark", async () => {
+          const r = await markFn({ data: { mark: true } });
+          setMessage(`${r.changed} registros marcados como “anunciante não permitido”: ${Object.entries(r.byStore).map(([s, n]) => `${s} ${n}`).join(", ") || "nenhum"}.`);
+        })}>{busy === "mark" ? "Marcando…" : "Ocultar anunciantes não permitidos"}</Button>
+        <Button type="button" variant="ghost" disabled={!!busy} onClick={() => run("unmark", async () => {
+          const r = await markFn({ data: { mark: false } });
+          setMessage(`${r.changed} registros restaurados: ${Object.entries(r.byStore).map(([s, n]) => `${s} ${n}`).join(", ") || "nenhum"}.`);
+        })}>{busy === "unmark" ? "Restaurando…" : "Reverter ocultação"}</Button>
+      </div>
+      {message && <p role="status" className="mt-3 text-sm">{message}</p>}
+
+      {sim && (
+        <div className="mt-5 space-y-5">
+          <p className="text-sm">Simulação sem gravação: {sim.totalRows} linhas no feed, {sim.accepted} entrariam.</p>
+          {sim.stores.map((s) => (
+            <div key={s.merchant} className="rounded-lg border border-border p-4">
+              <h3 className="text-sm font-semibold">{s.merchant} <span className="font-normal text-muted-foreground">(ID {s.merchantId}{s.rule ? ` · regra “${s.rule}”, limite ${s.limit}` : " · sem regra"})</span></h3>
+              <p className="mt-1 text-sm">{s.rows} linhas · <strong>{s.accepted} entrariam</strong></p>
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {Object.entries(s.discards).map(([r, n]) => <li key={r} className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs">{label(r)}: {n}</li>)}
+              </ul>
+              <details className="mt-3">
+                <summary className="cursor-pointer text-xs text-muted-foreground">Categorias do parceiro (até 40)</summary>
+                <ul className="mt-2 space-y-0.5 text-xs">
+                  {s.categories.map((c) => <li key={c.category}>{c.category}: {c.accepted} de {c.rows}</li>)}
+                </ul>
+              </details>
+              {s.examples.length > 0 && (
+                <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                  {s.examples.map((e) => <li key={e.id} className="border-b border-border pb-1"><span className="font-mono">{e.id}</span> — {e.title} — R$ {e.price} — {e.category}{e.gtin ? " — GTIN" : ""}</li>)}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}

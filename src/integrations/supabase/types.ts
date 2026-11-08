@@ -41,6 +41,59 @@ export type Database = {
         }
         Relationships: []
       }
+      awin_import_merchant_slots: {
+        Row: {
+          batch: number
+          granted: number
+          import_id: string
+          merchant: string
+        }
+        Insert: {
+          batch: number
+          granted: number
+          import_id: string
+          merchant: string
+        }
+        Update: {
+          batch?: number
+          granted?: number
+          import_id?: string
+          merchant?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "awin_import_merchant_slots_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_imports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      awin_merchant_rules: {
+        Row: {
+          category_terms: string[]
+          id: string
+          max_products: number
+          merchant: string
+          updated_at: string
+        }
+        Insert: {
+          category_terms?: string[]
+          id?: string
+          max_products: number
+          merchant: string
+          updated_at?: string
+        }
+        Update: {
+          category_terms?: string[]
+          id?: string
+          max_products?: number
+          merchant?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       catalog_import_batches: {
         Row: {
           batch: number
@@ -395,6 +448,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_awin_merchant_slots: {
+        Args: {
+          _batch: number
+          _import_id: string
+          _limit: number
+          _merchant: string
+          _requested: number
+        }
+        Returns: number
+      }
       claim_offer_sync_category: {
         Args: { _category: string; _execution_id: string }
         Returns: boolean
@@ -408,6 +471,10 @@ export type Database = {
       release_offer_sync_category: {
         Args: { _category: string; _execution_id: string }
         Returns: undefined
+      }
+      set_awin_quality_mark: {
+        Args: { _ids: string[]; _mark: boolean; _reason: string }
+        Returns: number
       }
     }
     Enums: {

@@ -41,15 +41,20 @@ try {
   const csv = decoded.pipe(parse({ columns: true, bom: true, skip_empty_lines: true, max_record_size: 1000000 }));
   combined.on('error', () => csv.destroy(new Error('Feed stream interrupted.')));
   if (decoded !== combined) decoded.on('error', () => csv.destroy(new Error('Invalid compressed feed.')));
-  let rows = [], batch = 0, read = 0;
-  for await (const row of csv) {
-    rows.push(row); read++;
-    if (rows.length === 100) {
-      await send({ action: 'batch', importId, batch: batch++, rows }); rows = [];
-      console.info(`Processed ${read} rows.`);
-    }
+  // Buffer the feed so rows with GTIN, stock and image reach the per-store limit first.
+  // The server applies the same priority inside each batch and owns the durable counter.
+  const all = [];
+  for await (const row of csv) all.push(row);
+  const gtin = (v) => /^\d{8,14}$/.test(String(v ?? '').replace(/\D/g, '')) && /[1-9]/.test(String(v ?? ''));
+  const off = (v) => ['0', 'false', 'no', 'n', 'out of stock', 'out_of_stock', 'unavailable'].includes(String(v ?? '').trim().toLowerCase());
+  const score = (r) => (gtin(r.ean) || gtin(r.product_GTIN) ? 4 : 0) + (!off(r.in_stock) && !off(r.stock_status) ? 2 : 0) + (/^https?:\/\//.test(r.merchant_image_url || r.aw_image_url || '') ? 1 : 0);
+  const ordered = all.map((row, i) => ({ row, i, s: score(row) })).sort((a, b) => b.s - a.s || a.i - b.i).map((x) => x.row);
+  all.length = 0;
+  let batch = 0;
+  for (let start = 0; start < ordered.length; start += 100) {
+    await send({ action: 'batch', importId, batch: batch++, rows: ordered.slice(start, start + 100) });
+    if (batch % 10 === 0) console.info(`Processed ${Math.min(start + 100, ordered.length)} of ${ordered.length} rows.`);
   }
-  if (rows.length) await send({ action: 'batch', importId, batch: batch++, rows });
   const result = await send({ action: 'finish', importId, success: true });
   if (!result.success) throw new Error('Import produced no valid records.');
   console.info(`Import complete: ${result.indexed} records processed.`);

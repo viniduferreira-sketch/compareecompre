@@ -18,4 +18,6 @@ export const discardLabels: Record<string, string> = {
   invalid_price: "Preço inválido", unsupported_currency: "Moeda diferente de BRL", invalid_id: "ID inválido",
   merchant_mismatch: "Loja divergente", invalid_product_url: "URL do produto inválida", duplicate_in_batch: "Duplicado no lote",
   "anunciante não permitido": "Anunciante não permitido", "conteúdo adulto": "Conteúdo adulto",
+  "categoria não permitida": "Categoria não permitida", "loja sem regra de categoria": "Loja sem regra de categoria",
+  "limite da loja atingido": "Limite da loja atingido",
 };

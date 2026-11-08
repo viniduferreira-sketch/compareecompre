@@ -64,6 +64,20 @@
       "when": 1794165035873,
       "tag": "0008_create_awin_allowed_merchants",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794168468691,
+      "tag": "0009_awin_merchant_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794168546293,
+      "tag": "0010_partner_quality_marks",
+      "breakpoints": true
     }
   ]
 }

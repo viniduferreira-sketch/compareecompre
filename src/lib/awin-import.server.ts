@@ -1,6 +1,7 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod";
-import { authorizedAwinWorkflow, awinRowSchema, normalizeAwinProduct, awinDiscardReason } from "./awin-catalog";
+import { authorizedAwinWorkflow, awinRowSchema, normalizeAwinProduct, awinDiscardReason, type AwinProduct } from "./awin-catalog";
+import { awinRowPriority, awinRuleDiscard, findAwinRule, MERCHANT_LIMIT_REASON, type AwinMerchantRule } from "./awin-rules";
 import { addDiscard, type DiscardReasons } from "./import-discards";
 import { getAlgoliaIndexingConfig, ensureIdentifierFacets } from "./algolia-indexing.server";
 
@@ -66,12 +67,36 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
   const allowlist = await db.from("awin_allowed_merchants").select("merchant_name");
   if (allowlist.error) throw new Error("Não foi possível ler os anunciantes Awin permitidos.");
   const allowedMerchants = (allowlist.data ?? []).map((row) => row.merchant_name);
-  const mapped = input.rows.map((row) => normalizeAwinProduct(row, new Date().toISOString(), allowedMerchants));
+  const rulesResult = await db.from("awin_merchant_rules").select("merchant,category_terms,max_products");
+  if (rulesResult.error) throw new Error("Não foi possível ler as regras por loja da Awin.");
+  const rules = rulesResult.data ?? [];
   const reasons: DiscardReasons = {};
-  for (const row of input.rows) { const reason = awinDiscardReason(row, allowedMerchants); if (reason) addDiscard(reasons, reason); }
-  const products = Array.from(new Map(mapped.flatMap((p) => p ? [[p.objectID, p] as const] : [])).values());
-  const duplicates = mapped.filter(Boolean).length - products.length;
+  // Pipeline order: allowlist → adult content → BRL → partner category → per-store limit.
+  const candidates: { product: AwinProduct; rule: AwinMerchantRule; priority: number }[] = [];
+  const syncedAt = new Date().toISOString();
+  for (const row of input.rows) {
+    const reason = awinDiscardReason(row, allowedMerchants) ?? awinRuleDiscard(row, rules);
+    if (reason) { addDiscard(reasons, reason); continue; }
+    const product = normalizeAwinProduct(row, syncedAt, allowedMerchants);
+    const rule = findAwinRule(row, rules);
+    if (!product || !rule) { addDiscard(reasons, "invalid_id"); continue; }
+    candidates.push({ product, rule, priority: awinRowPriority(row) });
+  }
+  const unique = new Map<string, (typeof candidates)[number]>();
+  for (const c of candidates) unique.set(c.product.objectID, c);
+  const duplicates = candidates.length - unique.size;
   if (duplicates) reasons["duplicate_in_batch"] = duplicates;
+  const byMerchant = new Map<string, (typeof candidates)[number][]>();
+  for (const c of unique.values()) byMerchant.set(c.rule.merchant, [...(byMerchant.get(c.rule.merchant) ?? []), c]);
+  const products: AwinProduct[] = [];
+  for (const [merchant, list] of byMerchant) {
+    list.sort((a, b) => b.priority - a.priority);
+    // Durable per-import, per-store counter; idempotent for retried batches.
+    const claim = await db.rpc("claim_awin_merchant_slots", { _import_id: job.id, _batch: input.batch, _merchant: merchant, _requested: list.length, _limit: list[0]!.rule.max_products });
+    if (claim.error || typeof claim.data !== "number") throw new Error("Não foi possível reservar o limite da loja.");
+    products.push(...list.slice(0, claim.data).map((c) => c.product));
+    for (let i = claim.data; i < list.length; i++) addDiscard(reasons, MERCHANT_LIMIT_REASON);
+  }
   if (products.length) {
     // Save the source of truth before indexing. A failed Algolia write retries these same IDs safely.
     const saved = await db.from("partner_catalog").upsert(products.map((record) => ({ object_id: record.objectID, source: "awin", record, last_synced_at: record.last_synced_at })), { onConflict: "object_id" });
@@ -79,7 +104,7 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
     const { client, indexName } = getAlgoliaIndexingConfig();
     await client.saveObjects({ indexName, objects: products, waitForTasks: true, batchSize: 100 });
   }
-  const counts = { indexed: products.length, skipped: mapped.filter((p) => !p).length };
+  const counts = { indexed: products.length, skipped: input.rows.length - products.length - duplicates };
   const savedBatch = await db.from("catalog_import_batches").upsert({ import_id: job.id, batch: input.batch, ...counts, discard_reasons: reasons });
   if (savedBatch.error) throw new Error("Não foi possível registrar o progresso.");
   await db.from("catalog_imports").update({ updated_at: new Date().toISOString() }).eq("id", job.id);
