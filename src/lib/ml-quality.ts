@@ -76,7 +76,7 @@ function normalizeText(v: string): string {
 }
 
 /** (c) Sensitive category check on site category, ML domain id and title (whole words). */
-export function isSensitiveCategory(input: { siteCategory?: string | null; domainId?: string | null; title?: string | null }): boolean {
+export function isSensitiveCategory(input: { siteCategory?: string | null | undefined; domainId?: string | null | undefined; title?: string | null | undefined }): boolean {
   const site = normalizeText(input.siteCategory ?? "").trim();
   if (site && ML_QUALITY_CONFIG.sensitiveSiteCategories.includes(site)) return true;
   const hay = normalizeText(`${(input.domainId ?? "").replace(/^MLB-/, "").replace(/_/g, " ")} ${input.title ?? ""}`);
