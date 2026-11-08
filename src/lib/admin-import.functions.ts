@@ -70,6 +70,18 @@ export const mlQualityDryRun = createServerFn({ method: "POST" })
     return evaluateMercadoLivreQuality();
   });
 
+export const partnerQualityDryRun = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    setResponseHeader("Cache-Control", "no-store");
+    const role = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (role.error || !role.data) throw new Error("Acesso restrito ao administrador.");
+    const allowed = await context.supabase.from("awin_allowed_merchants").select("merchant_name").order("merchant_name");
+    if (allowed.error) throw new Error("Não foi possível confirmar os anunciantes Awin permitidos.");
+    const { evaluatePartnerQuality } = await import("@/lib/partner-quality.server");
+    return evaluatePartnerQuality((allowed.data ?? []).map((row) => row.merchant_name));
+  });
+
 export const startAwinImport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

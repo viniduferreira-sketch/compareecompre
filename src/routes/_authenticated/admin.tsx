@@ -6,8 +6,9 @@ import { Download, LogOut, RefreshCw, ExternalLink, Ticket } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/marketplace/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
-import { getImportStatus, startAwinImport, startLomadeeSync, startCouponSync, revalidateMlDryRun, revalidateMlApply, mlQualityDryRun } from "@/lib/admin-import.functions";
+import { getImportStatus, startAwinImport, startLomadeeSync, startCouponSync, revalidateMlDryRun, revalidateMlApply, mlQualityDryRun, partnerQualityDryRun } from "@/lib/admin-import.functions";
 import type { MlQualityResult } from "@/lib/ml-quality.server";
+import type { PartnerQualitySimulation } from "@/lib/partner-quality.server";
 import { OutboundClickStats, outboundReportQuery } from "@/components/marketplace/OutboundClickStats";
 import { CatalogIdentifierStats, identifierStatsQuery } from "@/components/marketplace/CatalogIdentifierStats";
 import { discardLabels } from "@/lib/import-discards";
@@ -47,6 +48,9 @@ function AdminImports() {
   const qualityDryRun = useServerFn(mlQualityDryRun);
   const [qualityPending, setQualityPending] = useState(false);
   const [qualityResult, setQualityResult] = useState<MlQualityResult | null>(null);
+  const partnerQuality = useServerFn(partnerQualityDryRun);
+  const [partnerQualityPending, setPartnerQualityPending] = useState(false);
+  const [partnerQualityResult, setPartnerQualityResult] = useState<PartnerQualitySimulation | null>(null);
   const mlRunning = imports.some((j) => j.source === "mercadolivre" && (j.status === "queued" || j.status === "running"));
   const active = imports.some((job) => job.source !== "lomadee" && job.source !== "mercadolivre" && (job.status === "queued" || job.status === "running"));
   return <main className="mx-auto min-h-screen max-w-5xl px-5 py-10 text-foreground">
@@ -91,6 +95,12 @@ function AdminImports() {
         catch (e) { setError(e instanceof Error ? e.message : "Não foi possível simular a qualidade do ML."); }
         finally { setQualityPending(false); }
       }}><RefreshCw className="size-4" />{qualityPending ? "Avaliando qualidade… (alguns minutos)" : "Qualidade ML (simulação)"}</Button>
+      <Button variant="outline" disabled={partnerQualityPending} onClick={async () => {
+        setPartnerQualityPending(true); setError(""); setNotice(""); setPartnerQualityResult(null);
+        try { const r = await partnerQuality(); setPartnerQualityResult(r); setNotice(r.message); }
+        catch (e) { setError(e instanceof Error ? e.message : "Não foi possível simular a qualidade dos parceiros."); }
+        finally { setPartnerQualityPending(false); }
+      }}><RefreshCw className="size-4" />{partnerQualityPending ? "Avaliando parceiros…" : "Qualidade parceiros (simulação)"}</Button>
       <Button variant="outline" size="icon" aria-label="Atualizar status" title="Atualizar status" onClick={() => client.invalidateQueries({ queryKey: ["admin", "awin-imports"] })}><RefreshCw className="size-4" /></Button>
       {active && <span role="status" className="text-sm text-muted-foreground">Importação em andamento</span>}
     </div>
@@ -128,6 +138,55 @@ function AdminImports() {
               {qualityResult.approvedSample.map((s) => (
                 <li key={s.id} className="border-b border-border pb-1">
                   <span className="font-mono">{s.id}</span> — {s.title.slice(0, 70)} — R$ {s.price.toFixed(2)} — {s.seller || "vendedor desconhecido"}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
+    )}
+    {partnerQualityResult && (
+      <section aria-label="Resultado da simulação de qualidade dos parceiros" className="mb-8 rounded-xl border border-border bg-card p-5 text-sm">
+        <h2 className="text-base font-semibold">Qualidade Awin e Lomadee — simulação (nada foi gravado)</h2>
+        <p className="mt-2 text-muted-foreground">
+          {partnerQualityResult.evaluated} avaliados · {partnerQualityResult.approved} aprovados · {partnerQualityResult.rejected} rejeitados · {partnerQualityResult.withoutCategory} sem categoria
+        </p>
+        <p className="mt-1 text-muted-foreground">
+          {partnerQualityResult.sharedGtins} GTINs comparáveis nesta simulação · {partnerQualityResult.allSourcesSharedGtins} GTINs em 2+ lojas no catálogo inteiro
+        </p>
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {Object.entries(partnerQualityResult.bySource).map(([source, row]) => (
+            <li key={source} className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs">
+              {source === "awin" ? "Awin" : "Lomadee"}: {row.evaluated} avaliados, {row.approved} aprovados, {row.rejected} rejeitados
+            </li>
+          ))}
+        </ul>
+        {Object.keys(partnerQualityResult.byReason).length > 0 && (
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {Object.entries(partnerQualityResult.byReason).map(([reason, count]) => (
+              <li key={reason} className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs">{reason}: {count}</li>
+            ))}
+          </ul>
+        )}
+        {partnerQualityResult.rejectedSample.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-sm font-semibold">Rejeitados (até 30)</h3>
+            <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+              {partnerQualityResult.rejectedSample.map((sample) => (
+                <li key={sample.id} className="border-b border-border pb-1">
+                  <span className="font-mono">{sample.id}</span> — {sample.title.slice(0, 70)} — R$ {sample.price.toFixed(2)} — {sample.store} — <span className="text-destructive">{sample.reason}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {partnerQualityResult.approvedSample.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-sm font-semibold">Aprovados (até 15)</h3>
+            <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+              {partnerQualityResult.approvedSample.map((sample) => (
+                <li key={sample.id} className="border-b border-border pb-1">
+                  <span className="font-mono">{sample.id}</span> — {sample.title.slice(0, 70)} — R$ {sample.price.toFixed(2)} — {sample.store}
                 </li>
               ))}
             </ul>

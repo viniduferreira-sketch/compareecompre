@@ -11,7 +11,7 @@
 ## Preparação para comparar preços entre lojas
 - [x] Etapa 1: preservar GTIN/modelo nos três parceiros, filtros aditivos no Algolia e contagens por parceiro no /admin (35 testes; contagens autenticadas conferidas; campos serão preenchidos nas próximas importações/revalidações, sem executar alterações de disponibilidade)
 - [x] Etapa 2: feed atual lido (279 linhas: 267 KaBuM + 12 Monsterpub/USD; zero celulares), seleção integral confirmada; motivos por lote e /admin implementados e testados sem importar produtos. Histórico não guarda motivos individuais nem snapshot do feed; não é possível provar os 12 históricos linha a linha.
-- [ ] Etapa 3: simulação de qualidade Awin/Lomadee — aguarda etapa 2 e OK do usuário
+- [x] Etapa 3: botão admin e simulação real sem gravações (19:39 UTC): 5.713 avaliados, 2.960 aprovados, 2.753 rejeitados (2.656 anunciante não aprovado, 31 indisponíveis, 66 imagem), 1.631 sem categoria; 0 GTINs em 2+ lojas. Relatório Awin/Lomadee/identificadores conferido; 67 testes e UI validados. Aguardar OK separado para qualquer botão Aplicar
 
 ## Proteção da importação (antes da etapa 3)
 - [x] Allowlist Awin editável no /admin, inicialmente somente KaBuM (reconhece Kabum BR); demais anunciantes descartados como "anunciante não permitido"
