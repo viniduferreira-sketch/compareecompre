@@ -73,6 +73,7 @@ export type Database = {
       awin_merchant_rules: {
         Row: {
           category_terms: string[]
+          excluded_category_terms: string[]
           id: string
           max_products: number
           merchant: string
@@ -80,6 +81,7 @@ export type Database = {
         }
         Insert: {
           category_terms?: string[]
+          excluded_category_terms?: string[]
           id?: string
           max_products: number
           merchant: string
@@ -87,6 +89,7 @@ export type Database = {
         }
         Update: {
           category_terms?: string[]
+          excluded_category_terms?: string[]
           id?: string
           max_products?: number
           merchant?: string

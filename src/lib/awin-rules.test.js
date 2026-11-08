@@ -7,6 +7,24 @@ const rules = [
 ];
 
 describe("awin merchant rules", () => {
+  const exclusions = ["suporte", "base", "mesa", "cabo", "adaptador", "capa", "película", "carregador"];
+  for (const term of exclusions) {
+    it(`excludes KaBuM ${term} before the notebook inclusion`, () => {
+      const configured = [{ merchant: "KaBuM", category_terms: ["notebook", "tv"], excluded_category_terms: exclusions, max_products: 2000 }];
+      expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: `Periféricos > ${term} > Notebook` }, configured)).toBe("categoria não permitida");
+    });
+  }
+  it("rejects notebook/TV supports but does not inherit another store's exclusions", () => {
+    const configured = [
+      { merchant: "KaBuM", category_terms: ["notebook", "tv"], excluded_category_terms: exclusions, max_products: 2000 },
+      { merchant: "Nike", category_terms: ["tênis"], excluded_category_terms: [], max_products: 500 },
+    ];
+    expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: "Periféricos > Suportes > Suporte para Notebook" }, configured)).toBe("categoria não permitida");
+    expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: "Suportes > Suporte para TV" }, configured)).toBe("categoria não permitida");
+    expect(awinRuleDiscard({ merchant_name: "Nike BR", merchant_category: "Tênis > Base" }, configured)).toBeNull();
+    expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: "Computadores > Notebooks" }, configured)).toBeNull();
+    expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: "Notebooks", product_name: "Suporte" }, configured)).toBeNull();
+  });
   it("matches the rule by merchant name variant or merchant_id", () => {
     expect(findAwinRule({ merchant_name: "Kabum BR" }, rules)?.merchant).toBe("KaBuM");
     expect(findAwinRule({ merchant_name: "Outra", merchant_id: "Nike" }, rules)?.merchant).toBe("Nike");

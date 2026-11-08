@@ -11,7 +11,7 @@ async function requireAdmin(context: { userId: string; supabase: SupabaseClient<
 }
 
 async function readRules(supabase: SupabaseClient<Database>) {
-  const result = await supabase.from("awin_merchant_rules").select("merchant,category_terms,max_products").order("merchant");
+  const result = await supabase.from("awin_merchant_rules").select("merchant,category_terms,excluded_category_terms,max_products").order("merchant");
   if (result.error) throw new Error("Não foi possível ler as regras por loja.");
   return result.data ?? [];
 }
@@ -34,6 +34,7 @@ export const getAwinRules = createServerFn({ method: "POST" })
 const ruleSchema = z.object({
   merchant: z.string().trim().min(1).max(200),
   categoryTerms: z.array(z.string().trim().min(1).max(80)).max(100),
+  excludedCategoryTerms: z.array(z.string().trim().min(1).max(80)).max(100),
   maxProducts: z.number().int().min(1).max(100000),
 });
 
@@ -44,8 +45,9 @@ export const saveAwinRule = createServerFn({ method: "POST" })
     setResponseHeader("Cache-Control", "no-store");
     await requireAdmin(context);
     const terms = [...new Set(data.categoryTerms.map((t) => t.toLowerCase()))];
+    const excludedTerms = [...new Set(data.excludedCategoryTerms.map((t) => t.toLowerCase()))];
     const result = await context.supabase.from("awin_merchant_rules").upsert(
-      { merchant: data.merchant, category_terms: terms, max_products: data.maxProducts, updated_at: new Date().toISOString() },
+      { merchant: data.merchant, category_terms: terms, excluded_category_terms: excludedTerms, max_products: data.maxProducts, updated_at: new Date().toISOString() },
       { onConflict: "merchant" },
     );
     if (result.error) throw new Error("Não foi possível salvar a regra.");

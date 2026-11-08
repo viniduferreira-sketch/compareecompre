@@ -12,7 +12,7 @@ export const MERCHANT_LIMIT_REASON = "limite da loja atingido";
  * (e.g. "Hardware > Placa de vídeo > Acessórios"). Edit here; matched like category terms. */
 export const AWIN_CATEGORY_EXCLUDED_TERMS: readonly string[] = ["acessório", "peça de reposição", "peças de reposição", "refil"];
 
-export type AwinMerchantRule = { merchant: string; category_terms: string[]; max_products: number };
+export type AwinMerchantRule = { merchant: string; category_terms: string[]; excluded_category_terms?: string[]; max_products: number };
 type RowLike = Record<string, string | undefined>;
 
 /** Rule for a feed row: matches merchant_id exactly or the normalized merchant name (KaBuM = Kabum BR). */
@@ -44,6 +44,7 @@ export function awinRuleDiscard(row: RowLike, rules: readonly AwinMerchantRule[]
   const rule = findAwinRule(row, rules);
   if (!rule) return NO_MERCHANT_RULE_REASON;
   const category = row["merchant_category"] ?? "";
+  if (matchCategoryTerm(category, rule.excluded_category_terms ?? [])) return CATEGORY_NOT_ALLOWED_REASON;
   if (matchCategoryTerm(category, AWIN_CATEGORY_EXCLUDED_TERMS)) return CATEGORY_NOT_ALLOWED_REASON;
   return matchCategoryTerm(category, rule.category_terms) ? null : CATEGORY_NOT_ALLOWED_REASON;
 }

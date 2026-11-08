@@ -12,20 +12,21 @@ export const awinRulesQuery = queryOptions({ queryKey: ["admin", "awin-rules"], 
 type Simulation = Awaited<ReturnType<typeof simulateAwinFilter>>;
 const label = (r: string) => discardLabels[r] ?? r;
 
-function RuleForm({ initial, onSaved }: { initial?: { merchant: string; category_terms: string[]; max_products: number }; onSaved: () => Promise<void> }) {
+function RuleForm({ initial, onSaved }: { initial?: { merchant: string; category_terms: string[]; excluded_category_terms: string[]; max_products: number }; onSaved: () => Promise<void> }) {
   const save = useServerFn(saveAwinRule);
   const [merchant, setMerchant] = useState(initial?.merchant ?? "");
   const [terms, setTerms] = useState(initial?.category_terms.join(", ") ?? "");
+  const [excludedTerms, setExcludedTerms] = useState(initial?.excluded_category_terms.join(", ") ?? "");
   const [max, setMax] = useState(String(initial?.max_products ?? 500));
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   return (
-    <form className="grid gap-2 md:grid-cols-[12rem_1fr_7rem_auto]" onSubmit={async (event) => {
+    <form className="grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_7rem_auto]" onSubmit={async (event) => {
       event.preventDefault();
       setPending(true); setError("");
       try {
-        await save({ data: { merchant, categoryTerms: terms.split(",").map((t) => t.trim()).filter(Boolean), maxProducts: Number(max) } });
-        if (!initial) { setMerchant(""); setTerms(""); }
+        await save({ data: { merchant, categoryTerms: terms.split(",").map((t) => t.trim()).filter(Boolean), excludedCategoryTerms: excludedTerms.split(",").map((t) => t.trim()).filter(Boolean), maxProducts: Number(max) } });
+        if (!initial) { setMerchant(""); setTerms(""); setExcludedTerms(""); }
         await onSaved();
       } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível salvar."); }
       finally { setPending(false); }
@@ -34,6 +35,10 @@ function RuleForm({ initial, onSaved }: { initial?: { merchant: string; category
       <Input aria-label="Termos permitidos em merchant_category" value={terms} onChange={(e) => setTerms(e.target.value)} placeholder="Termos separados por vírgula" disabled={pending} />
       <Input aria-label="Limite por importação" type="number" min={1} max={100000} value={max} onChange={(e) => setMax(e.target.value)} disabled={pending} required />
       <Button type="submit" disabled={pending || !merchant.trim()}>{initial ? "Salvar" : "Adicionar"}</Button>
+      <label className="grid gap-1 text-xs text-muted-foreground md:col-span-4">
+        Termos excluídos na categoria do parceiro
+        <Input aria-label="Termos excluídos em merchant_category" value={excludedTerms} onChange={(e) => setExcludedTerms(e.target.value)} placeholder="Termos excluídos separados por vírgula" disabled={pending} />
+      </label>
       {error && <p role="alert" className="text-sm text-destructive md:col-span-4">{error}</p>}
     </form>
   );

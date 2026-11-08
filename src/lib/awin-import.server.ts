@@ -67,7 +67,7 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
   const allowlist = await db.from("awin_allowed_merchants").select("merchant_name");
   if (allowlist.error) throw new Error("Não foi possível ler os anunciantes Awin permitidos.");
   const allowedMerchants = (allowlist.data ?? []).map((row) => row.merchant_name);
-  const rulesResult = await db.from("awin_merchant_rules").select("merchant,category_terms,max_products");
+  const rulesResult = await db.from("awin_merchant_rules").select("merchant,category_terms,excluded_category_terms,max_products");
   if (rulesResult.error) throw new Error("Não foi possível ler as regras por loja da Awin.");
   const rules = rulesResult.data ?? [];
   const reasons: DiscardReasons = {};

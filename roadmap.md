@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Ajuste Awin e diagnóstico Lomadee
+- [x] Exclusões de categoria por loja, editáveis no admin; KaBuM preenchida com os oito termos. Nove regressões reproduzidas e corrigidas; 22 testes Awin passaram.
+- [x] Diagnóstico somente leitura: execução Lomadee 20:20 UTC teve 100 invalid_price; nova leitura da mesma página 6 da ECO FLAME GARDEN retornou 100 com price=0 e listPrice positivo. Não há snapshot histórico para provar igualdade linha a linha.
+- [x] Simulação Awin autenticada sem importação: 10.944 linhas; KaBuM 812 aceitos/4.017 categoria; Nike 500 aceitos/1.808 categoria/3.807 limite.
+
 - [x] Sondar API: /users/{id} e /highlights/MLB/category/{id} funcionam; sold_quantity NÃO existe em nenhum payload
 - [x] src/lib/ml-quality.ts (ML_QUALITY_CONFIG + regras puras) + 16 testes
 - [x] src/lib/ml-quality.server.ts (avaliação: vendedor, procura, preço vs mediana, duplicidade; dry-run)

@@ -1,0 +1,2 @@
+ALTER TABLE public.awin_merchant_rules ADD COLUMN excluded_category_terms text[] NOT NULL DEFAULT '{}'::text[];
+COMMENT ON COLUMN public.awin_merchant_rules.excluded_category_terms IS 'Admin-managed merchant_category exclusions evaluated before inclusion terms; shared by simulation and import.';

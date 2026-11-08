@@ -78,6 +78,13 @@
       "when": 1794168546293,
       "tag": "0010_partner_quality_marks",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794170428995,
+      "tag": "0011_awin_per_store_category_exclusions",
+      "breakpoints": true
     }
   ]
 }
