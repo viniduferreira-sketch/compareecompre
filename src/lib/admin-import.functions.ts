@@ -1,3 +1,4 @@
+import { ADMIN_HISTORY_LIMIT, ADMIN_HISTORY_SOURCES, recentImportsPerSource } from "./admin-history";
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -9,9 +10,9 @@ export const getImportStatus = createServerFn({ method: "POST" })
     setResponseHeader("Cache-Control", "no-store");
     const role = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
     if (role.error || !role.data) throw new Error("Acesso restrito ao administrador.");
-    const result = await context.supabase.from("catalog_imports").select("id,source,status,created_at,updated_at,finished_at,error,github_run_id,catalog_import_batches(indexed,skipped,discard_reasons)").order("created_at", { ascending: false }).limit(10);
-    if (result.error) throw new Error("Não foi possível consultar as importações.");
-    return (result.data ?? []).map(({ catalog_import_batches, ...job }) => ({
+    const results = await Promise.all(ADMIN_HISTORY_SOURCES.map((source) => context.supabase.from("catalog_imports").select("id,source,status,created_at,updated_at,finished_at,error,github_run_id,catalog_import_batches(indexed,skipped,discard_reasons)").eq("source", source).order("created_at", { ascending: false }).limit(ADMIN_HISTORY_LIMIT)));
+    if (results.some((result) => result.error)) throw new Error("Não foi possível consultar as importações.");
+    return recentImportsPerSource(results.flatMap((result) => result.data ?? [])).map(({ catalog_import_batches, ...job }) => ({
       ...job,
       indexed: catalog_import_batches.reduce((n, b) => n + b.indexed, 0),
       skipped: catalog_import_batches.reduce((n, b) => n + b.skipped, 0),

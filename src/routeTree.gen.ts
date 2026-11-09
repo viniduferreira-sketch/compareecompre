@@ -20,6 +20,13 @@ import { Route as SobreNosRouteImport } from './routes/sobre-nos'
 import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ProdutoIdRouteImport } from './routes/produto.$id'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminBuscaRouteImport } from './routes/_authenticated/admin.busca'
+import { Route as AuthenticatedAdminCliquesRouteImport } from './routes/_authenticated/admin.cliques'
+import { Route as AuthenticatedAdminCuponsRouteImport } from './routes/_authenticated/admin.cupons'
+import { Route as AuthenticatedAdminParceirosRouteImport } from './routes/_authenticated/admin.parceiros'
+import { Route as AuthenticatedAdminQualidadeRouteImport } from './routes/_authenticated/admin.qualidade'
+import { Route as AuthenticatedAdminSincronizacaoRouteImport } from './routes/_authenticated/admin.sincronizacao'
 import { Route as ApiPublicOutboundClickRouteImport } from './routes/api/public/outbound-click'
 import { Route as ApiPublicAwinImportRouteImport } from './routes/api/public/awin/import'
 import { Route as ApiPublicHooksSyncAlgoliaRouteImport } from './routes/api/public/hooks/sync-algolia'
@@ -79,6 +86,46 @@ const ProdutoIdRoute = ProdutoIdRouteImport.update({
   path: '/produto/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminBuscaRoute = AuthenticatedAdminBuscaRouteImport.update({
+  id: '/busca',
+  path: '/busca',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminCliquesRoute =
+  AuthenticatedAdminCliquesRouteImport.update({
+    id: '/cliques',
+    path: '/cliques',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCuponsRoute =
+  AuthenticatedAdminCuponsRouteImport.update({
+    id: '/cupons',
+    path: '/cupons',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminParceirosRoute =
+  AuthenticatedAdminParceirosRouteImport.update({
+    id: '/parceiros',
+    path: '/parceiros',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminQualidadeRoute =
+  AuthenticatedAdminQualidadeRouteImport.update({
+    id: '/qualidade',
+    path: '/qualidade',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminSincronizacaoRoute =
+  AuthenticatedAdminSincronizacaoRouteImport.update({
+    id: '/sincronizacao',
+    path: '/sincronizacao',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const ApiPublicOutboundClickRoute = ApiPublicOutboundClickRouteImport.update({
   id: '/api/public/outbound-click',
   path: '/api/public/outbound-click',
@@ -111,9 +158,16 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/produto/$id': typeof ProdutoIdRoute
+  '/admin/busca': typeof AuthenticatedAdminBuscaRoute
+  '/admin/cliques': typeof AuthenticatedAdminCliquesRoute
+  '/admin/cupons': typeof AuthenticatedAdminCuponsRoute
+  '/admin/parceiros': typeof AuthenticatedAdminParceirosRoute
+  '/admin/qualidade': typeof AuthenticatedAdminQualidadeRoute
+  '/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
   '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
@@ -127,9 +181,15 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/admin/busca': typeof AuthenticatedAdminBuscaRoute
+  '/admin/cliques': typeof AuthenticatedAdminCliquesRoute
+  '/admin/cupons': typeof AuthenticatedAdminCuponsRoute
+  '/admin/parceiros': typeof AuthenticatedAdminParceirosRoute
+  '/admin/qualidade': typeof AuthenticatedAdminQualidadeRoute
+  '/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
   '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
@@ -145,9 +205,16 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/produto/$id': typeof ProdutoIdRoute
+  '/_authenticated/admin/busca': typeof AuthenticatedAdminBuscaRoute
+  '/_authenticated/admin/cliques': typeof AuthenticatedAdminCliquesRoute
+  '/_authenticated/admin/cupons': typeof AuthenticatedAdminCuponsRoute
+  '/_authenticated/admin/parceiros': typeof AuthenticatedAdminParceirosRoute
+  '/_authenticated/admin/qualidade': typeof AuthenticatedAdminQualidadeRoute
+  '/_authenticated/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
   '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
@@ -165,7 +232,14 @@ export interface FileRouteTypes {
     | '/termos-de-uso'
     | '/admin'
     | '/produto/$id'
+    | '/admin/busca'
+    | '/admin/cliques'
+    | '/admin/cupons'
+    | '/admin/parceiros'
+    | '/admin/qualidade'
+    | '/admin/sincronizacao'
     | '/api/public/outbound-click'
+    | '/admin/'
     | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
     | '/api/public/hooks/sync-lomadee'
@@ -179,9 +253,15 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sobre-nos'
     | '/termos-de-uso'
-    | '/admin'
     | '/produto/$id'
+    | '/admin/busca'
+    | '/admin/cliques'
+    | '/admin/cupons'
+    | '/admin/parceiros'
+    | '/admin/qualidade'
+    | '/admin/sincronizacao'
     | '/api/public/outbound-click'
+    | '/admin'
     | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
     | '/api/public/hooks/sync-lomadee'
@@ -198,7 +278,14 @@ export interface FileRouteTypes {
     | '/termos-de-uso'
     | '/_authenticated/admin'
     | '/produto/$id'
+    | '/_authenticated/admin/busca'
+    | '/_authenticated/admin/cliques'
+    | '/_authenticated/admin/cupons'
+    | '/_authenticated/admin/parceiros'
+    | '/_authenticated/admin/qualidade'
+    | '/_authenticated/admin/sincronizacao'
     | '/api/public/outbound-click'
+    | '/_authenticated/admin/'
     | '/api/public/awin/import'
     | '/api/public/hooks/sync-algolia'
     | '/api/public/hooks/sync-lomadee'
@@ -300,6 +387,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProdutoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/busca': {
+      id: '/_authenticated/admin/busca'
+      path: '/busca'
+      fullPath: '/admin/busca'
+      preLoaderRoute: typeof AuthenticatedAdminBuscaRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/cliques': {
+      id: '/_authenticated/admin/cliques'
+      path: '/cliques'
+      fullPath: '/admin/cliques'
+      preLoaderRoute: typeof AuthenticatedAdminCliquesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/cupons': {
+      id: '/_authenticated/admin/cupons'
+      path: '/cupons'
+      fullPath: '/admin/cupons'
+      preLoaderRoute: typeof AuthenticatedAdminCuponsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/parceiros': {
+      id: '/_authenticated/admin/parceiros'
+      path: '/parceiros'
+      fullPath: '/admin/parceiros'
+      preLoaderRoute: typeof AuthenticatedAdminParceirosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/qualidade': {
+      id: '/_authenticated/admin/qualidade'
+      path: '/qualidade'
+      fullPath: '/admin/qualidade'
+      preLoaderRoute: typeof AuthenticatedAdminQualidadeRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/sincronizacao': {
+      id: '/_authenticated/admin/sincronizacao'
+      path: '/sincronizacao'
+      fullPath: '/admin/sincronizacao'
+      preLoaderRoute: typeof AuthenticatedAdminSincronizacaoRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/outbound-click': {
       id: '/api/public/outbound-click'
       path: '/api/public/outbound-click'
@@ -331,12 +467,35 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminBuscaRoute: typeof AuthenticatedAdminBuscaRoute
+  AuthenticatedAdminCliquesRoute: typeof AuthenticatedAdminCliquesRoute
+  AuthenticatedAdminCuponsRoute: typeof AuthenticatedAdminCuponsRoute
+  AuthenticatedAdminParceirosRoute: typeof AuthenticatedAdminParceirosRoute
+  AuthenticatedAdminQualidadeRoute: typeof AuthenticatedAdminQualidadeRoute
+  AuthenticatedAdminSincronizacaoRoute: typeof AuthenticatedAdminSincronizacaoRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminBuscaRoute: AuthenticatedAdminBuscaRoute,
+  AuthenticatedAdminCliquesRoute: AuthenticatedAdminCliquesRoute,
+  AuthenticatedAdminCuponsRoute: AuthenticatedAdminCuponsRoute,
+  AuthenticatedAdminParceirosRoute: AuthenticatedAdminParceirosRoute,
+  AuthenticatedAdminQualidadeRoute: AuthenticatedAdminQualidadeRoute,
+  AuthenticatedAdminSincronizacaoRoute: AuthenticatedAdminSincronizacaoRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =

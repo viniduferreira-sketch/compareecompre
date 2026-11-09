@@ -1,0 +1,7 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { adminHead, importsQuery } from "@/components/admin/admin-shared";
+import { StatusBadge } from "@/components/admin/ImportHistory";
+import { Button } from "@/components/ui/button";
+export const Route = createFileRoute("/_authenticated/admin/")({ staticData: { sitemap: false }, head: () => adminHead("Visão geral", "Resumo administrativo do catálogo e das últimas execuções."), component: Overview });
+function Overview() { const { data } = useSuspenseQuery(importsQuery); return <><p className="mb-7 text-sm text-muted-foreground">Últimas execuções por parceiro</p><div className="grid gap-4 lg:grid-cols-3">{["awin","lomadee","mercadolivre"].map((source) => { const job = data.find((j) => j.source === source); return <article key={source} className="rounded-lg border border-border bg-card p-5"><h2 className="mb-4 font-semibold">{source === "awin" ? "Awin" : source === "lomadee" ? "Lomadee" : "Mercado Livre"}</h2>{job ? <><StatusBadge status={job.status} /><p className="mt-4 text-xs text-muted-foreground">{new Date(job.created_at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p><p className="mt-2 text-sm">{job.indexed} aceitos · {job.skipped} descartados</p></> : <p className="text-sm text-muted-foreground">Nenhuma execução registrada.</p>}</article>; })}</div><Button asChild variant="outline" className="mt-6"><Link to="/admin/sincronizacao">Ver histórico completo</Link></Button></>; }

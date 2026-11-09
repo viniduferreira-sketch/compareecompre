@@ -1,3 +1,5 @@
+import { AdminAction, ActionNote, useAdminConfirmation } from "@/components/admin/AdminAction";
+import { toast } from "sonner";
 import { useState } from "react";
 import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,6 +15,7 @@ type Simulation = Awaited<ReturnType<typeof simulateAwinFilter>>;
 const label = (r: string) => discardLabels[r] ?? r;
 
 function RuleForm({ initial, onSaved }: { initial?: { merchant: string; category_terms: string[]; excluded_category_terms: string[]; max_products: number }; onSaved: () => Promise<void> }) {
+  const confirm = useAdminConfirmation();
   const save = useServerFn(saveAwinRule);
   const [merchant, setMerchant] = useState(initial?.merchant ?? "");
   const [terms, setTerms] = useState(initial?.category_terms.join(", ") ?? "");
@@ -23,11 +26,12 @@ function RuleForm({ initial, onSaved }: { initial?: { merchant: string; category
   return (
     <form className="grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_7rem_auto]" onSubmit={async (event) => {
       event.preventDefault();
+      if (!await confirm("Salvar esta regra? Altera categorias, exclusões e limite das próximas importações. Não importa produtos; grava em segundos.")) return;
       setPending(true); setError("");
       try {
         await save({ data: { merchant, categoryTerms: terms.split(",").map((t) => t.trim()).filter(Boolean), excludedCategoryTerms: excludedTerms.split(",").map((t) => t.trim()).filter(Boolean), maxProducts: Number(max) } });
         if (!initial) { setMerchant(""); setTerms(""); setExcludedTerms(""); }
-        await onSaved();
+        await onSaved(); toast.success("Regra salva.");
       } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível salvar."); }
       finally { setPending(false); }
     }}>
@@ -39,6 +43,7 @@ function RuleForm({ initial, onSaved }: { initial?: { merchant: string; category
         Termos excluídos na categoria do parceiro
         <Input aria-label="Termos excluídos em merchant_category" value={excludedTerms} onChange={(e) => setExcludedTerms(e.target.value)} placeholder="Termos excluídos separados por vírgula" disabled={pending} />
       </label>
+      <div className="md:col-span-4"><ActionNote writes description="Salvar ou adicionar define a regra das próximas importações. Não altera produtos já gravados; leva segundos." /></div>
       {error && <p role="alert" className="text-sm text-destructive md:col-span-4">{error}</p>}
     </form>
   );
@@ -46,6 +51,7 @@ function RuleForm({ initial, onSaved }: { initial?: { merchant: string; category
 
 export function AwinMerchantRules() {
   const { data: rules } = useSuspenseQuery(awinRulesQuery);
+  const confirm = useAdminConfirmation();
   const client = useQueryClient();
   const remove = useServerFn(deleteAwinRule);
   const simulate = useServerFn(simulateAwinFilter);
@@ -62,7 +68,7 @@ export function AwinMerchantRules() {
   };
 
   return (
-    <section aria-labelledby="awin-rules-title" className="mb-8 rounded-xl border border-border bg-card p-5">
+    <section aria-labelledby="awin-rules-title" className="mb-8 border-b border-border pb-6">
       <h2 id="awin-rules-title" className="text-base font-semibold">Regras por loja Awin</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Ordem: anunciante permitido → conteúdo adulto → moeda BRL → categoria do parceiro → limite. Os termos valem só para a categoria do parceiro (palavra inteira, sem diferenciar maiúsculas e acentos; plural simples aceito). Loja sem regra é descartada. Dentro do limite, entram primeiro produtos com GTIN, em estoque e com imagem.
@@ -72,24 +78,24 @@ export function AwinMerchantRules() {
           <div key={rule.merchant} className="flex items-start gap-2">
             <div className="flex-1"><RuleForm initial={rule} onSaved={refresh} /></div>
             <Button type="button" variant="ghost" size="icon" aria-label={`Remover regra ${rule.merchant}`} disabled={!!busy}
-              onClick={() => run("del", async () => { await remove({ data: rule.merchant }); await refresh(); })}><Trash2 className="size-4" /></Button>
+              onClick={async () => { if (!await confirm("Remover esta regra? A loja sem regra será descartada nas próximas importações. Grava em segundos.")) return; await run("del", async () => { await remove({ data: rule.merchant }); await refresh(); }); }}><Trash2 className="size-4" /></Button>
           </div>
         ))}
         <RuleForm onSaved={refresh} />
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        <Button type="button" variant="outline" disabled={!!busy} onClick={() => run("sim", async () => setSim(await simulate()))}>
+      <div className="mt-5 grid gap-6 lg:grid-cols-3">
+        <AdminAction description="Lê o feed atual e conta o que entraria por loja, categoria e limite. Não grava; pode levar alguns minutos." type="button" variant="outline" disabled={!!busy} onClick={() => run("sim", async () => setSim(await simulate()))}>
           {busy === "sim" ? "Simulando…" : "Simular filtro Awin"}
-        </Button>
-        <Button type="button" variant="outline" disabled={!!busy} onClick={() => run("mark", async () => {
+        </AdminAction>
+        <AdminAction writes description="Marca ofertas Awin fora da lista permitida como rejeitadas, sem apagar. Use para ocultar ofertas antigas; grava no catálogo e na busca, pode levar alguns minutos." type="button" variant="outline" disabled={!!busy} onClick={() => run("mark", async () => {
           const r = await markFn({ data: { mark: true } });
           setMessage(`${r.changed} registros marcados como “anunciante não permitido”: ${Object.entries(r.byStore).map(([s, n]) => `${s} ${n}`).join(", ") || "nenhum"}.`);
-        })}>{busy === "mark" ? "Marcando…" : "Ocultar anunciantes não permitidos"}</Button>
-        <Button type="button" variant="ghost" disabled={!!busy} onClick={() => run("unmark", async () => {
+        })}>{busy === "mark" ? "Marcando…" : "Ocultar anunciantes não permitidos"}</AdminAction>
+        <AdminAction writes description="Remove somente a marca anunciante não permitido, restaurando as ofertas. Grava no catálogo e na busca, sem apagar; pode levar alguns minutos." type="button" variant="outline" disabled={!!busy} onClick={() => run("unmark", async () => {
           const r = await markFn({ data: { mark: false } });
           setMessage(`${r.changed} registros restaurados: ${Object.entries(r.byStore).map(([s, n]) => `${s} ${n}`).join(", ") || "nenhum"}.`);
-        })}>{busy === "unmark" ? "Restaurando…" : "Reverter ocultação"}</Button>
+        })}>{busy === "unmark" ? "Restaurando…" : "Reverter ocultação"}</AdminAction>
       </div>
       {message && <p role="status" className="mt-3 text-sm">{message}</p>}
 

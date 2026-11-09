@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Redesenho administrativo (pedido atual; sem importar/sincronizar/apagar)
+- [x] Etapa 1: sete páginas, menu fixo/gaveta, mesmas ações e confirmações, histórico dez por fonte; navegador autenticado sem erros e 33 testes passaram. Nenhuma importação acionada.
+- [ ] Etapa 2 interrompida conforme pedido: criação de partner_stores falhou com 42883, function public.has_role(uuid, unknown) does not exist. Transação revertida; nenhuma tabela/dado aplicado. Aguardar autorização para retomar corrigindo o uso do verificador de papel existente.
+- [ ] Etapa 3 não iniciada: bloqueada pela falha da Etapa 2. Indicadores/gráficos novos, cadastro/controles de lojas, lista administrativa de cupons e integração da home não entregues.
+
 ## Popularidade e catálogo amplo (sem importação)
 - [x] Etapa 1 parcial: pontuação centralizada e integrada nos três syncs/revalidação, botão autenticado de recálculo somente de score; 7454 registros recalculados e distribuição conferida; 15 testes passaram.
 - [x] Retomada: erro original reproduzido na leitura GET /rest/v1/partner_catalog com query de 28705 caracteres: HTTP 400, corpo de resposta literal Bad Request, corpo enviado vazio. Algolia browse funciona. customRanking isolado aplicado; réplicas de preço intactas.
