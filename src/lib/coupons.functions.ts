@@ -11,5 +11,8 @@ export const getActiveCoupons = createServerFn({ method: "GET" }).handler(async 
     .eq("status", "active").or(`starts_at.is.null,starts_at.lte.${now}`).or(`expires_at.is.null,expires_at.gt.${now}`)
     .order("last_synced_at", { ascending: false });
   if (error) { console.error("Coupon read failed", error.code, error.message); throw new Error("Não foi possível carregar os cupons. Tente novamente."); }
-  return data ?? [];
+  const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+  const hidden = await db.from("partner_stores").select("network,merchant_name").eq("display_enabled", false);
+  if (hidden.error) throw new Error("Não foi possível confirmar a visibilidade das lojas.");
+  return (data ?? []).filter((coupon) => !(hidden.data ?? []).some((store) => store.network === coupon.source && store.merchant_name === coupon.store));
 });

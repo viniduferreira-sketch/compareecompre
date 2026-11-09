@@ -99,6 +99,20 @@
       "when": 1794199363431,
       "tag": "0013_create_partner_stores_only",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794200215548,
+      "tag": "0014_partner_store_controls",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1794200342652,
+      "tag": "0015_admin_dashboard_aggregates",
+      "breakpoints": true
     }
   ]
 }

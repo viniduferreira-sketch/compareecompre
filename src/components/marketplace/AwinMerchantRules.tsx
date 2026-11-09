@@ -75,7 +75,7 @@ export function AwinMerchantRules() {
       </p>
       <div className="mt-4 space-y-3">
         {rules.map((rule) => (
-          <div key={rule.merchant} className="flex items-start gap-2">
+          <div id={`rule-${rule.merchant}`} key={rule.merchant} className="flex items-start gap-2">
             <div className="flex-1"><RuleForm initial={rule} onSaved={refresh} /></div>
             <Button type="button" variant="ghost" size="icon" aria-label={`Remover regra ${rule.merchant}`} disabled={!!busy}
               onClick={async () => { if (!await confirm("Remover esta regra? A loja sem regra será descartada nas próximas importações. Grava em segundos.")) return; await run("del", async () => { await remove({ data: rule.merchant }); await refresh(); }); }}><Trash2 className="size-4" /></Button>

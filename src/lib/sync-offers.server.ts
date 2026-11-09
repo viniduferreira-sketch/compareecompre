@@ -5,6 +5,7 @@ import { ADULT_CONTENT_REASON, getAdultContentMatch } from "./content-policy";
 import { addDiscard, type DiscardReasons } from "./import-discards";
 import { enrichPopularity } from "./popularity.server";
 import { POPULARITY_INDEX_SETTINGS } from "./popularity";
+import { applyStoreDisplay } from "./partner-stores";
 
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 const DEFAULT_INDEX_NAME = "produtos_mercado_livre";
@@ -132,6 +133,10 @@ function withAffiliate(url: string): string {
 }
 
 export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<SyncOffersResult> {
+  const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+  const controls = await db.from("partner_stores").select("network,external_id,merchant_name,import_enabled,display_enabled").eq("network", "mercadolivre");
+  if (controls.error) throw new Error("Não foi possível conferir os controles do Mercado Livre.");
+  if ((controls.data ?? []).some((store) => !store.import_enabled)) return { indexed: 0, skipped: 0, discovered: 0, categories: {}, discardReasons: {}, message: "Importação do Mercado Livre desativada pelo administrador." };
   const startedAt = Date.now();
   const token = await getMeliToken();
   const { client } = getAlgoliaIndexingConfig();
@@ -275,7 +280,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     },
   });
   // Upsert only: existing records are never deleted or replaced during synchronization.
-  const enriched = await enrichPopularity(records);
+  const enriched = applyStoreDisplay(await enrichPopularity(records), controls.data ?? []);
   await client.saveObjects({ indexName, objects: enriched, batchSize: 500, waitForTasks: true });
   await Promise.all([
     client.setSettings({

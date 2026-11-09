@@ -499,6 +499,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_dashboard_metrics: { Args: never; Returns: Json }
       claim_awin_merchant_slots: {
         Args: {
           _batch: number
@@ -519,11 +520,23 @@ export type Database = {
       }
       outbound_click_report: { Args: never; Returns: Json }
       patch_catalog_popularity: { Args: { _updates: Json }; Returns: number }
+      patch_store_display: {
+        Args: { _hidden: boolean; _ids: string[]; _network: string }
+        Returns: number
+      }
       product_click_counts_30d: {
         Args: never
         Returns: {
           clicks: number
           offer_id: string
+        }[]
+      }
+      public_partner_stores: {
+        Args: never
+        Returns: {
+          description: string
+          logo_url: string
+          name: string
         }[]
       }
       record_outbound_click: { Args: { payload: Json }; Returns: boolean }
@@ -534,6 +547,10 @@ export type Database = {
       set_awin_quality_mark: {
         Args: { _ids: string[]; _mark: boolean; _reason: string }
         Returns: number
+      }
+      set_partner_store_import: {
+        Args: { _enabled: boolean; _id: string }
+        Returns: undefined
       }
     }
     Enums: {

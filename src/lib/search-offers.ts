@@ -3,6 +3,7 @@ import { z } from "zod";
 import { selectVisibleOffers } from "./offer-freshness";
 import { interleaveByStore } from "./storefront-mix";
 import { storefrontIdentity, type StorefrontRecord } from "./storefront-record";
+import { getPublicStores } from "./partner-stores.functions";
 import type { Offer, OfferFilter, OfferSort, SearchOffersResult, CategoryCover } from "./search-offers.functions";
 export type { Offer, OfferFilter, OfferSort } from "./search-offers.functions";
 
@@ -144,7 +145,7 @@ export async function getHomeOffers(): Promise<{
     priceDrops: Offer[];
     popular: Offer[];
     categoryCovers: Record<string, CategoryCover>;
-    stores: Array<{ name: string; count: number; logoUrl?: string | null }>;
+    stores: Array<{ name: string; count: number; logoUrl?: string | null; searchName?: string; description?: string; registered?: boolean }>;
     debugError?: string;
   }> {
     try {
@@ -160,6 +161,7 @@ export async function getHomeOffers(): Promise<{
       ];
       const ATTRS = ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at", "merchant_name", "loja", "storeLogoUrl", "merchant_logo", "store_logo", "aw_deep_link"];
       const activeFilter = 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected"';
+      const publicStores = await getPublicStores();
       const storesResponse = await client.searchSingleIndex<AlgoliaOffer>({
         indexName,
         searchParams: { query: "", hitsPerPage: 0, facets: ["store"], maxValuesPerFacet: 1000, filters: activeFilter },
@@ -243,7 +245,11 @@ export async function getHomeOffers(): Promise<{
         stores: Object.entries(storesResponse?.facets?.["store"] ?? {})
           .filter(([name]) => name && name !== "null")
           .sort(([, a], [, b]) => b - a)
-          .map(([name, count]) => ({ name, count, logoUrl: storeLogos.get(name) ?? null })),
+          .flatMap(([name, count]) => {
+            const match = publicStores[name];
+            if (!match) return name === "Mercado Livre" ? [{ name, count, logoUrl: storeLogos.get(name) ?? null }] : [];
+            return [{ name: match.name, searchName: name, count, logoUrl: match.logo_url, description: match.description, registered: true }];
+          }),
       };
     } catch (error) {
       console.error("Homepage offers failed", error);

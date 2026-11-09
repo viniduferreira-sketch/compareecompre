@@ -29,9 +29,10 @@ export function storeDomain(store: string) {
   return STORE_DOMAINS[key] ?? Object.entries(STORE_DOMAINS).find(([name]) => key.startsWith(name))?.[1] ?? null;
 }
 
-export function StoreLogo({ store, logoUrl, className }: { store: string; logoUrl?: string | null | undefined; className?: string }) {
-  const official = officialStoreLogo(store);
-  const sources = [...new Set([logoUrl?.startsWith("https://") ? logoUrl : null, official?.url].filter((url): url is string => Boolean(url)))];
+export function StoreLogo({ store, logoUrl, className, registryOnly = false }: { store: string; logoUrl?: string | null | undefined; className?: string; registryOnly?: boolean }) {
+  const official = registryOnly ? null : officialStoreLogo(store);
+  const safe = logoUrl?.startsWith("https://") || /^\/logos\/[a-z0-9_-]+\.(png|webp|jpg|jpeg)$/.test(logoUrl ?? "");
+  const sources = [...new Set([safe ? logoUrl : null, official?.url].filter((url): url is string => Boolean(url)))];
   const [failedUrls, setFailedUrls] = useState<string[]>([]);
   const src = sources.find((url) => !failedUrls.includes(url));
   const ref = useRef<HTMLImageElement>(null);

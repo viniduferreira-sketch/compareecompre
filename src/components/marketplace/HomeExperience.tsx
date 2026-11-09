@@ -31,7 +31,7 @@ export function TrustBanner() {
   );
 }
 
-export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ name: string; count: number; logoUrl?: string | null }>; onSelect?: (store: string) => void }) {
+export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ name: string; count: number; logoUrl?: string | null; searchName?: string; description?: string; registered?: boolean }>; onSelect?: (store: string) => void }) {
   const active = stores.filter((store) => store.count > 0);
   return (
     <section className="mx-auto max-w-7xl px-5 py-4 lg:px-8">
@@ -43,12 +43,13 @@ export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ na
           <Button
             variant="ghost"
             type="button"
-            onClick={() => onSelect?.(store.name)}
+            onClick={() => onSelect?.(store.searchName ?? store.name)}
+            title={store.description || store.name}
             aria-label={`Ver ofertas de ${store.name}`}
             className="group flex h-auto w-full flex-col justify-start gap-1.5 whitespace-normal rounded-none p-1 text-center hover:bg-transparent"
           >
             <span className="flex size-[88px] shrink-0 items-center justify-center rounded-full border border-border bg-card transition-colors duration-200 group-hover:border-primary/40 motion-reduce:transition-none">
-              <StoreLogo store={store.name} logoUrl={store.logoUrl} className="h-11 w-[60px] rounded-sm text-[11px]" />
+              <StoreLogo store={store.name} logoUrl={store.logoUrl} registryOnly={Boolean(store.registered)} className="h-11 w-[60px] rounded-sm text-[11px]" />
             </span>
             <div className="w-full">
               <h3 className="w-full truncate text-xs font-medium leading-4 text-foreground">{store.name}</h3>

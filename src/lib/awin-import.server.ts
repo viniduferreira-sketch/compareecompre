@@ -5,6 +5,7 @@ import { awinRowPriority, awinRuleDiscard, findAwinRule, MERCHANT_LIMIT_REASON, 
 import { addDiscard, type DiscardReasons } from "./import-discards";
 import { getAlgoliaIndexingConfig, ensureIdentifierFacets } from "./algolia-indexing.server";
 import { enrichPopularity } from "./popularity.server";
+import { applyStoreDisplay, storeMatches } from "./partner-stores";
 
 export const AWIN_REPOSITORY = "viniduferreira-sketch/compareecompre";
 export const AWIN_AUDIENCE = "compareecompre-awin-import";
@@ -68,6 +69,8 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
   const allowlist = await db.from("awin_allowed_merchants").select("merchant_name");
   if (allowlist.error) throw new Error("Não foi possível ler os anunciantes Awin permitidos.");
   const allowedMerchants = (allowlist.data ?? []).map((row) => row.merchant_name);
+  const controls = await db.from("partner_stores").select("network,external_id,merchant_name,import_enabled,display_enabled").eq("network", "awin");
+  if (controls.error) throw new Error("Não foi possível conferir os controles das lojas Awin.");
   const rulesResult = await db.from("awin_merchant_rules").select("merchant,category_terms,excluded_category_terms,max_products");
   if (rulesResult.error) throw new Error("Não foi possível ler as regras por loja da Awin.");
   const rules = rulesResult.data ?? [];
@@ -76,6 +79,7 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
   const candidates: { product: AwinProduct; rule: AwinMerchantRule; priority: number }[] = [];
   const syncedAt = new Date().toISOString();
   for (const row of input.rows) {
+    if ((controls.data ?? []).some((store) => storeMatches(store, { source: "awin", store: row["merchant_name"], merchant_id: row["merchant_id"] }) && !store.import_enabled)) { addDiscard(reasons, "merchant_not_allowed"); continue; }
     const reason = awinDiscardReason(row, allowedMerchants) ?? awinRuleDiscard(row, rules);
     if (reason) { addDiscard(reasons, reason); continue; }
     const product = normalizeAwinProduct(row, syncedAt, allowedMerchants);
@@ -99,7 +103,7 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
     for (let i = claim.data; i < list.length; i++) addDiscard(reasons, MERCHANT_LIMIT_REASON);
   }
   if (products.length) {
-    const enriched = await enrichPopularity(products);
+    const enriched = applyStoreDisplay(await enrichPopularity(products), controls.data ?? []);
     // Save the source of truth before indexing. A failed Algolia write retries these same IDs safely.
     const saved = await db.from("partner_catalog").upsert(enriched.map((record) => ({ object_id: record.objectID, source: "awin", record, last_synced_at: record.last_synced_at })), { onConflict: "object_id" });
     if (saved.error) throw new Error("Falha ao persistir produtos Awin.");

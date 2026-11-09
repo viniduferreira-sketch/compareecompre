@@ -5,6 +5,7 @@ import { lomadeeRequests } from "./lomadee-client.server";
 import { prioritizedMerchants, readLomadeeCursor } from "./lomadee-cursor";
 import { normalizeLomadeeCoupon, type LomadeeCampaign } from "./coupons";
 import { enrichPopularity } from "./popularity.server";
+import { applyStoreDisplay } from "./partner-stores";
 
 type Page<T> = { data?: T[]; pagination?: { totalPages?: number }; meta?: { totalPages?: number } };
 
@@ -51,7 +52,9 @@ export async function runLomadeeSync(options: { couponsOnly?: boolean } = {}): P
     }
     if (!options.couponsOnly) {
       await ensureIdentifierFacets();
-      const merchants = prioritizedMerchants([...brands].filter(([, b]) => b.network?.active !== false && b.channels?.some((c) => c.shortUrls?.length)).map(([id, brand]) => ({ id, ...brand })));
+      const controls = await db.from("partner_stores").select("network,external_id,merchant_name,import_enabled,display_enabled").eq("network", "lomadee");
+      if (controls.error) throw new Error("Não foi possível conferir os controles das lojas Lomadee.");
+      const merchants = prioritizedMerchants([...brands].filter(([id, b]) => b.network?.active !== false && b.channels?.some((c) => c.shortUrls?.length) && !(controls.data ?? []).some((store) => store.external_id === id && !store.import_enabled)).map(([id, brand]) => ({ id, ...brand })));
       let start = Math.max(0, merchants.findIndex((m) => m.id === cursor.merchantId));
       const { client, indexName } = getAlgoliaIndexingConfig();
       for (let visited = 0; visited < merchants.length && requests.remaining > 0; visited += 1) {
@@ -88,7 +91,7 @@ export async function runLomadeeSync(options: { couponsOnly?: boolean } = {}): P
           if (record) ready.push(record); else { skipped += 1; addDiscard(reasons, lomadeeDiscardReason(product, merchant, link) ?? "invalid_affiliate_url"); }
         }
         if (ready.length) {
-          const enriched = await enrichPopularity(ready);
+          const enriched = applyStoreDisplay(await enrichPopularity(ready), controls.data ?? []);
           const saved = await db.from("partner_catalog").upsert(enriched.map((record) => ({ object_id: record.objectID, source: "lomadee", record, last_synced_at: now })), { onConflict: "object_id" });
           if (saved.error) throw new Error("Falha ao salvar produtos da Lomadee.");
           await client.saveObjects({ indexName, objects: enriched, waitForTasks: true, batchSize: 100 });
