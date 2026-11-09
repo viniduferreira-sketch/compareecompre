@@ -12,6 +12,9 @@ describe("partner controls", () => {
   it("restores display independently of import and quality", () => {
     expect(applyStoreDisplay([{ source: "awin", merchant_id: "17729", quality_status: "rejected" }], [{ ...hidden, display_enabled: true }])[0]).toEqual({ source: "awin", merchant_id: "17729", quality_status: "rejected", site_hidden: false });
   });
+  it("preserves an exact-duplicate manual hide during later imports", () => {
+    expect(applyStoreDisplay([{ source: "awin", merchant_id: "17729", site_hidden: true }], [{ ...hidden, display_enabled: true }])[0].site_hidden).toBe(true);
+  });
   it("matches Awin country aliases but never another network", () => {
     expect(storeMatches(hidden, { source: "awin", store: "KaBuM" })).toBe(true);
     expect(storeMatches(hidden, { source: "mercadolivre", merchant_id: "17729" })).toBe(false);

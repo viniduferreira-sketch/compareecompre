@@ -36,7 +36,7 @@ function RuleForm({ initial, onSaved }: { initial?: { merchant: string; category
       finally { setPending(false); }
     }}>
       <Input aria-label="Loja (nome ou ID)" value={merchant} onChange={(e) => setMerchant(e.target.value)} placeholder="Loja (nome ou merchant_id)" disabled={pending || !!initial} maxLength={200} required />
-      <Input aria-label="Termos permitidos em merchant_category" value={terms} onChange={(e) => setTerms(e.target.value)} placeholder="Termos separados por vírgula" disabled={pending} />
+      <Input aria-label="Termos permitidos em merchant_category" value={terms} onChange={(e) => setTerms(e.target.value)} placeholder="Termos separados por vírgula ou * para todas" disabled={pending} />
       <Input aria-label="Limite por importação" type="number" min={1} max={100000} value={max} onChange={(e) => setMax(e.target.value)} disabled={pending} required />
       <Button type="submit" disabled={pending || !merchant.trim()}>{initial ? "Salvar" : "Adicionar"}</Button>
       <label className="grid gap-1 text-xs text-muted-foreground md:col-span-4">
@@ -71,7 +71,7 @@ export function AwinMerchantRules() {
     <section aria-labelledby="awin-rules-title" className="mb-8 border-b border-border pb-6">
       <h2 id="awin-rules-title" className="text-base font-semibold">Regras por loja Awin</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Ordem: anunciante permitido → conteúdo adulto → moeda BRL → categoria do parceiro → limite. Os termos valem só para a categoria do parceiro (palavra inteira, sem diferenciar maiúsculas e acentos; plural simples aceito). Loja sem regra é descartada. Dentro do limite, entram primeiro produtos com GTIN, em estoque e com imagem.
+        Ordem: anunciante permitido → conteúdo adulto → moeda BRL → categoria do parceiro → limite. Os termos valem só para a categoria do parceiro (palavra inteira, sem diferenciar maiúsculas e acentos; plural simples aceito). Use * nos termos permitidos para aceitar todas as categorias, exceto as exclusões da loja. Loja sem regra é descartada. Dentro do limite, entram primeiro produtos com GTIN, em estoque e com imagem.
       </p>
       <div className="mt-4 space-y-3">
         {rules.map((rule) => (

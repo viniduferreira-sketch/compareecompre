@@ -18,13 +18,23 @@ describe("popularity and variants", () => {
     expect(calculatePopularity(p, 0, 1000)).toBe(0);
   });
   it("never groups different stores even with same parent", () => {
-    expect(productGroupId({ ...product, parent_product_id: "parent" })).not.toBe(productGroupId({ ...product, store: "Outra", parent_product_id: "parent" }));
+    expect(productGroupId({ ...product, parent_product_id: "parent" })).not.toBe(productGroupId({ ...product, objectID: "two", store: "Outra", parent_product_id: "parent" }));
   });
-  it("groups size and color variants inside one store", () => {
-    expect(productGroupId({ ...product, colour: "Azul", size: "42" })).toBe(productGroupId({ ...product, title: "Tênis Nike Vermelho tamanho 40", colour: "Vermelho", size: "40" }));
+  it("groups Nike sizes of the same product and colour, but never different colours", () => {
+    expect(productGroupId({ ...product, colour: "Azul", size: "42" })).toBe(productGroupId({ ...product, objectID: "two", title: "Tênis Nike Azul tamanho 40", colour: "Azul", size: "40" }));
+    expect(productGroupId({ ...product, colour: "Azul", size: "42" })).not.toBe(productGroupId({ ...product, title: "Tênis Nike Vermelho tamanho 40", colour: "Vermelho", size: "40" }));
+  });
+  it("never groups non-Nike parents, other sources or different stores", () => {
+    expect(productGroupId({ ...product, store: "Kabum BR", parent_product_id: "same" })).not.toBe(productGroupId({ ...product, objectID: "two", store: "Kabum BR", parent_product_id: "same" }));
+    expect(productGroupId({ ...product, source: "lomadee", colour: "Azul" })).not.toBe(productGroupId({ ...product, objectID: "two", source: "lomadee", colour: "Azul" }));
+    expect(productGroupId({ ...product, colour: "Azul" })).not.toBe(productGroupId({ ...product, store: "Outra", colour: "Azul" }));
+  });
+  it("keeps Nike records without a reliable product or colour singleton", () => {
+    expect(productGroupId({ ...product, colour: null })).toBe("single:one");
+    expect(productGroupId({ ...product, title: "", colour: "Azul" })).toBe("single:one");
   });
   it("does not merge capacities or ML catalog products", () => {
-    expect(productGroupId({ ...product, title: "SSD 1TB" })).not.toBe(productGroupId({ ...product, title: "SSD 2TB" }));
+    expect(productGroupId({ ...product, title: "SSD 1TB" })).not.toBe(productGroupId({ ...product, objectID: "two", title: "SSD 2TB" }));
     expect(productGroupId({ ...product, source: "mercadolivre" })).not.toBe(productGroupId({ ...product, source: "mercadolivre", objectID: "two" }));
   });
   it("keeps KaBuM duplicate titles separate without parent evidence", () => {

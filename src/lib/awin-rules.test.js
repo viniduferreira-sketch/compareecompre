@@ -43,6 +43,17 @@ describe("awin merchant rules", () => {
     expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: "Hardware > Placa de vídeo (VGA) > Acessórios > Acessórios" }, rules)).toBe("categoria não permitida");
     expect(awinRuleDiscard({ merchant_name: "Lauri Esporte", merchant_category: "Tênis" }, rules)).toBe("loja sem regra de categoria");
   });
+  it("opens every category with * except only that store's exclusions", () => {
+    const open = [
+      { merchant: "KaBuM", category_terms: ["*"], excluded_category_terms: ["gift card", "cartão presente"], max_products: 20000 },
+      { merchant: "Nike", category_terms: ["*"], excluded_category_terms: ["gift card", "cartão presente"], max_products: 20000 },
+    ];
+    expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: "Hardware > Acessórios > Cabos" }, open)).toBeNull();
+    expect(awinRuleDiscard({ merchant_name: "Nike BR", merchant_category: "Infantil > Roupas" }, open)).toBeNull();
+    expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: "Gift Cards" }, open)).toBe("categoria não permitida");
+    expect(awinRuleDiscard({ merchant_name: "Nike BR", merchant_category: "Cartão-Presente" }, open)).toBe("categoria não permitida");
+    expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: "Games", product_name: "Gift Card" }, open)).toBeNull();
+  });
   it("prioritizes GTIN, then stock, then image", () => {
     const full = awinRowPriority({ ean: "7891234567895", in_stock: "1", merchant_image_url: "https://x/y.jpg" });
     const noGtin = awinRowPriority({ in_stock: "1", merchant_image_url: "https://x/y.jpg" });

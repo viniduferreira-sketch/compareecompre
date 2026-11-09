@@ -11,6 +11,6 @@ export type StoreControl = { network: string; external_id: string; merchant_name
 export function storeMatches(store: StoreControl, record: { source?: string | undefined; store?: string | undefined; merchant_id?: string | undefined; organizationId?: string | undefined }) {
   return record.source === store.network && (record.store === store.merchant_name || store.network === "awin" && normalizeAwinMerchantName(record.store ?? "") === normalizeAwinMerchantName(store.merchant_name) || record.merchant_id === store.external_id || record.organizationId === store.external_id);
 }
-export function applyStoreDisplay<T extends { source?: string; store?: string; merchant_id?: string; organizationId?: string }>(records: T[], stores: StoreControl[]) {
-  return records.map((record) => ({ ...record, site_hidden: stores.some((store) => storeMatches(store, record) && !store.display_enabled) }));
+export function applyStoreDisplay<T extends { source?: string; store?: string; merchant_id?: string; organizationId?: string; site_hidden?: boolean }>(records: T[], stores: StoreControl[]) {
+  return records.map((record) => ({ ...record, site_hidden: record.site_hidden === true || stores.some((store) => storeMatches(store, record) && !store.display_enabled) }));
 }

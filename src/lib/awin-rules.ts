@@ -7,6 +7,7 @@ import { normalizeGtin } from "./product-identifiers";
 export const CATEGORY_NOT_ALLOWED_REASON = "categoria não permitida";
 export const NO_MERCHANT_RULE_REASON = "loja sem regra de categoria";
 export const MERCHANT_LIMIT_REASON = "limite da loja atingido";
+export const AWIN_ALL_CATEGORIES = "*";
 
 /** Partner-category terms that always exclude a row, even when an allowed term matches
  * (e.g. "Hardware > Placa de vídeo > Acessórios"). Edit here; matched like category terms. */
@@ -45,6 +46,9 @@ export function awinRuleDiscard(row: RowLike, rules: readonly AwinMerchantRule[]
   if (!rule) return NO_MERCHANT_RULE_REASON;
   const category = row["merchant_category"] ?? "";
   if (matchCategoryTerm(category, rule.excluded_category_terms ?? [])) return CATEGORY_NOT_ALLOWED_REASON;
+  // Explicit wildcard: all categories except this store's own exclusions. Global
+  // accessory exclusions still protect merchants using positive inclusion lists.
+  if (rule.category_terms.includes(AWIN_ALL_CATEGORIES)) return null;
   if (matchCategoryTerm(category, AWIN_CATEGORY_EXCLUDED_TERMS)) return CATEGORY_NOT_ALLOWED_REASON;
   return matchCategoryTerm(category, rule.category_terms) ? null : CATEGORY_NOT_ALLOWED_REASON;
 }

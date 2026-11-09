@@ -38,27 +38,29 @@ export function calculatePopularity(record: PopularityRecord, clicks = 0, totalC
   return Math.max(0, Math.min(100, Math.round(base * (1 - weight) + behavioral * weight)));
 }
 
-/** Same-store variants only. ML offers are already catalog products; never infer their variants. */
+/** Only Awin Nike sizes of the same product and colour share a card. Every other record stays singleton. */
 export function productGroupId(record: PopularityRecord): string {
   const store = normalizePolicyText(record.store ?? record.merchantId ?? record.objectID);
-  if (record.source === "mercadolivre" || !record.source) return `${store}|id:${record.objectID}`;
-  const parent = record.parent_product_id?.trim();
-  if (parent) return `${store}|parent:${parent}`;
-  // Only Nike's feed has demonstrated meaningful size/color variants. Other stores
-  // stay singleton unless they provide an explicit parent; equal titles are not proof.
-  if (store !== "nike" && store !== "nike br") return `${store}|id:${record.objectID}`;
-  let title = normalizePolicyText(record.title ?? "");
+  if (record.source !== "awin" || (store !== "nike" && store !== "nike br")) return `single:${record.objectID}`;
   const attributes = record.attributes ?? [];
-  const variants = [record.colour, record.size, ...attributes.filter((a) => /^(cor|tamanho)$/i.test(a.name ?? "")).map((a) => a.value)];
-  for (const value of variants) {
+  const attributeValue = (name: RegExp) => attributes.find((a) => name.test(a.name ?? ""))?.value;
+  const colour = normalizePolicyText(record.colour ?? attributeValue(/^cor$/i) ?? "");
+  if (!colour) return `single:${record.objectID}`;
+  let title = normalizePolicyText(record.title ?? "");
+  // Remove only explicit size values. Colour remains a separate key component and
+  // arbitrary numbers (capacity, model etc.) are never stripped from the product name.
+  const sizes = [record.size, ...attributes.filter((a) => /^tamanho$/i.test(a.name ?? "")).map((a) => a.value)];
+  for (const value of sizes) {
     const term = normalizePolicyText(value ?? "");
     if (!term) continue;
-    // Never strip arbitrary numbers such as SSD capacity; only explicit variant values.
     const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     title = title.replace(new RegExp(`(?:^| )${escaped}(?= |$)`, "g"), " ");
   }
-  title = title.replace(/\b(?:tamanho|tam|cor)\s+[a-z0-9]+\b/g, " ").replace(/\s+/g, " ").trim();
-  return `${store}|title:${title || record.objectID}`;
+  title = title.replace(/\b(?:tamanho|tam)\s+[a-z0-9]+\b/g, " ").replace(/\s+/g, " ").trim();
+  const parent = normalizePolicyText(record.parent_product_id ?? "");
+  const product = parent ? `parent:${parent}` : `title:${title}`;
+  if (!parent && !title) return `single:${record.objectID}`;
+  return `${store}|${product}|colour:${colour}`;
 }
 
 export const POPULARITY_INDEX_SETTINGS = {

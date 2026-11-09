@@ -28,6 +28,7 @@ type AlgoliaOffer = StorefrontRecord & {
 
 const INDEX_NAME = "produtos_mercado_livre";
 const RESULTS_PER_PAGE = 40;
+const PUBLIC_OFFER_FILTER = 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected" AND NOT site_hidden:true';
 
 function getAlgoliaConfig() {
   const applicationId = import.meta.env["VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID"];
@@ -101,7 +102,7 @@ export async function searchOffers({ data: input }: { data: { query: string; lim
           distinct: 1,
           facets: ["store", "categoryName", "brand", "freeShipping"],
           maxValuesPerFacet: 1000,
-          filters: 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected"',
+          filters: PUBLIC_OFFER_FILTER,
           ...(facetFilters.length > 0 ? { facetFilters } : {}),
           typoTolerance: true,
           attributesToRetrieve: [
@@ -160,7 +161,7 @@ export async function getHomeOffers(): Promise<{
         { name: "Esportes", query: "" },
       ];
       const ATTRS = ["objectID", "title", "imageUrl", "store", "price", "originalPrice", "discountPercent", "freeShipping", "affiliateUrl", "category", "sellerCount", "source", "status", "last_synced_at", "merchant_name", "loja", "storeLogoUrl", "merchant_logo", "store_logo", "aw_deep_link"];
-      const activeFilter = 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected"';
+      const activeFilter = PUBLIC_OFFER_FILTER;
       const publicStores = await getPublicStores();
       const storesResponse = await client.searchSingleIndex<AlgoliaOffer>({
         indexName,
@@ -186,7 +187,7 @@ export async function getHomeOffers(): Promise<{
               query,
               distinct: 1,
               hitsPerPage: name === "Moda" ? 20 : 1,
-              filters: `price > 0 AND categoryName:"${name}" AND NOT status:"unavailable" AND NOT quality_status:"rejected"`,
+              filters: `${PUBLIC_OFFER_FILTER} AND categoryName:"${name}"`,
               attributesToRetrieve: ["title", "imageUrl"],
             }
           }),
@@ -284,7 +285,7 @@ export async function compareOffers(product: { id: string; title: string; ean?: 
       searchParams: {
         query: tokens(product.title).slice(0, 6).join(" "),
         hitsPerPage: 30,
-        filters: 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected"',
+        filters: PUBLIC_OFFER_FILTER,
         removeWordsIfNoResults: "allOptional",
         attributesToRetrieve: ["objectID", "title", "store", "price", "affiliateUrl", "source", "status", "last_synced_at", "ean", "gtin", "merchant_name", "loja", "storeLogoUrl", "merchant_logo", "store_logo", "aw_deep_link"],
       },

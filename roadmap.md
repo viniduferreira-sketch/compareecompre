@@ -8,12 +8,18 @@
 - [x] Erro 42803 resolvido: criação isolada e preenchimento separado com CTE agregado e verificação da allowlist por campo escalar.
 - [x] Etapa 3: indicadores e gráficos reais, cache de 5 minutos e Atualizar; cliques por dia/loja/produto; 87 cupons com busca/validade/contagens. Navegador autenticado validou parceiros, filtros, edição, visão geral, cliques, cupons e carrossel público; mobile sem overflow. 28 testes passaram. Sem importação/sincronização/exclusão acionada; rotinas agendadas existentes continuaram normalmente. Logos Awin/ML e descrições permanecem manuais; nenhuma logo nova anexada neste pedido. Ocultar/exibir implementado e testado em lógica, não executado contra produtos reais para preservar visibilidade atual.
 
+## Catálogo KaBuM e Nike (pedido atual; sem importação)
+- [x] Agrupamento exclusivo Awin Nike por produto e cor: 779 linhas em 668 grupos (111 variantes ocultadas da repetição), 8.744 registros de outras fontes/lojas com chave única e zero colisões. 9.523 chaves aplicadas sem criar/apagar; principal e réplicas com distinct; cadastro e índice sem divergências.
+- [x] KaBuM e Nike com todas as categorias (*) e somente gift card/cartão presente excluídos em merchant_category; limite 20.000. Abertura gravada somente após validar o agrupamento; nenhuma importação/simulação iniciada.
+- [x] KaBuM: 1.071 atuais, 277 anteriores ao dia e 794 sincronizados hoje; zero duplicidades exatas por GTIN ou título, portanto nenhum registro ocultado. Filtro público site_hidden corrigido e ocultações manuais preservadas em futuras importações.
+- [x] Buscas públicas concluídas sem importação: iPhone 157 resultados, tênis 479, SSD 279; dez primeiros de cada consulta capturados para o relatório. 29 testes passaram.
+
 ## Popularidade e catálogo amplo (sem importação)
 - [x] Etapa 1 parcial: pontuação centralizada e integrada nos três syncs/revalidação, botão autenticado de recálculo somente de score; 7454 registros recalculados e distribuição conferida; 15 testes passaram.
 - [x] Retomada: erro original reproduzido na leitura GET /rest/v1/partner_catalog com query de 28705 caracteres: HTTP 400, corpo de resposta literal Bad Request, corpo enviado vazio. Algolia browse funciona. customRanking isolado aplicado; réplicas de preço intactas.
-- [ ] Agrupamento interrompido: gravação em lotes de 100 excedeu timeout de 309s; 4900 group_key gravadas, sem mudar visibilidade. attributeForDistinct continua null; distinct não ativado. Nike feed 6115 linhas/2887 grupos por título, KaBuM 4812/4810 títulos (apenas 2 duplicações; singleton por segurança).
-- [ ] Etapa 2 não iniciada: depende da conclusão da etapa 1; regras Awin e filtros de qualidade permanecem inalterados.
-- [ ] Buscas iphone/tênis/ssd e simulação das novas regras não executadas: interrompidas conforme pedido após timeout do agrupamento.
+- [x] Agrupamento retomado e concluído no pedido atual, substituindo as chaves parciais antigas; timeout anterior superado com lotes parciais sem criação e verificação completa.
+- [x] Abertura Awin do pedido anterior concluída para KaBuM/Nike no pedido atual; demais lojas permanecem inalteradas.
+- [x] Buscas iphone/tênis/ssd executadas no pedido atual; nenhuma simulação ou importação foi acionada.
 
 ## Ajuste Awin e diagnóstico Lomadee
 - [x] Exclusões de categoria por loja, editáveis no admin; KaBuM preenchida com os oito termos. Nove regressões reproduzidas e corrigidas; 22 testes Awin passaram.
