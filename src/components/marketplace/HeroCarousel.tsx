@@ -1,17 +1,11 @@
 import { useEffect, useState, type ComponentType } from "react";
 import {
   ArrowRight,
-  Camera,
   Dumbbell,
   ExternalLink,
-  Gamepad2,
-  House,
   Scale,
   Search,
   SearchCheck,
-  Shirt,
-  Smartphone,
-  Sparkles,
   Store,
 } from "lucide-react";
 
@@ -25,22 +19,10 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
-import heroImageDesktop from "@/assets/banners/home-commerce-hero-desktop.webp";
-import heroImageMobile from "@/assets/banners/home-commerce-hero-mobile.webp";
-import heroBeautyDesktop from "@/assets/banners/hero-beauty-scene-desktop.webp";
-import heroBeautyMobile from "@/assets/banners/hero-beauty-scene-mobile.webp";
-import heroGamingDesktop from "@/assets/banners/hero-gaming-scene-desktop.webp";
-import heroGamingMobile from "@/assets/banners/hero-gaming-scene-mobile.webp";
-import heroPhonesDesktop from "@/assets/banners/hero-phones-scene-desktop.webp";
-import heroPhonesMobile from "@/assets/banners/hero-phones-scene-mobile.webp";
 import heroKabumDesktopAsset from "@/assets/banners/hero-kabum-desktop.webp.asset.json";
 import heroKabumMobileAsset from "@/assets/banners/hero-kabum-mobile.webp.asset.json";
 import heroNikeDesktopAsset from "@/assets/banners/hero-nike-desktop.webp.asset.json";
 import heroNikeMobileAsset from "@/assets/banners/hero-nike-mobile.webp.asset.json";
-import heroElectronicsScene from "@/assets/hero-electronics-scene.jpg";
-import heroFashionScene from "@/assets/hero-fashion-scene.jpg";
-import heroKitchenScene from "@/assets/hero-kitchen-scene.jpg";
-import heroSportsScene from "@/assets/hero-sports-scene.jpg";
 
 type BannerAction =
   | { type: "search"; value: string }
@@ -71,25 +53,6 @@ type HomeBanner = {
 };
 
 export const HOME_BANNERS: HomeBanner[] = [
-  {
-    id: "principal",
-    active: true,
-    primary: true,
-    eyebrow: "Escolha inteligente",
-    icon: Sparkles,
-    title: "Não compre antes de comparar.",
-    description: "Compare preços em várias lojas e escolha a oferta que faz sentido para você.",
-    buttonLabel: "Comparar preços",
-    action: { type: "search", value: "ofertas do dia" },
-    backgroundClass: "bg-card",
-    image: {
-      desktop: heroImageDesktop,
-      mobile: heroImageMobile,
-      alt: "Produtos de tecnologia e casa comparados pelo Compare e Compre",
-      width: 1600,
-      height: 912,
-    },
-  },
   {
     id: "kabum",
     active: true,
@@ -143,134 +106,7 @@ export const HOME_BANNERS: HomeBanner[] = [
       { title: "Compare as ofertas", description: "Veja preços e condições disponíveis.", icon: Scale },
       { title: "Vá até a loja", description: "Finalize a compra no site parceiro.", icon: ExternalLink },
     ],
-  },
-  {
-    id: "beleza",
-    active: true,
-    eyebrow: "Beleza para sua rotina",
-    icon: Sparkles,
-    title: "O perfume que você quer, pelo preço que faz sentido.",
-    description: "Compare preços em várias lojas e encontre ofertas de beleza para sua rotina.",
-    buttonLabel: "Comparar produtos de beleza",
-    action: { type: "search", value: "beleza" },
-    backgroundClass: "bg-beauty-gradient",
-    image: {
-      desktop: heroBeautyDesktop,
-      mobile: heroBeautyMobile,
-      alt: "Perfume, sérum facial e paleta de maquiagem sobre uma superfície de mármore rosado",
-      width: 1408,
-      height: 912,
-    },
-  },
-  {
-    id: "celulares",
-    active: true,
-    eyebrow: "Celulares e acessórios",
-    icon: Smartphone,
-    title: "Antes de trocar de celular, compare preços em segundos.",
-    description: "Compare preços de celulares e acessórios em ofertas de lojas parceiras.",
-    buttonLabel: "Comparar celulares",
-    action: { type: "search", value: "Celulares" },
-    backgroundClass: "bg-phones-gradient",
-    image: {
-      desktop: heroPhonesDesktop,
-      mobile: heroPhonesMobile,
-      alt: "Smartphone, fones intra-auriculares e carregador portátil em um pedestal",
-      width: 1408,
-      height: 912,
-    },
-  },
-  {
-    id: "games",
-    active: true,
-    eyebrow: "Para quem vive o jogo",
-    icon: Gamepad2,
-    title: "Seu setup gamer começa com uma boa comparação.",
-    description: "Compare preços de consoles, jogos e periféricos em várias lojas parceiras.",
-    buttonLabel: "Comparar produtos gamer",
-    action: { type: "search", value: "Games" },
-    backgroundClass: "bg-gaming-gradient",
-    image: {
-      desktop: heroGamingDesktop,
-      mobile: heroGamingMobile,
-      alt: "Console, headset gamer e teclado mecânico em uma mesa com iluminação violeta",
-      width: 1408,
-      height: 912,
-    },
-  },
-  {
-    id: "cozinha",
-    active: false,
-    eyebrow: "Para sua cozinha",
-    icon: House,
-    title: "Equipar a cozinha começa com uma boa comparação.",
-    description: "Compare preços de cafeteiras, liquidificadores e outros produtos para casa em várias lojas.",
-    buttonLabel: "Comparar preços de casa",
-    action: { type: "search", value: "casa e cozinha" },
-    backgroundClass: "bg-kitchen-gradient",
-    image: {
-      desktop: heroKitchenScene,
-      mobile: heroKitchenScene,
-      alt: "Cafeteira, liquidificador e torradeira em uma cozinha verde-sálvia",
-      width: 1408,
-      height: 912,
-    },
-  },
-  {
-    id: "eletronicos",
-    active: false,
-    eyebrow: "Tecnologia para comparar",
-    icon: Camera,
-    title: "Encontre a tecnologia que combina com você.",
-    description: "Compare preços e condições de eletrônicos em ofertas de lojas parceiras.",
-    buttonLabel: "Comparar eletrônicos",
-    action: { type: "search", value: "Eletrônicos" },
-    backgroundClass: "bg-electronics-gradient",
-    image: {
-      desktop: heroElectronicsScene,
-      mobile: heroElectronicsScene,
-      alt: "Caixa de som Bluetooth, tablet e câmera de ação em uma prateleira clara",
-      width: 1408,
-      height: 912,
-    },
-  },
-  {
-    id: "esportes",
-    active: false,
-    eyebrow: "Para sua próxima meta",
-    icon: Dumbbell,
-    title: "Todo treino começa com o equipamento certo.",
-    description: "Compare preços de tênis, roupas e acessórios esportivos em várias lojas parceiras.",
-    buttonLabel: "Comparar artigos esportivos",
-    action: { type: "search", value: "Esportes" },
-    backgroundClass: "bg-sports-gradient",
-    image: {
-      desktop: heroSportsScene,
-      mobile: heroSportsScene,
-      alt: "Tênis de corrida, garrafa térmica e relógio esportivo junto a uma pista",
-      width: 1408,
-      height: 912,
-    },
-  },
-  {
-    id: "moda",
-    active: false,
-    eyebrow: "Estilo para comparar",
-    icon: Shirt,
-    title: "Encontre a peça que você quer e compare ofertas.",
-    description: "Compare preços de roupas, calçados e acessórios em várias lojas parceiras.",
-    buttonLabel: "Comparar moda",
-    action: { type: "search", value: "Moda" },
-    backgroundClass: "bg-fashion-gradient",
-    image: {
-      desktop: heroFashionScene,
-      mobile: heroFashionScene,
-      alt: "Jaqueta, bolsa e óculos de sol sobre uma superfície de mármore claro",
-      width: 1408,
-      height: 912,
-    },
-  },
-];
+  },];
 
 const ACTIVE_BANNERS = HOME_BANNERS.filter((banner) => banner.active);
 
@@ -326,7 +162,7 @@ export function HeroCarousel({
         <CarouselContent>
           {ACTIVE_BANNERS.map((banner, index) => {
             const EyebrowIcon = banner.icon;
-            const Heading = banner.primary ? "h1" : "h2";
+            const Heading = index === 0 ? "h1" : "h2";
             return (
               <CarouselItem key={banner.id} data-banner-id={banner.id}>
                 <div
