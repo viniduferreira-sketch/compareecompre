@@ -2,7 +2,7 @@
 
 ## Redesenho administrativo (pedido atual; sem importar/sincronizar/apagar)
 - [x] Etapa 1: sete páginas, menu fixo/gaveta, mesmas ações e confirmações, histórico dez por fonte; navegador autenticado sem erros e 33 testes passaram. Nenhuma importação acionada.
-- [ ] Etapa 2 interrompida conforme pedido: criação de partner_stores falhou com 42883, function public.has_role(uuid, unknown) does not exist. Transação revertida; nenhuma tabela/dado aplicado. Aguardar autorização para retomar corrigindo o uso do verificador de papel existente.
+- [ ] Etapa 2 retomada e interrompida conforme pedido: padrão real RLS confirmado via pg_policies (EXISTS em user_roles, user_id=auth.uid(), role='admin'); sem has_role. Nova tentativa revertida com 42803: subquery uses ungrouped column "partner_catalog.record" from outer query no backfill agrupado. Nenhuma tabela/dado aplicado; Etapa 1 intacta. Retomada exige agrupar primeiro em CTE e verificar allowlist por coluna escalar depois.
 - [ ] Etapa 3 não iniciada: bloqueada pela falha da Etapa 2. Indicadores/gráficos novos, cadastro/controles de lojas, lista administrativa de cupons e integração da home não entregues.
 
 ## Popularidade e catálogo amplo (sem importação)
