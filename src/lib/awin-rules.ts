@@ -8,6 +8,17 @@ export const CATEGORY_NOT_ALLOWED_REASON = "categoria não permitida";
 export const NO_MERCHANT_RULE_REASON = "loja sem regra de categoria";
 export const MERCHANT_LIMIT_REASON = "limite da loja atingido";
 export const AWIN_ALL_CATEGORIES = "*";
+export const AWIN_GIFT_CARD_EXCLUDED_TERMS: readonly string[] = ["gift card", "cartão presente"];
+const EMPTY_CATEGORIES_OPEN_MERCHANTS = new Set(["kabum", "nike"]);
+
+function isOpenMerchant(rule: AwinMerchantRule): boolean {
+  return EMPTY_CATEGORIES_OPEN_MERCHANTS.has(normalizeAwinMerchantName(rule.merchant));
+}
+
+export function allowsAllAwinCategories(rule: AwinMerchantRule): boolean {
+  return rule.category_terms.includes(AWIN_ALL_CATEGORIES)
+    || (rule.category_terms.length === 0 && isOpenMerchant(rule));
+}
 
 /** Partner-category terms that always exclude a row, even when an allowed term matches
  * (e.g. "Hardware > Placa de vídeo > Acessórios"). Edit here; matched like category terms. */
@@ -45,10 +56,14 @@ export function awinRuleDiscard(row: RowLike, rules: readonly AwinMerchantRule[]
   const rule = findAwinRule(row, rules);
   if (!rule) return NO_MERCHANT_RULE_REASON;
   const category = row["merchant_category"] ?? "";
-  if (matchCategoryTerm(category, rule.excluded_category_terms ?? [])) return CATEGORY_NOT_ALLOWED_REASON;
-  // Explicit wildcard: all categories except this store's own exclusions. Global
-  // accessory exclusions still protect merchants using positive inclusion lists.
-  if (rule.category_terms.includes(AWIN_ALL_CATEGORIES)) return null;
+  const allCategories = allowsAllAwinCategories(rule);
+  const exclusions = allCategories && isOpenMerchant(rule)
+    ? [...new Set([...AWIN_GIFT_CARD_EXCLUDED_TERMS, ...(rule.excluded_category_terms ?? [])])]
+    : (rule.excluded_category_terms ?? []);
+  if (matchCategoryTerm(category, exclusions)) return CATEGORY_NOT_ALLOWED_REASON;
+  // KaBuM/Nike may use either an explicit wildcard or an empty inclusion list.
+  // Other merchants fail closed, and positive lists retain the shared exclusions.
+  if (allCategories) return null;
   if (matchCategoryTerm(category, AWIN_CATEGORY_EXCLUDED_TERMS)) return CATEGORY_NOT_ALLOWED_REASON;
   return matchCategoryTerm(category, rule.category_terms) ? null : CATEGORY_NOT_ALLOWED_REASON;
 }

@@ -54,6 +54,18 @@ describe("awin merchant rules", () => {
     expect(awinRuleDiscard({ merchant_name: "Nike BR", merchant_category: "Cartão-Presente" }, open)).toBe("categoria não permitida");
     expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: "Games", product_name: "Gift Card" }, open)).toBeNull();
   });
+  it("treats empty categories as all only for KaBuM and Nike, always excluding gift cards", () => {
+    const open = [
+      { merchant: "KaBuM", category_terms: [], excluded_category_terms: ["gift card", "cartão presente"], max_products: 20000 },
+      { merchant: "Nike", category_terms: [], excluded_category_terms: ["gift card", "cartão presente"], max_products: 20000 },
+      { merchant: "Outra", category_terms: [], excluded_category_terms: [], max_products: 20000 },
+    ];
+    expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: "Hardware > Acessórios > Cabos" }, open)).toBeNull();
+    expect(awinRuleDiscard({ merchant_name: "Nike BR", merchant_category: "Infantil > Roupas" }, open)).toBeNull();
+    expect(awinRuleDiscard({ merchant_name: "Kabum BR", merchant_category: "Gift Cards" }, open)).toBe("categoria não permitida");
+    expect(awinRuleDiscard({ merchant_name: "Nike BR", merchant_category: "Cartão-Presente" }, open)).toBe("categoria não permitida");
+    expect(awinRuleDiscard({ merchant_name: "Outra", merchant_category: "Hardware" }, open)).toBe("categoria não permitida");
+  });
   it("prioritizes GTIN, then stock, then image", () => {
     const full = awinRowPriority({ ean: "7891234567895", in_stock: "1", merchant_image_url: "https://x/y.jpg" });
     const noGtin = awinRowPriority({ in_stock: "1", merchant_image_url: "https://x/y.jpg" });

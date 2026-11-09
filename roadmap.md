@@ -1,5 +1,12 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Falhas Awin e Lomadee de 09/11 (pedido atual; sem importações)
+- [x] Diagnosticar: Awin 13:03 descartou 10.898 porque `awin_merchant_rules` estava vazia; Lomadee 13:00 falhou antes dos produtos na conexão com Algolia, após concluir cupons, sem registros gravados.
+- [x] Restaurar KaBuM/Nike no cadastro existente com categorias vazias = todas, somente gift card/cartão presente excluídos e limite 20.000; releitura confirmada.
+- [ ] Alinhar importador/simulação ao formato vazio somente para KaBuM/Nike e testar regras.
+- [ ] Aumentar timeouts e adicionar repetição somente para falha de conexão Algolia; validar leitura publicada.
+- [ ] Rodar Simular filtro Awin e teste do importador publicado sem gravações; conferir histórico inalterado.
+
 ## Redesenho administrativo (pedido atual; sem importar/sincronizar/apagar)
 - [x] Correções atuais: popularidade visível sem aguardar varredura; cupons sem ações duplicadas. Valores Awin eram kabum/Nike (criados 03:55:49/03:56:00 UTC), restaurados Kabum BR/Nike BR. Simulação autenticada atual: KaBuM 791/Nike 500 (não 789; feed atual). Lomadee 01:16:12 sem ator/origem persistidos, autoria não comprovável.
 - [x] Etapa 2 A: partner_stores e RLS EXISTS user_roles aplicadas isoladamente, existência confirmada. B: SELECT CTE agregado validado e informado antes da inserção; 31 Lomadee habilitadas e 3 Awin (KaBuM/Nike habilitadas, Lauri não). Cadastro preenchido separado, produtos intactos.

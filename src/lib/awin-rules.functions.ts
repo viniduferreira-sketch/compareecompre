@@ -75,6 +75,15 @@ export const simulateAwinFilter = createServerFn({ method: "POST" })
     return simulateAwinFeed(allowed, rules);
   });
 
+export const testAwinImporter = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    setResponseHeader("Cache-Control", "no-store");
+    await requireAdmin(context);
+    const { testAwinImporterDryRun } = await import("@/lib/awin-import.server");
+    return testAwinImporterDryRun();
+  });
+
 export const setAwinNotAllowedMark = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ mark: z.boolean() }))

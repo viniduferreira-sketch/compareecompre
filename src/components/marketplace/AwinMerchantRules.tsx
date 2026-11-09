@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { deleteAwinRule, getAwinRules, saveAwinRule, setAwinNotAllowedMark, simulateAwinFilter } from "@/lib/awin-rules.functions";
+import { deleteAwinRule, getAwinRules, saveAwinRule, setAwinNotAllowedMark, simulateAwinFilter, testAwinImporter } from "@/lib/awin-rules.functions";
 import { discardLabels } from "@/lib/import-discards";
 
 export const awinRulesQuery = queryOptions({ queryKey: ["admin", "awin-rules"], queryFn: () => getAwinRules() });
@@ -36,7 +36,7 @@ function RuleForm({ initial, onSaved }: { initial?: { merchant: string; category
       finally { setPending(false); }
     }}>
       <Input aria-label="Loja (nome ou ID)" value={merchant} onChange={(e) => setMerchant(e.target.value)} placeholder="Loja (nome ou merchant_id)" disabled={pending || !!initial} maxLength={200} required />
-      <Input aria-label="Termos permitidos em merchant_category" value={terms} onChange={(e) => setTerms(e.target.value)} placeholder="Termos separados por vírgula ou * para todas" disabled={pending} />
+      <Input aria-label="Termos permitidos em merchant_category" value={terms} onChange={(e) => setTerms(e.target.value)} placeholder="Vazio = todas para KaBuM/Nike; ou use *" disabled={pending} />
       <Input aria-label="Limite por importação" type="number" min={1} max={100000} value={max} onChange={(e) => setMax(e.target.value)} disabled={pending} required />
       <Button type="submit" disabled={pending || !merchant.trim()}>{initial ? "Salvar" : "Adicionar"}</Button>
       <label className="grid gap-1 text-xs text-muted-foreground md:col-span-4">
@@ -55,8 +55,10 @@ export function AwinMerchantRules() {
   const client = useQueryClient();
   const remove = useServerFn(deleteAwinRule);
   const simulate = useServerFn(simulateAwinFilter);
+  const testImporter = useServerFn(testAwinImporter);
   const markFn = useServerFn(setAwinNotAllowedMark);
   const [sim, setSim] = useState<Simulation | null>(null);
+  const [importerTest, setImporterTest] = useState<Awaited<ReturnType<typeof testAwinImporter>> | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const refresh = async () => { await client.invalidateQueries({ queryKey: ["admin", "awin-rules"] }); };
@@ -71,7 +73,7 @@ export function AwinMerchantRules() {
     <section aria-labelledby="awin-rules-title" className="mb-8 border-b border-border pb-6">
       <h2 id="awin-rules-title" className="text-base font-semibold">Regras por loja Awin</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Ordem: anunciante permitido → conteúdo adulto → moeda BRL → categoria do parceiro → limite. Os termos valem só para a categoria do parceiro (palavra inteira, sem diferenciar maiúsculas e acentos; plural simples aceito). Use * nos termos permitidos para aceitar todas as categorias, exceto as exclusões da loja. Loja sem regra é descartada. Dentro do limite, entram primeiro produtos com GTIN, em estoque e com imagem.
+        Ordem: anunciante permitido → conteúdo adulto → moeda BRL → categoria do parceiro → limite. Os termos valem só para a categoria do parceiro (palavra inteira, sem diferenciar maiúsculas e acentos; plural simples aceito). Para KaBuM e Nike, deixe os termos permitidos vazios (ou use *) para aceitar todas as categorias, exceto as exclusões da loja. Para as demais lojas, lista vazia não libera categorias. Loja sem regra é descartada. Dentro do limite, entram primeiro produtos com GTIN, em estoque e com imagem.
       </p>
       <div className="mt-4 space-y-3">
         {rules.map((rule) => (
@@ -84,9 +86,12 @@ export function AwinMerchantRules() {
         <RuleForm onSaved={refresh} />
       </div>
 
-      <div className="mt-5 grid gap-6 lg:grid-cols-3">
+      <div className="mt-5 grid gap-6 lg:grid-cols-4">
         <AdminAction description="Lê o feed atual e conta o que entraria por loja, categoria e limite. Não grava; pode levar alguns minutos." type="button" variant="outline" disabled={!!busy} onClick={() => run("sim", async () => setSim(await simulate()))}>
           {busy === "sim" ? "Simulando…" : "Simular filtro Awin"}
+        </AdminAction>
+        <AdminAction description="Baixa uma amostra da KaBuM e da Nike e executa o mesmo lote do importador publicado. Não cria execução nem grava produtos, histórico ou busca; pode levar alguns minutos." type="button" variant="outline" disabled={!!busy} onClick={() => run("test", async () => setImporterTest(await testImporter()))}>
+          {busy === "test" ? "Testando…" : "Testar importador (sem gravar)"}
         </AdminAction>
         <AdminAction writes description="Marca ofertas Awin fora da lista permitida como rejeitadas, sem apagar. Use para ocultar ofertas antigas; grava no catálogo e na busca, pode levar alguns minutos." type="button" variant="outline" disabled={!!busy} onClick={() => run("mark", async () => {
           const r = await markFn({ data: { mark: true } });
@@ -98,6 +103,7 @@ export function AwinMerchantRules() {
         })}>{busy === "unmark" ? "Restaurando…" : "Reverter ocultação"}</AdminAction>
       </div>
       {message && <p role="status" className="mt-3 text-sm">{message}</p>}
+      {importerTest && <p role="status" className="mt-3 text-sm">Teste do importador, sem gravação: {importerTest.sampled} linhas amostradas, {importerTest.indexed} aceitas e {importerTest.skipped} descartadas ({Object.entries(importerTest.acceptedByMerchant).map(([store, count]) => `${store}: ${count}`).join(" · ") || "nenhuma loja aceita"}).</p>}
 
       {sim && (
         <div className="mt-5 space-y-5">

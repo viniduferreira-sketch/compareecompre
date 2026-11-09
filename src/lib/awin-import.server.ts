@@ -1,11 +1,15 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod";
-import { authorizedAwinWorkflow, awinRowSchema, normalizeAwinProduct, awinDiscardReason, type AwinProduct } from "./awin-catalog";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+import { authorizedAwinWorkflow, awinRowSchema, normalizeAwinProduct, awinDiscardReason, type AwinProduct, type AwinRow } from "./awin-catalog";
 import { awinRowPriority, awinRuleDiscard, findAwinRule, MERCHANT_LIMIT_REASON, type AwinMerchantRule } from "./awin-rules";
+import { normalizeAwinMerchantName } from "./awin-allowlist";
 import { addDiscard, type DiscardReasons } from "./import-discards";
 import { getAlgoliaIndexingConfig, ensureIdentifierFacets } from "./algolia-indexing.server";
+import { withAlgoliaConnectionRetry } from "./algolia-connection";
 import { enrichPopularity } from "./popularity.server";
-import { applyStoreDisplay, storeMatches } from "./partner-stores";
+import { applyStoreDisplay, storeMatches, type StoreControl } from "./partner-stores";
 import { applyPriceReviewToRecords } from "./price-review.server";
 
 export const AWIN_REPOSITORY = "viniduferreira-sketch/compareecompre";
@@ -26,19 +30,80 @@ export async function verifyAwinWorkflow(request: Request) {
 export const importRequestSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("start"), importId: z.string().uuid().optional() }),
   z.object({ action: z.literal("batch"), importId: z.string().uuid(), batch: z.number().int().min(0), rows: z.array(awinRowSchema).min(1).max(100) }),
+  z.object({ action: z.literal("testBatch"), batch: z.number().int().min(0), rows: z.array(awinRowSchema).min(1).max(100) }),
   z.object({ action: z.literal("finish"), importId: z.string().uuid(), success: z.boolean(), error: z.string().max(500).optional() }),
 ]);
 
+type AwinBatchConfiguration = {
+  allowedMerchants: string[];
+  controls: StoreControl[];
+  rules: AwinMerchantRule[];
+};
+
+type EvaluatedCandidate = { product: AwinProduct; rule: AwinMerchantRule; priority: number };
+
+async function readAwinBatchConfiguration(db: SupabaseClient<Database>): Promise<AwinBatchConfiguration> {
+  const allowlist = await db.from("awin_allowed_merchants").select("merchant_name");
+  if (allowlist.error) throw new Error("Não foi possível ler os anunciantes Awin permitidos.");
+  const allowedMerchants = (allowlist.data ?? []).map((row) => row.merchant_name);
+  const controls = await db.from("partner_stores").select("network,external_id,merchant_name,import_enabled,display_enabled").eq("network", "awin");
+  if (controls.error) throw new Error("Não foi possível conferir os controles das lojas Awin.");
+  const rulesResult = await db.from("awin_merchant_rules").select("merchant,category_terms,excluded_category_terms,max_products");
+  if (rulesResult.error) throw new Error("Não foi possível ler as regras por loja da Awin.");
+  return { allowedMerchants, controls: controls.data ?? [], rules: rulesResult.data ?? [] };
+}
+
+function evaluateAwinBatch(rows: AwinRow[], configuration: AwinBatchConfiguration) {
+  const { allowedMerchants, controls, rules } = configuration;
+  const reasons: DiscardReasons = {};
+  // Pipeline order: allowlist → adult content → BRL → partner category → per-store limit.
+  const candidates: EvaluatedCandidate[] = [];
+  const syncedAt = new Date().toISOString();
+  for (const row of rows) {
+    if (controls.some((store) => storeMatches(store, { source: "awin", store: row["merchant_name"], merchant_id: row["merchant_id"] }) && !store.import_enabled)) { addDiscard(reasons, "merchant_not_allowed"); continue; }
+    const reason = awinDiscardReason(row, allowedMerchants) ?? awinRuleDiscard(row, rules);
+    if (reason) { addDiscard(reasons, reason); continue; }
+    const product = normalizeAwinProduct(row, syncedAt, allowedMerchants);
+    const rule = findAwinRule(row, rules);
+    if (!product || !rule) { addDiscard(reasons, "invalid_id"); continue; }
+    candidates.push({ product, rule, priority: awinRowPriority(row) });
+  }
+  const unique = new Map<string, EvaluatedCandidate>();
+  for (const candidate of candidates) unique.set(candidate.product.objectID, candidate);
+  const duplicates = candidates.length - unique.size;
+  if (duplicates) reasons["duplicate_in_batch"] = duplicates;
+  const byMerchant = new Map<string, EvaluatedCandidate[]>();
+  for (const candidate of unique.values()) byMerchant.set(candidate.rule.merchant, [...(byMerchant.get(candidate.rule.merchant) ?? []), candidate]);
+  for (const list of byMerchant.values()) list.sort((a, b) => b.priority - a.priority);
+  return { reasons, duplicates, byMerchant };
+}
+
+function batchCounts(rowCount: number, indexed: number, duplicates: number) {
+  return { indexed, skipped: rowCount - indexed - duplicates };
+}
+
+function readAwinFeedUrl(): string {
+  const feedUrl = process.env["AWIN_FEED_URL"];
+  if (!feedUrl) throw new Error("Feed Awin não configurado.");
+  const url = new URL(feedUrl);
+  if (url.protocol !== "https:" || url.hostname !== "productdata.awin.com" || !url.pathname.startsWith("/datafeed/download/")) throw new Error("URL do feed inválida.");
+  return feedUrl;
+}
+
 export async function handleAwinImport(runId: string, input: z.infer<typeof importRequestSchema>) {
   const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+  if (input.action === "testBatch") {
+    const configuration = await readAwinBatchConfiguration(db);
+    const { reasons, duplicates, byMerchant } = evaluateAwinBatch(input.rows, configuration);
+    const acceptedByMerchant = Object.fromEntries([...byMerchant].map(([merchant, list]) => [merchant, list.length]));
+    const indexed = [...byMerchant.values()].reduce((count, list) => count + list.length, 0);
+    return { dryRun: true as const, batch: input.batch, ...batchCounts(input.rows.length, indexed, duplicates), discardReasons: reasons, acceptedByMerchant };
+  }
   if (input.action === "start") {
     await ensureIdentifierFacets();
     // Clear only abandoned jobs, not catalog records. Workflow concurrency prevents simultaneous downloads.
     await db.from("catalog_imports").update({ status: "failed", error: "Execução interrompida; solicite novamente." }).in("status", ["queued", "running"]).lt("updated_at", new Date(Date.now() - 3 * 3600_000).toISOString());
-    const feedUrl = process.env["AWIN_FEED_URL"];
-    if (!feedUrl) throw new Error("Feed Awin não configurado.");
-    const url = new URL(feedUrl);
-    if (url.protocol !== "https:" || url.hostname !== "productdata.awin.com" || !url.pathname.startsWith("/datafeed/download/")) throw new Error("URL do feed inválida.");
+    const feedUrl = readAwinFeedUrl();
     const existing = await db.from("catalog_imports").select("id,status").eq("github_run_id", runId).maybeSingle();
     if (existing.error) throw new Error("Não foi possível ler a importação.");
     if (existing.data) return { importId: existing.data.id, feedUrl };
@@ -67,53 +132,58 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
   const previous = await db.from("catalog_import_batches").select("indexed,skipped,discard_reasons").eq("import_id", job.id).eq("batch", input.batch).maybeSingle();
   if (previous.error) throw new Error("Não foi possível conferir o lote.");
   if (previous.data) return previous.data;
-  const allowlist = await db.from("awin_allowed_merchants").select("merchant_name");
-  if (allowlist.error) throw new Error("Não foi possível ler os anunciantes Awin permitidos.");
-  const allowedMerchants = (allowlist.data ?? []).map((row) => row.merchant_name);
-  const controls = await db.from("partner_stores").select("network,external_id,merchant_name,import_enabled,display_enabled").eq("network", "awin");
-  if (controls.error) throw new Error("Não foi possível conferir os controles das lojas Awin.");
-  const rulesResult = await db.from("awin_merchant_rules").select("merchant,category_terms,excluded_category_terms,max_products");
-  if (rulesResult.error) throw new Error("Não foi possível ler as regras por loja da Awin.");
-  const rules = rulesResult.data ?? [];
-  const reasons: DiscardReasons = {};
-  // Pipeline order: allowlist → adult content → BRL → partner category → per-store limit.
-  const candidates: { product: AwinProduct; rule: AwinMerchantRule; priority: number }[] = [];
-  const syncedAt = new Date().toISOString();
-  for (const row of input.rows) {
-    if ((controls.data ?? []).some((store) => storeMatches(store, { source: "awin", store: row["merchant_name"], merchant_id: row["merchant_id"] }) && !store.import_enabled)) { addDiscard(reasons, "merchant_not_allowed"); continue; }
-    const reason = awinDiscardReason(row, allowedMerchants) ?? awinRuleDiscard(row, rules);
-    if (reason) { addDiscard(reasons, reason); continue; }
-    const product = normalizeAwinProduct(row, syncedAt, allowedMerchants);
-    const rule = findAwinRule(row, rules);
-    if (!product || !rule) { addDiscard(reasons, "invalid_id"); continue; }
-    candidates.push({ product, rule, priority: awinRowPriority(row) });
-  }
-  const unique = new Map<string, (typeof candidates)[number]>();
-  for (const c of candidates) unique.set(c.product.objectID, c);
-  const duplicates = candidates.length - unique.size;
-  if (duplicates) reasons["duplicate_in_batch"] = duplicates;
-  const byMerchant = new Map<string, (typeof candidates)[number][]>();
-  for (const c of unique.values()) byMerchant.set(c.rule.merchant, [...(byMerchant.get(c.rule.merchant) ?? []), c]);
+  const configuration = await readAwinBatchConfiguration(db);
+  const { reasons, duplicates, byMerchant } = evaluateAwinBatch(input.rows, configuration);
   const products: AwinProduct[] = [];
   for (const [merchant, list] of byMerchant) {
-    list.sort((a, b) => b.priority - a.priority);
     // Durable per-import, per-store counter; idempotent for retried batches.
     const claim = await db.rpc("claim_awin_merchant_slots", { _import_id: job.id, _batch: input.batch, _merchant: merchant, _requested: list.length, _limit: list[0]!.rule.max_products });
     if (claim.error || typeof claim.data !== "number") throw new Error("Não foi possível reservar o limite da loja.");
-    products.push(...list.slice(0, claim.data).map((c) => c.product));
+    products.push(...list.slice(0, claim.data).map((candidate) => candidate.product));
     for (let i = claim.data; i < list.length; i++) addDiscard(reasons, MERCHANT_LIMIT_REASON);
   }
   if (products.length) {
-    const enriched = applyStoreDisplay(await applyPriceReviewToRecords(await enrichPopularity(products)), controls.data ?? []);
+    const enriched = applyStoreDisplay(await applyPriceReviewToRecords(await enrichPopularity(products)), configuration.controls);
     // Save the source of truth before indexing. A failed Algolia write retries these same IDs safely.
     const saved = await db.from("partner_catalog").upsert(enriched.map((record) => ({ object_id: record.objectID, source: "awin", record, last_synced_at: record.last_synced_at })), { onConflict: "object_id" });
     if (saved.error) throw new Error("Falha ao persistir produtos Awin.");
-    const { client, indexName } = getAlgoliaIndexingConfig();
-    await client.saveObjects({ indexName, objects: enriched, waitForTasks: true, batchSize: 100 });
+    const { indexName } = getAlgoliaIndexingConfig();
+    await withAlgoliaConnectionRetry(({ client }) => client.saveObjects({ indexName, objects: enriched, waitForTasks: true, batchSize: 100 }), getAlgoliaIndexingConfig);
   }
-  const counts = { indexed: products.length, skipped: input.rows.length - products.length - duplicates };
+  const counts = batchCounts(input.rows.length, products.length, duplicates);
   const savedBatch = await db.from("catalog_import_batches").upsert({ import_id: job.id, batch: input.batch, ...counts, discard_reasons: reasons });
   if (savedBatch.error) throw new Error("Não foi possível registrar o progresso.");
   await db.from("catalog_imports").update({ updated_at: new Date().toISOString() }).eq("id", job.id);
   return counts;
+}
+
+/** Runs the real published batch handler against a bounded feed sample, with no job/catalog/index writes. */
+export async function testAwinImporterDryRun(): Promise<{
+  dryRun: true;
+  batch: number;
+  indexed: number;
+  skipped: number;
+  discardReasons: DiscardReasons;
+  acceptedByMerchant: Record<string, number>;
+  sampled: number;
+}> {
+  const feedUrl = readAwinFeedUrl();
+  const response = await fetch(feedUrl);
+  if (!response.ok || !response.body) throw new Error(`Não foi possível baixar o feed Awin (HTTP ${response.status}).`);
+  const gz = feedUrl.includes("compression/gzip") || (response.headers.get("content-type") ?? "").includes("gzip");
+  const body = gz ? response.body.pipeThrough(new DecompressionStream("gzip")) : response.body;
+  const { parseCsv } = await import("./awin-admin.server");
+  const sampled = new Map<string, AwinRow[]>();
+  for await (const row of parseCsv(body.pipeThrough(new TextDecoderStream()))) {
+    const merchant = normalizeAwinMerchantName(row["merchant_name"] ?? "");
+    if (merchant !== "kabum" && merchant !== "nike") continue;
+    const list = sampled.get(merchant) ?? [];
+    if (list.length < 50) { list.push(row); sampled.set(merchant, list); }
+    if ((sampled.get("kabum")?.length ?? 0) === 50 && (sampled.get("nike")?.length ?? 0) === 50) break;
+  }
+  const rows = [...sampled.values()].flat();
+  if (!rows.length) throw new Error("O feed não contém linhas da KaBuM ou da Nike para o teste.");
+  const result = await handleAwinImport("dry-run", { action: "testBatch", batch: 0, rows });
+  if (!("dryRun" in result)) throw new Error("O teste do importador retornou um formato inesperado.");
+  return { ...result, sampled: rows.length };
 }

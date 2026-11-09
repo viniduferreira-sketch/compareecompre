@@ -9,7 +9,7 @@ import { getAlgoliaIndexingConfig } from "./algolia-indexing.server";
 type Row = Record<string, string>;
 
 /** Minimal streaming RFC 4180 CSV parser (Workers have no Node streams). */
-async function* parseCsv(stream: ReadableStream<string>): AsyncGenerator<Row> {
+export async function* parseCsv(stream: ReadableStream<string>): AsyncGenerator<Row> {
   const reader = stream.getReader();
   let header: string[] | null = null;
   let field = "";

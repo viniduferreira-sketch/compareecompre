@@ -1,4 +1,5 @@
 import { getAlgoliaIndexingConfig, ensureIdentifierFacets } from "./algolia-indexing.server";
+import { withAlgoliaConnectionRetry } from "./algolia-connection";
 import { lomadeeObjectId, normalizeLomadeeProduct, lomadeeDiscardReason, type LomadeeBrand, type LomadeeProduct, type NormalizedLomadeeProduct } from "./lomadee-catalog";
 import { addDiscard, type DiscardReasons } from "./import-discards";
 import { lomadeeRequests } from "./lomadee-client.server";
@@ -57,7 +58,7 @@ export async function runLomadeeSync(options: { couponsOnly?: boolean } = {}): P
       if (controls.error) throw new Error("Não foi possível conferir os controles das lojas Lomadee.");
       const merchants = prioritizedMerchants([...brands].filter(([id, b]) => b.network?.active !== false && b.channels?.some((c) => c.shortUrls?.length) && !(controls.data ?? []).some((store) => store.external_id === id && !store.import_enabled)).map(([id, brand]) => ({ id, ...brand })));
       let start = Math.max(0, merchants.findIndex((m) => m.id === cursor.merchantId));
-      const { client, indexName } = getAlgoliaIndexingConfig();
+      const { indexName } = getAlgoliaIndexingConfig();
       for (let visited = 0; visited < merchants.length && requests.remaining > 0; visited += 1) {
         const merchant = merchants[(start + visited) % merchants.length];
         if (!merchant) break;
@@ -95,7 +96,7 @@ export async function runLomadeeSync(options: { couponsOnly?: boolean } = {}): P
           const enriched = applyStoreDisplay(await applyPriceReviewToRecords(await enrichPopularity(ready)), controls.data ?? []);
           const saved = await db.from("partner_catalog").upsert(enriched.map((record) => ({ object_id: record.objectID, source: "lomadee", record, last_synced_at: now })), { onConflict: "object_id" });
           if (saved.error) throw new Error("Falha ao salvar produtos da Lomadee.");
-          await client.saveObjects({ indexName, objects: enriched, waitForTasks: true, batchSize: 100 });
+          await withAlgoliaConnectionRetry(({ client }) => client.saveObjects({ indexName, objects: enriched, waitForTasks: true, batchSize: 100 }), getAlgoliaIndexingConfig);
           indexed += ready.length;
         }
         const pages = json.meta?.totalPages ?? json.pagination?.totalPages;
