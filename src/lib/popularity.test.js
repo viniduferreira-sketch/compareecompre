@@ -27,4 +27,7 @@ describe("popularity and variants", () => {
     expect(productGroupId({ ...product, title: "SSD 1TB" })).not.toBe(productGroupId({ ...product, title: "SSD 2TB" }));
     expect(productGroupId({ ...product, source: "mercadolivre" })).not.toBe(productGroupId({ ...product, source: "mercadolivre", objectID: "two" }));
   });
+  it("keeps KaBuM duplicate titles separate without parent evidence", () => {
+    expect(productGroupId({ ...product, store: "Kabum BR" })).not.toBe(productGroupId({ ...product, store: "Kabum BR", objectID: "two" }));
+  });
 });

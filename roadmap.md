@@ -2,9 +2,10 @@
 
 ## Popularidade e catálogo amplo (sem importação)
 - [x] Etapa 1 parcial: pontuação centralizada e integrada nos três syncs/revalidação, botão autenticado de recálculo somente de score; 7454 registros recalculados e distribuição conferida; 15 testes passaram.
-- [ ] Etapa 1 bloqueada: preparação de chaves de agrupamento retornou Bad Request antes de aplicar ranking/distinct; interrompido conforme pedido. Índice permanece customRanking=null e attributeForDistinct=null; rótulo público preservado como Mais relevantes.
+- [x] Retomada: erro original reproduzido na leitura GET /rest/v1/partner_catalog com query de 28705 caracteres: HTTP 400, corpo de resposta literal Bad Request, corpo enviado vazio. Algolia browse funciona. customRanking isolado aplicado; réplicas de preço intactas.
+- [ ] Agrupamento interrompido: gravação em lotes de 100 excedeu timeout de 309s; 4900 group_key gravadas, sem mudar visibilidade. attributeForDistinct continua null; distinct não ativado. Nike feed 6115 linhas/2887 grupos por título, KaBuM 4812/4810 títulos (apenas 2 duplicações; singleton por segurança).
 - [ ] Etapa 2 não iniciada: depende da conclusão da etapa 1; regras Awin e filtros de qualidade permanecem inalterados.
-- [ ] Buscas iphone/tênis/ssd e simulação das novas regras não executadas: dependem das etapas anteriores concluídas.
+- [ ] Buscas iphone/tênis/ssd e simulação das novas regras não executadas: interrompidas conforme pedido após timeout do agrupamento.
 
 ## Ajuste Awin e diagnóstico Lomadee
 - [x] Exclusões de categoria por loja, editáveis no admin; KaBuM preenchida com os oito termos. Nove regressões reproduzidas e corrigidas; 22 testes Awin passaram.

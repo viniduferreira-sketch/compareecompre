@@ -44,6 +44,9 @@ export function productGroupId(record: PopularityRecord): string {
   if (record.source === "mercadolivre" || !record.source) return `${store}|id:${record.objectID}`;
   const parent = record.parent_product_id?.trim();
   if (parent) return `${store}|parent:${parent}`;
+  // Only Nike's feed has demonstrated meaningful size/color variants. Other stores
+  // stay singleton unless they provide an explicit parent; equal titles are not proof.
+  if (store !== "nike" && store !== "nike br") return `${store}|id:${record.objectID}`;
   let title = normalizePolicyText(record.title ?? "");
   const attributes = record.attributes ?? [];
   const variants = [record.colour, record.size, ...attributes.filter((a) => /^(cor|tamanho)$/i.test(a.name ?? "")).map((a) => a.value)];
@@ -60,5 +63,6 @@ export function productGroupId(record: PopularityRecord): string {
 
 export const POPULARITY_INDEX_SETTINGS = {
   customRanking: ["desc(popularity_score)"],
-  attributeForDistinct: "product_group_id",
+  attributeForDistinct: "group_key",
+  distinct: 1,
 };

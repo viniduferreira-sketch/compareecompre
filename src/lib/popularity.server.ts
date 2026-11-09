@@ -13,16 +13,16 @@ export async function enrichPopularity<T extends PopularityRecord>(records: T[])
   const clicks = await readPopularityClicks();
   return records.map((record) => ({ ...record,
     popularity_score: calculatePopularity(record, clicks.counts.get(record.objectID) ?? 0, clicks.total),
-    product_group_id: productGroupId(record),
+    group_key: productGroupId(record),
   }));
 }
 
 export async function configurePopularityIndex() {
   const { client, indexName } = getAlgoliaIndexingConfig();
-  for (const name of [indexName, `${indexName}_price_asc`, `${indexName}_price_desc`]) {
-    const result = await client.setSettings({ indexName: name, indexSettings: POPULARITY_INDEX_SETTINGS });
-    await client.waitForTask({ indexName: name, taskID: result.taskID });
-  }
+  const ranking = await client.setSettings({ indexName, indexSettings: { customRanking: POPULARITY_INDEX_SETTINGS.customRanking } });
+  await client.waitForTask({ indexName, taskID: ranking.taskID });
+  const grouping = await client.setSettings({ indexName, indexSettings: { attributeForDistinct: POPULARITY_INDEX_SETTINGS.attributeForDistinct, distinct: 1 } });
+  await client.waitForTask({ indexName, taskID: grouping.taskID });
 }
 
 /** One bounded cursor page. Recalculation changes only popularity_score, never visibility/links/dates. */

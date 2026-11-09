@@ -197,7 +197,7 @@ function SearchResults({
           <Select value={sort} onValueChange={(value) => onSort(value as OfferSort)}>
             <SelectTrigger className="w-44 bg-card"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="relevance">Mais relevantes</SelectItem>
+              <SelectItem value="relevance">Mais populares</SelectItem>
               <SelectItem value="price_asc">Menor preço</SelectItem>
               <SelectItem value="price_desc">Maior preço</SelectItem>
             </SelectContent>
