@@ -67,6 +67,9 @@ export function normalizeAwinProduct(row: AwinRow, syncedAt: string, allowedMerc
   return {
     objectID: `awin-${merchantId}-${externalId}`,
     externalId, merchantId, source: "awin" as const,
+    parent_product_id: text(row["parent_product_id"], 200) || null,
+    colour: text(row["colour"], 100) || null,
+    size: text(row["Fashion:size"], 100) || null,
     title, store, price, affiliateUrl,
     imageUrl: httpUrl(row["merchant_image_url"]) ?? httpUrl(row["aw_image_url"]),
     images: [row["merchant_image_url"], row["large_image"], row["alternate_image"], row["alternate_image_two"]]

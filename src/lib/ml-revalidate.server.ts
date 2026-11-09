@@ -1,6 +1,7 @@
 import { getAlgoliaIndexingConfig, CATALOG_FACETS } from "./algolia-indexing.server";
 import { mercadoLivreIdentifiers, type CatalogAttribute } from "./product-identifiers";
 import { classifyMeliItemsList, classifyMeliProduct, shouldAbortRevalidation } from "./ml-revalidate";
+import { enrichPopularity } from "./popularity.server";
 
 const STALE_AFTER_HOURS = 12;
 const MAX_ITEMS_PER_RUN = 200;
@@ -21,6 +22,11 @@ export type MlRevalidationResult = {
 
 type StaleRecord = {
   objectID: string;
+  title?: string;
+  imageUrl?: string | null;
+  store?: string;
+  category?: string | null;
+  categoryName?: string | null;
   itemId?: string;
   last_synced_at?: string;
   source?: string;
@@ -172,7 +178,7 @@ export async function revalidateMercadoLivreOffers(options: { dryRun?: boolean; 
       indexName,
       browseParams: {
         query: "",
-        attributesToRetrieve: ["objectID", "itemId", "last_synced_at", "source"],
+        attributesToRetrieve: ["objectID", "itemId", "last_synced_at", "source", "title", "imageUrl", "store", "category", "categoryName"],
         hitsPerPage: 1000,
       },
       aggregator: (batch) => {
@@ -264,8 +270,11 @@ export async function revalidateMercadoLivreOffers(options: { dryRun?: boolean; 
 
     if (!dryRun && updates.length > 0) {
       await ensureStatusFilterable(client, indexName);
+      const complete = updates.map((update) => ({ ...candidates.find((r) => r.objectID === update["objectID"]), ...update, objectID: String(update["objectID"]) }));
+      const enriched = await enrichPopularity(complete);
+      const rankedUpdates = updates.map((update, index) => ({ ...update, popularity_score: enriched[index]?.popularity_score ?? 0, product_group_id: enriched[index]?.product_group_id }));
       // Partial updates on the primary index propagate to the price replicas automatically.
-      await client.partialUpdateObjects({ indexName, objects: updates, createIfNotExists: false, waitForTasks: true });
+      await client.partialUpdateObjects({ indexName, objects: rankedUpdates, createIfNotExists: false, waitForTasks: true });
     }
 
     result.message = dryRun

@@ -4,6 +4,7 @@ import { authorizedAwinWorkflow, awinRowSchema, normalizeAwinProduct, awinDiscar
 import { awinRowPriority, awinRuleDiscard, findAwinRule, MERCHANT_LIMIT_REASON, type AwinMerchantRule } from "./awin-rules";
 import { addDiscard, type DiscardReasons } from "./import-discards";
 import { getAlgoliaIndexingConfig, ensureIdentifierFacets } from "./algolia-indexing.server";
+import { enrichPopularity } from "./popularity.server";
 
 export const AWIN_REPOSITORY = "viniduferreira-sketch/compareecompre";
 export const AWIN_AUDIENCE = "compareecompre-awin-import";
@@ -98,11 +99,12 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
     for (let i = claim.data; i < list.length; i++) addDiscard(reasons, MERCHANT_LIMIT_REASON);
   }
   if (products.length) {
+    const enriched = await enrichPopularity(products);
     // Save the source of truth before indexing. A failed Algolia write retries these same IDs safely.
-    const saved = await db.from("partner_catalog").upsert(products.map((record) => ({ object_id: record.objectID, source: "awin", record, last_synced_at: record.last_synced_at })), { onConflict: "object_id" });
+    const saved = await db.from("partner_catalog").upsert(enriched.map((record) => ({ object_id: record.objectID, source: "awin", record, last_synced_at: record.last_synced_at })), { onConflict: "object_id" });
     if (saved.error) throw new Error("Falha ao persistir produtos Awin.");
     const { client, indexName } = getAlgoliaIndexingConfig();
-    await client.saveObjects({ indexName, objects: products, waitForTasks: true, batchSize: 100 });
+    await client.saveObjects({ indexName, objects: enriched, waitForTasks: true, batchSize: 100 });
   }
   const counts = { indexed: products.length, skipped: input.rows.length - products.length - duplicates };
   const savedBatch = await db.from("catalog_import_batches").upsert({ import_id: job.id, batch: input.batch, ...counts, discard_reasons: reasons });

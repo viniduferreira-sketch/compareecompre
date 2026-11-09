@@ -1,0 +1,6 @@
+CREATE OR REPLACE FUNCTION public.product_click_counts_30d() RETURNS TABLE(offer_id text, clicks bigint) LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$ SELECT offer_id, count(*) FROM public.outbound_clicks WHERE created_at >= now() - interval '30 days' AND page_type <> 'cupom' GROUP BY offer_id $$;
+REVOKE ALL ON FUNCTION public.product_click_counts_30d() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.product_click_counts_30d() TO service_role;
+CREATE OR REPLACE FUNCTION public.patch_catalog_popularity(_updates jsonb) RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$ DECLARE n integer; BEGIN IF jsonb_typeof(_updates) <> 'array' OR jsonb_array_length(_updates) > 500 THEN RAISE EXCEPTION 'Invalid batch'; END IF; UPDATE public.partner_catalog p SET record = jsonb_set(p.record, '{popularity_score}', to_jsonb(greatest(0,least(100,(u->>'popularity_score')::numeric)))) FROM jsonb_array_elements(_updates) u WHERE p.object_id = u->>'objectID'; GET DIAGNOSTICS n = ROW_COUNT; RETURN n; END $$;
+REVOKE ALL ON FUNCTION public.patch_catalog_popularity(jsonb) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.patch_catalog_popularity(jsonb) TO service_role;

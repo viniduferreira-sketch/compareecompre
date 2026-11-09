@@ -14,6 +14,7 @@ import { CatalogIdentifierStats, identifierStatsQuery } from "@/components/marke
 import { discardLabels } from "@/lib/import-discards";
 import { AwinAllowlist, awinAllowlistQuery } from "@/components/marketplace/AwinAllowlist";
 import { AwinMerchantRules, awinRulesQuery } from "@/components/marketplace/AwinMerchantRules";
+import { PopularityControl } from "@/components/marketplace/PopularityControl";
 
 const importsQuery = queryOptions({ queryKey: ["admin", "awin-imports"], queryFn: () => getImportStatus(), refetchInterval: 10000 });
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -196,6 +197,7 @@ function AdminImports() {
       </section>
     )}
     <AwinAllowlist />
+    <PopularityControl />
     <AwinMerchantRules />
     <section aria-label="Últimas importações" className="overflow-x-auto">
       <table className="w-full min-w-[650px] text-left text-sm"><thead className="border-b border-border text-muted-foreground"><tr>{["Solicitada em", "Parceiro", "Status", "Produtos", "Descartados", "Execução"].map((label) => <th key={label} className="p-3 font-medium">{label}</th>)}</tr></thead><tbody>

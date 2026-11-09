@@ -470,6 +470,14 @@ export type Database = {
         Returns: number
       }
       outbound_click_report: { Args: never; Returns: Json }
+      patch_catalog_popularity: { Args: { _updates: Json }; Returns: number }
+      product_click_counts_30d: {
+        Args: never
+        Returns: {
+          clicks: number
+          offer_id: string
+        }[]
+      }
       record_outbound_click: { Args: { payload: Json }; Returns: boolean }
       release_offer_sync_category: {
         Args: { _category: string; _execution_id: string }

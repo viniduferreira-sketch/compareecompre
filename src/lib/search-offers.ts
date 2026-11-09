@@ -97,6 +97,7 @@ export async function searchOffers({ data: input }: { data: { query: string; lim
           query: data.query,
           page,
           hitsPerPage: limit,
+          distinct: 1,
           facets: ["store", "categoryName", "brand", "freeShipping"],
           maxValuesPerFacet: 1000,
           filters: 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected"',
@@ -169,7 +170,7 @@ export async function getHomeOffers(): Promise<{
       const perStore = (index: string, params: Record<string, unknown>) => Promise.all(storeGroups.map((facetFilters) =>
         client.searchSingleIndex<AlgoliaOffer>({
           indexName: index,
-          searchParams: { query: "", hitsPerPage: 42, attributesToRetrieve: ATTRS, ...params, ...(facetFilters.length ? { facetFilters } : {}) },
+          searchParams: { query: "", hitsPerPage: 42, distinct: 1, attributesToRetrieve: ATTRS, ...params, ...(facetFilters.length ? { facetFilters } : {}) },
         }).catch(() => ({ hits: [] as AlgoliaOffer[] })),
       ));
       const [urgentResponses, priceDropsResponses, popularResponses, categoryResponses] = await Promise.all([
@@ -181,6 +182,7 @@ export async function getHomeOffers(): Promise<{
             indexName,
             searchParams: {
               query,
+              distinct: 1,
               hitsPerPage: name === "Moda" ? 20 : 1,
               filters: `price > 0 AND categoryName:"${name}" AND NOT status:"unavailable" AND NOT quality_status:"rejected"`,
               attributesToRetrieve: ["title", "imageUrl"],

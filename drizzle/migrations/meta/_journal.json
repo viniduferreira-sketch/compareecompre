@@ -85,6 +85,13 @@
       "when": 1794170428995,
       "tag": "0011_awin_per_store_category_exclusions",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794195003623,
+      "tag": "0012_catalog_popularity_helpers",
+      "breakpoints": true
     }
   ]
 }

@@ -3,6 +3,8 @@ import { mercadoLivreIdentifiers } from "./product-identifiers";
 import { fetchQA_MercadoLivre, type PartnerQA } from "@/lib/partner-qa.server";
 import { ADULT_CONTENT_REASON, getAdultContentMatch } from "./content-policy";
 import { addDiscard, type DiscardReasons } from "./import-discards";
+import { enrichPopularity } from "./popularity.server";
+import { POPULARITY_INDEX_SETTINGS } from "./popularity";
 
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 const DEFAULT_INDEX_NAME = "produtos_mercado_livre";
@@ -269,18 +271,20 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
       removeStopWords: ["pt"],
       ignorePlurals: ["pt"],
       replicas: [`${indexName}_price_asc`, `${indexName}_price_desc`],
+      ...POPULARITY_INDEX_SETTINGS,
     },
   });
   // Upsert only: existing records are never deleted or replaced during synchronization.
-  await client.saveObjects({ indexName, objects: records, batchSize: 500, waitForTasks: true });
+  const enriched = await enrichPopularity(records);
+  await client.saveObjects({ indexName, objects: enriched, batchSize: 500, waitForTasks: true });
   await Promise.all([
     client.setSettings({
       indexName: `${indexName}_price_asc`,
-      indexSettings: { ranking: ["asc(price)", "typo", "geo", "words", "filters", "proximity", "attribute", "exact", "custom"] },
+      indexSettings: { ...POPULARITY_INDEX_SETTINGS, ranking: ["asc(price)", "typo", "geo", "words", "filters", "proximity", "attribute", "exact", "custom"] },
     }),
     client.setSettings({
       indexName: `${indexName}_price_desc`,
-      indexSettings: { ranking: ["desc(price)", "typo", "geo", "words", "filters", "proximity", "attribute", "exact", "custom"] },
+      indexSettings: { ...POPULARITY_INDEX_SETTINGS, ranking: ["desc(price)", "typo", "geo", "words", "filters", "proximity", "attribute", "exact", "custom"] },
     }),
   ]);
 

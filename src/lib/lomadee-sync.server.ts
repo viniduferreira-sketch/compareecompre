@@ -4,6 +4,7 @@ import { addDiscard, type DiscardReasons } from "./import-discards";
 import { lomadeeRequests } from "./lomadee-client.server";
 import { prioritizedMerchants, readLomadeeCursor } from "./lomadee-cursor";
 import { normalizeLomadeeCoupon, type LomadeeCampaign } from "./coupons";
+import { enrichPopularity } from "./popularity.server";
 
 type Page<T> = { data?: T[]; pagination?: { totalPages?: number }; meta?: { totalPages?: number } };
 
@@ -87,9 +88,10 @@ export async function runLomadeeSync(options: { couponsOnly?: boolean } = {}): P
           if (record) ready.push(record); else { skipped += 1; addDiscard(reasons, lomadeeDiscardReason(product, merchant, link) ?? "invalid_affiliate_url"); }
         }
         if (ready.length) {
-          const saved = await db.from("partner_catalog").upsert(ready.map((record) => ({ object_id: record.objectID, source: "lomadee", record, last_synced_at: now })), { onConflict: "object_id" });
+          const enriched = await enrichPopularity(ready);
+          const saved = await db.from("partner_catalog").upsert(enriched.map((record) => ({ object_id: record.objectID, source: "lomadee", record, last_synced_at: now })), { onConflict: "object_id" });
           if (saved.error) throw new Error("Falha ao salvar produtos da Lomadee.");
-          await client.saveObjects({ indexName, objects: ready, waitForTasks: true, batchSize: 100 });
+          await client.saveObjects({ indexName, objects: enriched, waitForTasks: true, batchSize: 100 });
           indexed += ready.length;
         }
         const pages = json.meta?.totalPages ?? json.pagination?.totalPages;

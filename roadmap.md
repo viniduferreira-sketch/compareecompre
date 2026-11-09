@@ -1,5 +1,11 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Popularidade e catálogo amplo (sem importação)
+- [x] Etapa 1 parcial: pontuação centralizada e integrada nos três syncs/revalidação, botão autenticado de recálculo somente de score; 7454 registros recalculados e distribuição conferida; 15 testes passaram.
+- [ ] Etapa 1 bloqueada: preparação de chaves de agrupamento retornou Bad Request antes de aplicar ranking/distinct; interrompido conforme pedido. Índice permanece customRanking=null e attributeForDistinct=null; rótulo público preservado como Mais relevantes.
+- [ ] Etapa 2 não iniciada: depende da conclusão da etapa 1; regras Awin e filtros de qualidade permanecem inalterados.
+- [ ] Buscas iphone/tênis/ssd e simulação das novas regras não executadas: dependem das etapas anteriores concluídas.
+
 ## Ajuste Awin e diagnóstico Lomadee
 - [x] Exclusões de categoria por loja, editáveis no admin; KaBuM preenchida com os oito termos. Nove regressões reproduzidas e corrigidas; 22 testes Awin passaram.
 - [x] Diagnóstico somente leitura: execução Lomadee 20:20 UTC teve 100 invalid_price; nova leitura da mesma página 6 da ECO FLAME GARDEN retornou 100 com price=0 e listPrice positivo. Não há snapshot histórico para provar igualdade linha a linha.
