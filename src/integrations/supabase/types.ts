@@ -41,6 +41,83 @@ export type Database = {
         }
         Relationships: []
       }
+      awin_feed_import_results: {
+        Row: {
+          created_at: string
+          erro: string | null
+          feed_id: string
+          import_id: string
+          linhas: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          erro?: string | null
+          feed_id: string
+          import_id: string
+          linhas?: number
+          status: string
+        }
+        Update: {
+          created_at?: string
+          erro?: string | null
+          feed_id?: string
+          import_id?: string
+          linhas?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "awin_feed_import_results_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_imports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      awin_feeds: {
+        Row: {
+          anunciantes: string[]
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          origem_segredo: boolean
+          ultima_importacao_em: string | null
+          ultima_importacao_linhas: number | null
+          ultimo_teste_em: string | null
+          ultimo_teste_status: string | null
+          url: string
+        }
+        Insert: {
+          anunciantes?: string[]
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          origem_segredo?: boolean
+          ultima_importacao_em?: string | null
+          ultima_importacao_linhas?: number | null
+          ultimo_teste_em?: string | null
+          ultimo_teste_status?: string | null
+          url: string
+        }
+        Update: {
+          anunciantes?: string[]
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          origem_segredo?: boolean
+          ultima_importacao_em?: string | null
+          ultima_importacao_linhas?: number | null
+          ultimo_teste_em?: string | null
+          ultimo_teste_status?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       awin_import_merchant_slots: {
         Row: {
           batch: number
@@ -589,6 +666,16 @@ export type Database = {
       release_offer_sync_category: {
         Args: { _category: string; _execution_id: string }
         Returns: undefined
+      }
+      save_awin_feed: {
+        Args: {
+          _id: string
+          _merchants: Json
+          _nome: string
+          _secret?: boolean
+          _url: string
+        }
+        Returns: string
       }
       set_awin_quality_mark: {
         Args: { _ids: string[]; _mark: boolean; _reason: string }

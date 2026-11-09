@@ -1,5 +1,11 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Cadastro seguro de feeds Awin (sem importações)
+- [ ] Criar cadastro privado, testes limitados e gravação administrativa sem expor URLs.
+- [ ] Adicionar seção Feeds de dados na aba Awin e ações confirmadas.
+- [ ] Adaptar workflow a feeds ativos sequenciais, falhas isoladas e chave existente.
+- [ ] Validar segurança, limites, interface autenticada e ausência de alterações em produtos.
+
 ## Google Search Console (pedido atual)
 - [x] Vincular a conta Google Search Console ao projeto.
 - [ ] Publicar a etiqueta META e o sitemap com URLs da origem solicitada.

@@ -120,6 +120,13 @@
       "when": 1794238951503,
       "tag": "0016_create_price_review_queue",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794259378806,
+      "tag": "0017_create_private_awin_feeds",
+      "breakpoints": true
     }
   ]
 }
