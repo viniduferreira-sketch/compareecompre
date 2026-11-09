@@ -92,6 +92,13 @@
       "when": 1794195003623,
       "tag": "0012_catalog_popularity_helpers",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794199363431,
+      "tag": "0013_create_partner_stores_only",
+      "breakpoints": true
     }
   ]
 }

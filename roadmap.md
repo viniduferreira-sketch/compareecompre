@@ -1,8 +1,11 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
 ## Redesenho administrativo (pedido atual; sem importar/sincronizar/apagar)
+- [x] Correções atuais: popularidade visível sem aguardar varredura; cupons sem ações duplicadas. Valores Awin eram kabum/Nike (criados 03:55:49/03:56:00 UTC), restaurados Kabum BR/Nike BR. Simulação autenticada atual: KaBuM 791/Nike 500 (não 789; feed atual). Lomadee 01:16:12 sem ator/origem persistidos, autoria não comprovável.
+- [x] Etapa 2 A: partner_stores e RLS EXISTS user_roles aplicadas isoladamente, existência confirmada. B: SELECT CTE agregado validado e informado antes da inserção; 31 Lomadee habilitadas e 3 Awin (KaBuM/Nike habilitadas, Lauri não). Cadastro preenchido separado, produtos intactos.
+- [ ] Etapa 2 restante interrompida conforme pedido: criação de bucket público partner-logos falhou public_buckets_blocked. Nenhum bucket criado. Controles/identidade pública e leitura de lojas sem produtos ainda pendentes; retomar requer permissão para bucket público ou decisão de armazenamento privado.
 - [x] Etapa 1: sete páginas, menu fixo/gaveta, mesmas ações e confirmações, histórico dez por fonte; navegador autenticado sem erros e 33 testes passaram. Nenhuma importação acionada.
-- [ ] Etapa 2 retomada e interrompida conforme pedido: padrão real RLS confirmado via pg_policies (EXISTS em user_roles, user_id=auth.uid(), role='admin'); sem has_role. Nova tentativa revertida com 42803: subquery uses ungrouped column "partner_catalog.record" from outer query no backfill agrupado. Nenhuma tabela/dado aplicado; Etapa 1 intacta. Retomada exige agrupar primeiro em CTE e verificar allowlist por coluna escalar depois.
+- [x] Erro 42803 resolvido: criação isolada e preenchimento separado com CTE agregado e verificação da allowlist por campo escalar.
 - [ ] Etapa 3 não iniciada: bloqueada pela falha da Etapa 2. Indicadores/gráficos novos, cadastro/controles de lojas, lista administrativa de cupons e integração da home não entregues.
 
 ## Popularidade e catálogo amplo (sem importação)

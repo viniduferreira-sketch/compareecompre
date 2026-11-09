@@ -371,6 +371,54 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_stores: {
+        Row: {
+          description: string
+          display_enabled: boolean
+          enrollment_status: string
+          external_id: string
+          id: string
+          import_enabled: boolean
+          logo_url: string | null
+          merchant_name: string
+          metadata_origin: Json
+          name: string
+          network: string
+          notes: string
+          updated_at: string
+        }
+        Insert: {
+          description?: string
+          display_enabled?: boolean
+          enrollment_status?: string
+          external_id: string
+          id?: string
+          import_enabled?: boolean
+          logo_url?: string | null
+          merchant_name?: string
+          metadata_origin?: Json
+          name?: string
+          network: string
+          notes?: string
+          updated_at?: string
+        }
+        Update: {
+          description?: string
+          display_enabled?: boolean
+          enrollment_status?: string
+          external_id?: string
+          id?: string
+          import_enabled?: boolean
+          logo_url?: string | null
+          merchant_name?: string
+          metadata_origin?: Json
+          name?: string
+          network?: string
+          notes?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       price_alert_subscribers: {
         Row: {
           consent_at: string | null
