@@ -20,6 +20,7 @@ export async function getAwinProductDetail(id: string): Promise<ProductDetail | 
   const { data, error } = await db.from("partner_catalog").select("record").eq("object_id", id).eq("source", id.startsWith("lomadee-") ? "lomadee" : "awin").maybeSingle();
   if (error || !data) return null;
   const p = data.record as unknown as AwinProduct & Record<string, unknown>;
+  if (p["price_review_status"] === "pending") return null;
   const num = (v: unknown) => (typeof v === "number" ? v : typeof v === "string" ? Number(v.replace(",", ".")) : NaN);
   const ratingValue = num(p["rating"] ?? p["average_rating"] ?? p["reviews_rating"]);
   const ratingCount = num(p["review_count"] ?? p["reviews"] ?? p["number_of_reviews"]);

@@ -113,6 +113,13 @@
       "when": 1794200342652,
       "tag": "0015_admin_dashboard_aggregates",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794238951503,
+      "tag": "0016_create_price_review_queue",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,7 @@ import { addDiscard, type DiscardReasons } from "./import-discards";
 import { enrichPopularity } from "./popularity.server";
 import { POPULARITY_INDEX_SETTINGS } from "./popularity";
 import { applyStoreDisplay } from "./partner-stores";
+import { applyPriceReviewToRecords } from "./price-review.server";
 
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 const DEFAULT_INDEX_NAME = "produtos_mercado_livre";
@@ -280,7 +281,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
     },
   });
   // Upsert only: existing records are never deleted or replaced during synchronization.
-  const enriched = applyStoreDisplay(await enrichPopularity(records), controls.data ?? []);
+  const enriched = applyStoreDisplay(await applyPriceReviewToRecords(await enrichPopularity(records)), controls.data ?? []);
   await client.saveObjects({ indexName, objects: enriched, batchSize: 500, waitForTasks: true });
   await Promise.all([
     client.setSettings({

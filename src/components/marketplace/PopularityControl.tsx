@@ -15,7 +15,7 @@ export function PopularityControl() {
   const [error, setError] = useState("");
   return <section className="mb-8 border-b border-border pb-5" aria-label="Popularidade">
     <h2 className="mb-3 text-lg font-bold">Popularidade dos produtos</h2>
-    <p className="mb-5 text-sm leading-relaxed text-muted-foreground">Pontuação de 0 a 100: GTIN {POPULARITY_CONFIG.weights.gtin}, estoque {POPULARITY_CONFIG.weights.stock}, imagem {POPULARITY_CONFIG.weights.image}, desconto até {POPULARITY_CONFIG.weights.discount} e categorias de alta procura {POPULARITY_CONFIG.weights.category}. Cliques reais de 30 dias ganham peso conforme o volume aumenta; não representam vendas comprovadas.</p>
+    <p className="mb-5 text-sm leading-relaxed text-muted-foreground">Pontuação de 0 a 100: GTIN {POPULARITY_CONFIG.weights.gtin}, estoque {POPULARITY_CONFIG.weights.stock}, imagem {POPULARITY_CONFIG.weights.image}, desconto até {POPULARITY_CONFIG.weights.discount} (acima de {POPULARITY_CONFIG.maxDiscountBonusPercent}% não ganha bônus) e categorias de alta procura {POPULARITY_CONFIG.weights.category}. Cliques reais de 30 dias ganham peso conforme o volume aumenta; não representam vendas comprovadas.</p>
     <AdminAction writes description="Recalcula apenas a pontuação dos produtos em páginas retomáveis. Não importa nem oculta ofertas. Grava pontuações; pode levar vários minutos no catálogo inteiro." variant="outline" disabled={busy} onClick={async () => {
       setBusy(true); setError("");
       let next = cursor;

@@ -52,6 +52,7 @@ type IndexedRecord = {
   officialStore?: boolean;
   sellerName?: string | null;
   sellerLevel?: string | null;
+  priceReviewStatus?: string | undefined;
 };
 
 async function getIndexedRecord(productId: string): Promise<IndexedRecord> {
@@ -65,10 +66,11 @@ async function getIndexedRecord(productId: string): Promise<IndexedRecord> {
       official_store_id?: number | null;
       seller_nickname?: string | null;
       seller_level?: string | null;
+      price_review_status?: string;
     }>({
       indexName,
       objectID: productId,
-      attributesToRetrieve: ["qa", "status", "categoryName", "official_store_id", "seller_nickname", "seller_level"],
+      attributesToRetrieve: ["qa", "status", "categoryName", "official_store_id", "seller_nickname", "seller_level", "price_review_status"],
     });
     return {
       qa: Array.isArray(record.qa)
@@ -79,6 +81,7 @@ async function getIndexedRecord(productId: string): Promise<IndexedRecord> {
       officialStore: !!record.official_store_id,
       sellerName: record.seller_nickname ?? null,
       sellerLevel: record.seller_level ?? null,
+      priceReviewStatus: record.price_review_status,
     };
   } catch (error) {
     console.warn("Indexed product record unavailable", productId, error);
@@ -158,6 +161,7 @@ export const getProductDetail = createServerFn({ method: "POST" })
       .filter((url): url is string => Boolean(url))
       .slice(0, 8);
     const indexed = await getIndexedRecord(product.id);
+    if (indexed.priceReviewStatus === "pending") return null;
     const qa = indexed.qa;
 
     const attributeValue = (needle: string) =>

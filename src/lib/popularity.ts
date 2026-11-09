@@ -6,6 +6,7 @@ export const POPULARITY_CONFIG = {
   weights: { gtin: 15, stock: 20, image: 15, discount: 20, category: 30 },
   highDemandCategories: ["celular", "smartphone", "notebook", "tv", "televisor", "tênis", "placa de vídeo", "ssd", "monitor", "console"],
   fullDiscountPercent: 30,
+  maxDiscountBonusPercent: 70,
   maxClickWeight: 0.6,
   clicksForHalfWeight: 100,
   productClicksForHalfScore: 10,
@@ -25,8 +26,10 @@ export function calculatePopularity(record: PopularityRecord, clicks = 0, totalC
   const c = POPULARITY_CONFIG;
   const words = ` ${normalizePolicyText([record.category, record.categoryName, record.title].filter(Boolean).join(" "))} `;
   const demand = c.highDemandCategories.some((term) => words.includes(` ${normalizePolicyText(term)} `));
-  const realDiscount = record.price && record.originalPrice && record.originalPrice > record.price
-    ? Math.min(1, ((record.originalPrice - record.price) / record.originalPrice * 100) / c.fullDiscountPercent) : 0;
+  const discountPercent = record.price && record.originalPrice && record.originalPrice > record.price
+    ? (record.originalPrice - record.price) / record.originalPrice * 100 : 0;
+  const realDiscount = discountPercent > 0 && discountPercent <= c.maxDiscountBonusPercent
+    ? Math.min(1, discountPercent / c.fullDiscountPercent) : 0;
   const base = (normalizeGtin(record.gtin) ? c.weights.gtin : 0)
     + (record.status === "active" && record.inStock !== false ? c.weights.stock : 0)
     + (/^https?:\/\//i.test(record.imageUrl ?? "") ? c.weights.image : 0)

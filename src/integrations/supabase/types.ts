@@ -446,6 +446,51 @@ export type Database = {
         }
         Relationships: []
       }
+      price_review_items: {
+        Row: {
+          detected_at: string
+          median_price: number | null
+          object_id: string
+          peer_count: number
+          price: number
+          reason: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string | null
+          status: string
+          store: string | null
+          title: string
+        }
+        Insert: {
+          detected_at?: string
+          median_price?: number | null
+          object_id: string
+          peer_count?: number
+          price: number
+          reason: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string | null
+          status?: string
+          store?: string | null
+          title: string
+        }
+        Update: {
+          detected_at?: string
+          median_price?: number | null
+          object_id?: string
+          peer_count?: number
+          price?: number
+          reason?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string | null
+          status?: string
+          store?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string | null
@@ -520,6 +565,7 @@ export type Database = {
       }
       outbound_click_report: { Args: never; Returns: Json }
       patch_catalog_popularity: { Args: { _updates: Json }; Returns: number }
+      patch_catalog_price_review: { Args: { _updates: Json }; Returns: number }
       patch_store_display: {
         Args: { _hidden: boolean; _ids: string[]; _network: string }
         Returns: number

@@ -8,6 +8,13 @@
 - [x] Erro 42803 resolvido: criação isolada e preenchimento separado com CTE agregado e verificação da allowlist por campo escalar.
 - [x] Etapa 3: indicadores e gráficos reais, cache de 5 minutos e Atualizar; cliques por dia/loja/produto; 87 cupons com busca/validade/contagens. Navegador autenticado validou parceiros, filtros, edição, visão geral, cliques, cupons e carrossel público; mobile sem overflow. 28 testes passaram. Sem importação/sincronização/exclusão acionada; rotinas agendadas existentes continuaram normalmente. Logos Awin/ML e descrições permanecem manuais; nenhuma logo nova anexada neste pedido. Ocultar/exibir implementado e testado em lógica, não executado contra produtos reais para preservar visibilidade atual.
 
+## Revisão de preços suspeitos (pedido atual; sem importação/exclusão)
+- [x] Diagnóstico: SSD PCYES 1TB veio da Lomadee com price=1, sem originalPrice/discountPercent; score 76 por GTIN+estoque+imagem+alta procura, não por desconto.
+- [x] Desconto acima de 70% zera somente o bônus de desconto; 9.540 registros existentes recalculados, sem importação.
+- [x] Regras < R$ 5 ou < 20% da mediana de família/categoria aplicadas; 290 pendentes (71 mínimo, 219 mediana). Decisões persistentes e separadas de site_hidden/qualidade/disponibilidade.
+- [x] Fila em Busca e ranking com motivo, mediana e liberação confirmada; futuras sincronizações preservam pendentes/aprovados. Busca e página direta bloqueiam pendentes.
+- [x] SSD R$ 1: mediana R$ 616,40, quatro semelhantes; busca SSD caiu 279→274. Liberação real testada (saiu da fila e voltou à busca) e desfeita para manter o preço inválido pendente; estado final oculto confirmado. 35 testes e typecheck passaram; nada importado ou apagado.
+
 ## Catálogo KaBuM e Nike (pedido atual; sem importação)
 - [x] Agrupamento exclusivo Awin Nike por produto e cor: 779 linhas em 668 grupos (111 variantes ocultadas da repetição), 8.744 registros de outras fontes/lojas com chave única e zero colisões. 9.523 chaves aplicadas sem criar/apagar; principal e réplicas com distinct; cadastro e índice sem divergências.
 - [x] KaBuM e Nike com todas as categorias (*) e somente gift card/cartão presente excluídos em merchant_category; limite 20.000. Abertura gravada somente após validar o agrupamento; nenhuma importação/simulação iniciada.

@@ -2,6 +2,7 @@ import { getAlgoliaIndexingConfig, CATALOG_FACETS } from "./algolia-indexing.ser
 import { mercadoLivreIdentifiers, type CatalogAttribute } from "./product-identifiers";
 import { classifyMeliItemsList, classifyMeliProduct, shouldAbortRevalidation } from "./ml-revalidate";
 import { enrichPopularity } from "./popularity.server";
+import { applyPriceReviewToRecords } from "./price-review.server";
 
 const STALE_AFTER_HOURS = 12;
 const MAX_ITEMS_PER_RUN = 200;
@@ -271,8 +272,19 @@ export async function revalidateMercadoLivreOffers(options: { dryRun?: boolean; 
     if (!dryRun && updates.length > 0) {
       await ensureStatusFilterable(client, indexName);
       const complete = updates.map((update) => ({ ...candidates.find((r) => r.objectID === update["objectID"]), ...update, objectID: String(update["objectID"]) }));
-      const enriched = await enrichPopularity(complete);
-      const rankedUpdates = updates.map((update, index) => ({ ...update, popularity_score: enriched[index]?.popularity_score ?? 0, group_key: enriched[index]?.group_key }));
+      const enriched = await applyPriceReviewToRecords(await enrichPopularity(complete));
+      const rankedUpdates = updates.map((update, index) => {
+        const reviewed = enriched[index];
+        return { ...update, popularity_score: reviewed?.popularity_score ?? 0, group_key: reviewed?.group_key,
+          ...(reviewed?.price_review_status ? {
+            price_review_status: reviewed.price_review_status,
+            price_review_reason: reviewed.price_review_reason,
+            price_review_median: reviewed.price_review_median,
+            price_review_peer_count: reviewed.price_review_peer_count,
+            price_reviewed_at: reviewed.price_reviewed_at,
+          } : {}),
+        };
+      });
       // Partial updates on the primary index propagate to the price replicas automatically.
       await client.partialUpdateObjects({ indexName, objects: rankedUpdates, createIfNotExists: false, waitForTasks: true });
     }

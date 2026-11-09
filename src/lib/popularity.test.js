@@ -11,6 +11,10 @@ describe("popularity and variants", () => {
   it("ignores false discounts", () => {
     expect(calculatePopularity({ ...product, originalPrice: 50 })).toBe(80);
   });
+  it("gives no discount bonus above 70%, but keeps the 70% bonus", () => {
+    expect(calculatePopularity({ ...product, price: 20, originalPrice: 100 })).toBe(80);
+    expect(calculatePopularity({ ...product, price: 30, originalPrice: 100 })).toBe(100);
+  });
   it("real clicks increase rank and their weight grows with data", () => {
     const p = { objectID: "click-only" };
     expect(calculatePopularity(p, 10, 100)).toBe(15);

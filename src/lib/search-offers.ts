@@ -28,7 +28,7 @@ type AlgoliaOffer = StorefrontRecord & {
 
 const INDEX_NAME = "produtos_mercado_livre";
 const RESULTS_PER_PAGE = 40;
-const PUBLIC_OFFER_FILTER = 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected" AND NOT site_hidden:true';
+const PUBLIC_OFFER_FILTER = 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected" AND NOT site_hidden:true AND NOT price_review_status:"pending"';
 
 function getAlgoliaConfig() {
   const applicationId = import.meta.env["VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID"];
