@@ -3,6 +3,7 @@ const assets = import.meta.glob<{ url: string }>("/src/assets/stores/*.asset.jso
 const OFFICIAL_LOGOS: Array<{ names: string[]; file: string; inverse?: boolean }> = [
   { names: ["mercado livre"], file: "mercado-livre.png" },
   { names: ["kabum", "kabum!", "kabum br"], file: "kabum.svg" },
+  { names: ["nike", "nike br"], file: "nike.svg" },
   { names: ["reserva"], file: "reserva.svg" },
   { names: ["shopee", "shopee brasil", "shopee br"], file: "shopee.png" },
   { names: ["promo farma", "promofarma"], file: "promo-farma.svg" },
