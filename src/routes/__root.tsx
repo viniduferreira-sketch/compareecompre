@@ -87,6 +87,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "Compare preços das maiores lojas do Brasil e compre pela melhor oferta.",
       },
       { name: "author", content: "Compare e Compre" },
+      { name: "google-site-verification", content: "qTf2cTMkU4LUCRYiH1fddjNLL2PoiQdLVQoXHDViUXM" },
       { name: "lomadee", content: "2324685" },
       { property: "og:title", content: "Compare e Compre" },
       {

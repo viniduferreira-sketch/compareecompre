@@ -8,14 +8,14 @@ import {
   type SitemapEntry,
 } from "@/lib/sitemap";
 
-const BASE_URL = "https://compareecompre.com";
 const PRODUCT_ROUTE_ID = "/produto/$id";
 
 export const Route = createFileRoute("/sitemap.xml")({
   staticData: { sitemap: false },
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
+        const baseURL = new URL(request.url).origin;
         const router = await getRouterInstance();
         const entries: SitemapEntry[] = sitemapStaticPaths(router).map((path) => ({ path }));
 
@@ -50,7 +50,7 @@ export const Route = createFileRoute("/sitemap.xml")({
             { status: 404, headers: { "Cache-Control": "no-store" } },
           );
         }
-        return new Response(sitemapXML(BASE_URL, entries), {
+        return new Response(sitemapXML(baseURL, entries), {
           headers: { "Content-Type": "application/xml", "Cache-Control": "public, max-age=3600" },
         });
       },

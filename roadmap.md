@@ -1,5 +1,11 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Google Search Console (pedido atual)
+- [x] Vincular a conta Google Search Console ao projeto.
+- [ ] Publicar a etiqueta META e o sitemap com URLs da origem solicitada.
+- [ ] Verificar e adicionar https://compareecompre.lovable.app/ à propriedade exata retornada pelo Google.
+- [ ] Enviar https://compareecompre.lovable.app/sitemap.xml e marcar a pendência SEO como corrigida.
+
 ## Banners da página inicial (pedido atual; sem importações)
 - [x] Substituir promessas não garantidas e padronizar todos os botões em laranja.
 - [x] Manter sete banners ativos; preservar Cozinha, Eletrônicos, Esportes e Moda como inativos (quatro retiradas necessárias após incluir os três novos).
