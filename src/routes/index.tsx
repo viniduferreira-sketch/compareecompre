@@ -273,6 +273,12 @@ function Home() {
     (offer) => Number.isFinite(offer.price) && offer.price > 0,
   );
   const isSearchLoading = search.isPending || search.isFetching;
+  const selectStore = (store: string) => {
+    setTerm("");
+    setPage(1);
+    setActiveFilters([{ id: "store", value: store }]);
+    window.scrollTo({ top: 0 });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -296,10 +302,10 @@ function Home() {
           />
         ) : (
           <>
-            <HeroCarousel onSearch={startSearch} />
+            <HeroCarousel onSearch={startSearch} onSelectStore={selectStore} />
             <MonitoredStores
               stores={homeOffers.data?.stores ?? []}
-              onSelect={(store) => { setTerm(""); setPage(1); setActiveFilters([{ id: "store", value: store }]); window.scrollTo({ top: 0 }); }}
+              onSelect={selectStore}
             />
             <PopularCategories
               onSearch={startSearch}

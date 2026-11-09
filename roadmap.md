@@ -1,5 +1,12 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Banners da página inicial (pedido atual; sem importações)
+- [ ] Substituir promessas não garantidas e padronizar todos os botões em laranja.
+- [ ] Manter no máximo sete banners ativos, preservando os desativados no código.
+- [ ] Selecionar por leitura os produtos mais populares da KaBuM e Nike e criar três banners sem preços.
+- [ ] Gerar imagens WebP otimizadas para desktop/celular, com lazy loading exceto no primeiro.
+- [ ] Validar buscas filtradas, conteúdo e legibilidade móvel no navegador; nenhuma importação.
+
 ## Falhas Awin e Lomadee de 09/11 (pedido atual; sem importações)
 - [x] Diagnosticar: Awin 13:03 descartou 10.898 porque `awin_merchant_rules` estava vazia; Lomadee 13:00 falhou antes dos produtos na conexão com Algolia, após concluir cupons, sem registros gravados.
 - [x] Restaurar KaBuM/Nike no cadastro existente com categorias vazias = todas, somente gift card/cartão presente excluídos e limite 20.000; releitura confirmada.
