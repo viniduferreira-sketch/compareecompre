@@ -272,7 +272,7 @@ export async function revalidateMercadoLivreOffers(options: { dryRun?: boolean; 
       await ensureStatusFilterable(client, indexName);
       const complete = updates.map((update) => ({ ...candidates.find((r) => r.objectID === update["objectID"]), ...update, objectID: String(update["objectID"]) }));
       const enriched = await enrichPopularity(complete);
-      const rankedUpdates = updates.map((update, index) => ({ ...update, popularity_score: enriched[index]?.popularity_score ?? 0, product_group_id: enriched[index]?.product_group_id }));
+      const rankedUpdates = updates.map((update, index) => ({ ...update, popularity_score: enriched[index]?.popularity_score ?? 0, group_key: enriched[index]?.group_key }));
       // Partial updates on the primary index propagate to the price replicas automatically.
       await client.partialUpdateObjects({ indexName, objects: rankedUpdates, createIfNotExists: false, waitForTasks: true });
     }
