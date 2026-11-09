@@ -3,9 +3,10 @@
 ## Falhas Awin e Lomadee de 09/11 (pedido atual; sem importações)
 - [x] Diagnosticar: Awin 13:03 descartou 10.898 porque `awin_merchant_rules` estava vazia; Lomadee 13:00 falhou antes dos produtos na conexão com Algolia, após concluir cupons, sem registros gravados.
 - [x] Restaurar KaBuM/Nike no cadastro existente com categorias vazias = todas, somente gift card/cartão presente excluídos e limite 20.000; releitura confirmada.
-- [ ] Alinhar importador/simulação ao formato vazio somente para KaBuM/Nike e testar regras.
-- [ ] Aumentar timeouts e adicionar repetição somente para falha de conexão Algolia; validar leitura publicada.
-- [ ] Rodar Simular filtro Awin e teste do importador publicado sem gravações; conferir histórico inalterado.
+- [x] Alinhar importador/simulação ao formato vazio somente para KaBuM/Nike e testar regras; 29 testes Vitest + 6 Bun passaram.
+- [x] Aumentar timeouts (10s conexão/30s leitura/60s escrita) e repetir somente RetryError com cliente novo; verificação inicial e gravações idempotentes protegidas.
+- [x] Prévia autenticada: simulação 10.898 linhas/10.851 aceitas (KaBuM 4.782, Nike 6.069, 47 categoria, zero sem regra); lote real teste 100/100 (50 cada), sem gravações/histórico e sem erros de console.
+- [x] Publicado: mesma simulação 10.851 aceitos e teste 100/100; indicadores releram 9.540 registros via Algolia às 13:16:32. Nenhuma execução Awin/Lomadee nova, nenhum produto importado; sincronização Lomadee não foi rodada.
 
 ## Redesenho administrativo (pedido atual; sem importar/sincronizar/apagar)
 - [x] Correções atuais: popularidade visível sem aguardar varredura; cupons sem ações duplicadas. Valores Awin eram kabum/Nike (criados 03:55:49/03:56:00 UTC), restaurados Kabum BR/Nike BR. Simulação autenticada atual: KaBuM 791/Nike 500 (não 789; feed atual). Lomadee 01:16:12 sem ator/origem persistidos, autoria não comprovável.
