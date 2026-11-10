@@ -20,7 +20,13 @@ export function parseArticle(text: string) {
  const raw: unknown = match ? parse(match[1] ?? '', {maxAliasCount: 0}) : {};
  const fields = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
  const str = (key: string) => typeof fields[key] === 'string' || typeof fields[key] === 'number' ? String(fields[key]) : '';
- const tags = Array.isArray(fields['tags']) ? fields['tags'].filter((v): v is string => typeof v === 'string') : str('tags').split(',');
- return { titulo: str('titulo'), slug: str('slug'), titulo_seo: str('titulo_seo'), descricao_seo: str('descricao_seo'), resumo: str('resumo'), categoria: str('categoria'), tags: tags.map(v => v.trim()).filter(Boolean), corpo: marked.parse(match ? match[2] ?? '' : text, {async:false}) };
+ const tags = Array.isArray(fields['tags']) ? fields['tags'].filter((v): v is string => typeof v === 'string') : [str('tags')];
+ const uniqueTags = new Map<string, string>();
+ for (const value of tags.flatMap(v => v.split(','))) {
+  const name = value.trim().replace(/\s+/g, ' ');
+  const key = slugify(name);
+  if (key && !uniqueTags.has(key)) uniqueTags.set(key, name);
+ }
+ return { titulo: str('titulo'), slug: str('slug'), titulo_seo: str('titulo_seo'), descricao_seo: str('descricao_seo'), resumo: str('resumo'), categoria: str('categoria'), tags: [...uniqueTags.values()], corpo: marked.parse(match ? match[2] ?? '' : text, {async:false}) };
 }
 export const emptyPost: BlogPostInput = {titulo:'',slug:'',resumo:'',corpo:'',titulo_seo:'',descricao_seo:'',imagem_url:'',imagem_alt:'',imagem_credito:'',categoria_id:null,autor_id:null,status:'rascunho',publicado_em:null,tags:[]};

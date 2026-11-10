@@ -25,7 +25,32 @@ export function BlogEditor({id,initialPreview=false}:{id?:string;initialPreview?
  useEffect(()=>{if(postQuery.data&&loaded.current!==postQuery.data.id){const p=postQuery.data;setPost({id:p.id,titulo:p.titulo,slug:p.slug,resumo:p.resumo,corpo:p.corpo,titulo_seo:p.titulo_seo,descricao_seo:p.descricao_seo,imagem_url:p.imagem_url,imagem_alt:p.imagem_alt,imagem_credito:p.imagem_credito,categoria_id:p.categoria_id,autor_id:p.autor_id,status:p.status as BlogPostInput['status'],publicado_em:p.publicado_em?new Date(p.publicado_em).toISOString():null,tags:p.tags});setUpdated(p.atualizado_em);loaded.current=p.id;slugEdited.current=true;}},[postQuery.data]);
  const field=(key:keyof BlogPostInput,value:string)=>setPost(p=>({...p,[key]:value}));
  const addTag=async(name:string)=>{const found=data?.tags.find(t=>slugify(t.nome)===slugify(name));if(found){setPost(p=>({...p,tags:[...new Set([...p.tags,found.id])]}));return;}if(!await confirm(`Criar a tag “${name}”?`))return;const created=await entity({data:{kind:'tags',nome:name}});setPost(p=>({...p,tags:[...new Set([...p.tags,created.id])]}));await client.invalidateQueries({queryKey:['blog','entities']});};
- const fill=async()=>{try{const parsed=parseArticle(markdown);let category=data?.categories.find(c=>slugify(c.nome)===slugify(parsed.categoria))?.id??null; if(parsed.categoria&&!category){toast.info(`Categoria “${parsed.categoria}” não cadastrada.`);if(await confirm(`Criar a categoria “${parsed.categoria}”?`)){category=(await entity({data:{kind:'categorias',nome:parsed.categoria}})).id;}}const ids:string[]=[];for(const name of parsed.tags){const tag=data?.tags.find(t=>slugify(t.nome)===slugify(name));if(tag){ids.push(tag.id);}else{toast.info(`Tag “${name}” não cadastrada.`);if(await confirm(`Criar a tag “${name}”?`))ids.push((await entity({data:{kind:'tags',nome:name}})).id);}}setPost(p=>({...p,titulo:parsed.titulo,slug:parsed.slug,resumo:parsed.resumo,titulo_seo:parsed.titulo_seo,descricao_seo:parsed.descricao_seo,corpo:sanitizeArticle(parsed.corpo),categoria_id:category,tags:[...new Set(ids)]}));slugEdited.current=!!parsed.slug;await client.invalidateQueries({queryKey:['blog','entities']});toast.success('Editor preenchido.');}catch(e){toast.error(e instanceof Error?e.message:'Não foi possível ler o Markdown.');}};
+ const filling=useRef(false);
+ const fill=async()=>{
+  if(filling.current||!data)return;
+  filling.current=true;setBusy(true);
+  try{
+   const parsed=parseArticle(markdown);
+   let category=data.categories.find(c=>slugify(c.nome)===slugify(parsed.categoria))?.id??null;
+   const missingCategory=!!parsed.categoria&&!category;
+   const tagsByName=new Map(data.tags.map(t=>[slugify(t.nome),t.id]));
+   const missingTags=parsed.tags.filter(name=>!tagsByName.has(slugify(name)));
+   const changes=[...(missingCategory?[`categoria “${parsed.categoria}”`]:[]),...(missingTags.length?[`tags ${missingTags.map(name=>`“${name}”`).join(', ')}`]:[])];
+   if(changes.length&&!await confirm(`Criar ${changes.join(' e ')} e preencher o editor com todas as tags do artigo?`))return;
+   if(missingCategory)category=(await entity({data:{kind:'categorias',nome:parsed.categoria}})).id;
+   const ids:string[]=[];
+   for(const name of parsed.tags){
+    const key=slugify(name);
+    let tagId=tagsByName.get(key);
+    if(!tagId){tagId=(await entity({data:{kind:'tags',nome:name}})).id;tagsByName.set(key,tagId);}
+    ids.push(tagId);
+   }
+   setPost(p=>({...p,titulo:parsed.titulo,slug:parsed.slug,resumo:parsed.resumo,titulo_seo:parsed.titulo_seo,descricao_seo:parsed.descricao_seo,corpo:sanitizeArticle(parsed.corpo),categoria_id:category,tags:[...new Set(ids)]}));
+   slugEdited.current=!!parsed.slug;
+   toast.success('Editor preenchido.');
+  }catch(e){toast.error(e instanceof Error?e.message:'Não foi possível ler o Markdown.');}
+  finally{await client.invalidateQueries({queryKey:['blog','entities']});filling.current=false;setBusy(false);}
+ };
  const persist=async(status:BlogPostInput['status'])=>{let candidate={...post,status,publicado_em:status==='rascunho'?null:status==='publicado'?post.publicado_em??new Date().toISOString():post.publicado_em};const validated=blogPostSchema.safeParse(candidate);if(!validated.success){toast.error(validated.error.issues[0]?.message??'Confira os campos.');return;}if(!await confirm(status==='rascunho'?'Salvar este artigo como rascunho?':status==='agendado'?'Agendar a publicação para a data selecionada?':'Publicar este artigo? As páginas públicas serão criadas na parte 2.'))return;setBusy(true);try{const result=await save({data:candidate});await client.invalidateQueries({queryKey:['blog']});setPublish(false);toast.success(status==='rascunho'?'Rascunho salvo.':status==='agendado'?'Artigo agendado.':'Artigo publicado.');if(!id)await navigate({to:'/admin/blog/$id',params:{id:result.id}});else{const fresh=await loadPost({data:{id}});setUpdated(fresh.atualizado_em);setPost(p=>({...p,status,publicado_em:fresh.publicado_em?new Date(fresh.publicado_em).toISOString():null}));}}catch(e){toast.error(e instanceof Error?e.message:'Não foi possível salvar.');}finally{setBusy(false);}};
  if(postQuery.isPending&&id)return <p>Carregando artigo…</p>;
  if(postQuery.error)return <p role="alert">Não foi possível carregar o artigo.</p>;

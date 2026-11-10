@@ -16,6 +16,7 @@ describe('Blog rules',()=>{
  it('scheduling requires future date',()=>expect(blogPostSchema.safeParse({...base,status:'agendado',publicado_em:'2020-01-01T00:00:00Z'}).success).toBe(false));
  it('missing metadata is empty and Markdown tables convert',()=>{const p=parseArticle('---\ntitulo: Artigo\n---\n## Comparação\n\n| A | B |\n| - | - |\n| 1 | 2 |');expect(p.titulo).toBe('Artigo');expect(p.slug).toBe('');expect(p.tags).toEqual([]);expect(p.corpo).toContain('<table>');});
  it('reads comma-separated tags and category',()=>{const p=parseArticle('---\ncategoria: Informática\ntags: SSD, Notebook\n---\nTexto');expect(p.categoria).toBe('Informática');expect(p.tags).toEqual(['SSD','Notebook']);});
+ it('keeps all comma-separated tags, ignoring spaces and case duplicates',()=>{expect(parseArticle('---\ntags: " teste , PAINEL, TESTE , painel, , "\n---\nTexto').tags).toEqual(['teste','PAINEL']);});
  it('slug is editable and normalized',()=>expect(slugify('Comparação de tênis')).toBe('comparacao-de-tenis'));
  it('removes scripts, event handlers and unsafe links',()=>{const html=sanitizeArticle('<script>alert(1)</script><img src="https://example.org/a.webp" onerror="alert(1)"><a href="javascript:alert(1)">teste</a>');expect(html).not.toContain('<script');expect(html).not.toContain('onerror');expect(html).not.toContain('javascript:');});
 });
