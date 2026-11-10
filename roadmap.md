@@ -1,5 +1,11 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Blog — parte pública (sem importações e sem links no menu/rodapé)
+- [x] Páginas públicas SSR: destaque, grade, categorias/tags e paginação; artigo, autor, compartilhamento e relacionados.
+- [x] Prévia administrativa no mesmo visual, inclusive rascunhos, sempre noindex e privada.
+- [x] SEO por página, dados estruturados, sitemap paginado e contagem atômica de visualizações sem alterar a data editorial.
+- [x] 23 testes passaram; HTML inicial com corpo/tabela/SEO, rascunho negado a visitante, prévia administrativa salva/não salva, paginação de 10 artigos temporários, quatro relacionados, autor existente, envio WebP real e mobile sem overflow. Dez artigos temporários removidos; sem importações.
+
 ## Blog — parte 1 (sem catálogo, importações ou páginas públicas)
 - [x] Criar posts, categorias, tags, relações e autores com RLS administrativa e leitura pública restrita; cadastrar oito categorias iniciais separadamente.
 - [x] Implementar lista, editor rico, preenchimento Markdown, SEO, agendamento e prévia privada.

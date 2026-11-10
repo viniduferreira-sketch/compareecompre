@@ -13,12 +13,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthCallbackRouteImport } from './routes/auth-callback'
+import { Route as BlogRouteImport } from './routes/blog'
 import { Route as CuponsRouteImport } from './routes/cupons'
 import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-privacidade'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SobreNosRouteImport } from './routes/sobre-nos'
 import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ProdutoIdRouteImport } from './routes/produto.$id'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminBlogRouteImport } from './routes/_authenticated/admin.blog'
@@ -28,7 +31,10 @@ import { Route as AuthenticatedAdminCuponsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminParceirosRouteImport } from './routes/_authenticated/admin.parceiros'
 import { Route as AuthenticatedAdminQualidadeRouteImport } from './routes/_authenticated/admin.qualidade'
 import { Route as AuthenticatedAdminSincronizacaoRouteImport } from './routes/_authenticated/admin.sincronizacao'
+import { Route as AuthenticatedBlogPreviewIdRouteImport } from './routes/_authenticated/blog-preview.$id'
 import { Route as ApiPublicOutboundClickRouteImport } from './routes/api/public/outbound-click'
+import { Route as BlogCategoriaSlugRouteImport } from './routes/blog.categoria.$slug'
+import { Route as BlogTagSlugRouteImport } from './routes/blog.tag.$slug'
 import { Route as AuthenticatedAdminBlogIndexRouteImport } from './routes/_authenticated/admin.blog.index'
 import { Route as AuthenticatedAdminBlogIdRouteImport } from './routes/_authenticated/admin.blog.$id'
 import { Route as AuthenticatedAdminBlogAutoresRouteImport } from './routes/_authenticated/admin.blog.autores'
@@ -57,6 +63,11 @@ const AuthRoute = AuthRouteImport.update({
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth-callback',
   path: '/auth-callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CuponsRoute = CuponsRouteImport.update({
@@ -88,6 +99,16 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BlogRoute,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
 } as any)
 const ProdutoIdRoute = ProdutoIdRouteImport.update({
   id: '/produto/$id',
@@ -139,10 +160,26 @@ const AuthenticatedAdminSincronizacaoRoute =
     path: '/sincronizacao',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedBlogPreviewIdRoute =
+  AuthenticatedBlogPreviewIdRouteImport.update({
+    id: '/blog-preview/$id',
+    path: '/blog-preview/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicOutboundClickRoute = ApiPublicOutboundClickRouteImport.update({
   id: '/api/public/outbound-click',
   path: '/api/public/outbound-click',
   getParentRoute: () => rootRouteImport,
+} as any)
+const BlogCategoriaSlugRoute = BlogCategoriaSlugRouteImport.update({
+  id: '/categoria/$slug',
+  path: '/categoria/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
+const BlogTagSlugRoute = BlogTagSlugRouteImport.update({
+  id: '/tag/$slug',
+  path: '/tag/$slug',
+  getParentRoute: () => BlogRoute,
 } as any)
 const AuthenticatedAdminBlogIndexRoute =
   AuthenticatedAdminBlogIndexRouteImport.update({
@@ -207,13 +244,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/auth-callback': typeof AuthCallbackRoute
+  '/blog': typeof BlogRouteWithChildren
   '/cupons': typeof CuponsRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/blog/$slug': typeof BlogSlugRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/blog/': typeof BlogIndexRoute
   '/admin/blog': typeof AuthenticatedAdminBlogRouteWithChildren
   '/admin/busca': typeof AuthenticatedAdminBuscaRoute
   '/admin/cliques': typeof AuthenticatedAdminCliquesRoute
@@ -221,7 +261,10 @@ export interface FileRoutesByFullPath {
   '/admin/parceiros': typeof AuthenticatedAdminParceirosRoute
   '/admin/qualidade': typeof AuthenticatedAdminQualidadeRoute
   '/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
+  '/blog-preview/$id': typeof AuthenticatedBlogPreviewIdRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
+  '/blog/categoria/$slug': typeof BlogCategoriaSlugRoute
+  '/blog/tag/$slug': typeof BlogTagSlugRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
   '/admin/blog/autores': typeof AuthenticatedAdminBlogAutoresRoute
@@ -243,14 +286,19 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/blog': typeof BlogIndexRoute
   '/admin/busca': typeof AuthenticatedAdminBuscaRoute
   '/admin/cliques': typeof AuthenticatedAdminCliquesRoute
   '/admin/cupons': typeof AuthenticatedAdminCuponsRoute
   '/admin/parceiros': typeof AuthenticatedAdminParceirosRoute
   '/admin/qualidade': typeof AuthenticatedAdminQualidadeRoute
   '/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
+  '/blog-preview/$id': typeof AuthenticatedBlogPreviewIdRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
+  '/blog/categoria/$slug': typeof BlogCategoriaSlugRoute
+  '/blog/tag/$slug': typeof BlogTagSlugRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
   '/admin/blog/autores': typeof AuthenticatedAdminBlogAutoresRoute
@@ -269,13 +317,16 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/auth-callback': typeof AuthCallbackRoute
+  '/blog': typeof BlogRouteWithChildren
   '/cupons': typeof CuponsRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/blog/$slug': typeof BlogSlugRoute
   '/produto/$id': typeof ProdutoIdRoute
+  '/blog/': typeof BlogIndexRoute
   '/_authenticated/admin/blog': typeof AuthenticatedAdminBlogRouteWithChildren
   '/_authenticated/admin/busca': typeof AuthenticatedAdminBuscaRoute
   '/_authenticated/admin/cliques': typeof AuthenticatedAdminCliquesRoute
@@ -283,7 +334,10 @@ export interface FileRoutesById {
   '/_authenticated/admin/parceiros': typeof AuthenticatedAdminParceirosRoute
   '/_authenticated/admin/qualidade': typeof AuthenticatedAdminQualidadeRoute
   '/_authenticated/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
+  '/_authenticated/blog-preview/$id': typeof AuthenticatedBlogPreviewIdRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
+  '/blog/categoria/$slug': typeof BlogCategoriaSlugRoute
+  '/blog/tag/$slug': typeof BlogTagSlugRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
   '/_authenticated/admin/blog/autores': typeof AuthenticatedAdminBlogAutoresRoute
@@ -302,13 +356,16 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/auth-callback'
+    | '/blog'
     | '/cupons'
     | '/politica-de-privacidade'
     | '/sitemap.xml'
     | '/sobre-nos'
     | '/termos-de-uso'
     | '/admin'
+    | '/blog/$slug'
     | '/produto/$id'
+    | '/blog/'
     | '/admin/blog'
     | '/admin/busca'
     | '/admin/cliques'
@@ -316,7 +373,10 @@ export interface FileRouteTypes {
     | '/admin/parceiros'
     | '/admin/qualidade'
     | '/admin/sincronizacao'
+    | '/blog-preview/$id'
     | '/api/public/outbound-click'
+    | '/blog/categoria/$slug'
+    | '/blog/tag/$slug'
     | '/admin/'
     | '/admin/blog/$id'
     | '/admin/blog/autores'
@@ -338,14 +398,19 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sobre-nos'
     | '/termos-de-uso'
+    | '/blog/$slug'
     | '/produto/$id'
+    | '/blog'
     | '/admin/busca'
     | '/admin/cliques'
     | '/admin/cupons'
     | '/admin/parceiros'
     | '/admin/qualidade'
     | '/admin/sincronizacao'
+    | '/blog-preview/$id'
     | '/api/public/outbound-click'
+    | '/blog/categoria/$slug'
+    | '/blog/tag/$slug'
     | '/admin'
     | '/admin/blog/$id'
     | '/admin/blog/autores'
@@ -363,13 +428,16 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/auth-callback'
+    | '/blog'
     | '/cupons'
     | '/politica-de-privacidade'
     | '/sitemap.xml'
     | '/sobre-nos'
     | '/termos-de-uso'
     | '/_authenticated/admin'
+    | '/blog/$slug'
     | '/produto/$id'
+    | '/blog/'
     | '/_authenticated/admin/blog'
     | '/_authenticated/admin/busca'
     | '/_authenticated/admin/cliques'
@@ -377,7 +445,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/parceiros'
     | '/_authenticated/admin/qualidade'
     | '/_authenticated/admin/sincronizacao'
+    | '/_authenticated/blog-preview/$id'
     | '/api/public/outbound-click'
+    | '/blog/categoria/$slug'
+    | '/blog/tag/$slug'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/blog/$id'
     | '/_authenticated/admin/blog/autores'
@@ -396,6 +467,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  BlogRoute: typeof BlogRouteWithChildren
   CuponsRoute: typeof CuponsRoute
   PoliticaDePrivacidadeRoute: typeof PoliticaDePrivacidadeRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -439,6 +511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cupons': {
       id: '/cupons'
       path: '/cupons'
@@ -480,6 +559,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof BlogRoute
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
     }
     '/produto/$id': {
       id: '/produto/$id'
@@ -544,12 +637,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSincronizacaoRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/blog-preview/$id': {
+      id: '/_authenticated/blog-preview/$id'
+      path: '/blog-preview/$id'
+      fullPath: '/blog-preview/$id'
+      preLoaderRoute: typeof AuthenticatedBlogPreviewIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/outbound-click': {
       id: '/api/public/outbound-click'
       path: '/api/public/outbound-click'
       fullPath: '/api/public/outbound-click'
       preLoaderRoute: typeof ApiPublicOutboundClickRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/blog/categoria/$slug': {
+      id: '/blog/categoria/$slug'
+      path: '/categoria/$slug'
+      fullPath: '/blog/categoria/$slug'
+      preLoaderRoute: typeof BlogCategoriaSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
+    '/blog/tag/$slug': {
+      id: '/blog/tag/$slug'
+      path: '/tag/$slug'
+      fullPath: '/blog/tag/$slug'
+      preLoaderRoute: typeof BlogTagSlugRouteImport
+      parentRoute: typeof BlogRoute
     }
     '/_authenticated/admin/blog/': {
       id: '/_authenticated/admin/blog/'
@@ -676,20 +790,39 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedBlogPreviewIdRoute: typeof AuthenticatedBlogPreviewIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedBlogPreviewIdRoute: AuthenticatedBlogPreviewIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+  BlogCategoriaSlugRoute: typeof BlogCategoriaSlugRoute
+  BlogTagSlugRoute: typeof BlogTagSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+  BlogIndexRoute: BlogIndexRoute,
+  BlogCategoriaSlugRoute: BlogCategoriaSlugRoute,
+  BlogTagSlugRoute: BlogTagSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  BlogRoute: BlogRouteWithChildren,
   CuponsRoute: CuponsRoute,
   PoliticaDePrivacidadeRoute: PoliticaDePrivacidadeRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

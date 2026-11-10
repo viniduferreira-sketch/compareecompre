@@ -1,0 +1,13 @@
+import {describe,it,expect} from 'vitest';
+import {readingMinutes,articleHead,articleImage,blogListHead,type BlogArticle} from './blog-public';
+import {visiblePost} from './blog';
+const post:BlogArticle={id:'11111111-1111-4111-8111-111111111111',titulo:'Título real',slug:'titulo-real',resumo:'Resumo real',corpo:'<p>Texto real</p>',titulo_seo:'SEO específico',descricao_seo:'Descrição específica',imagem_url:'/api/public/blog-image/11111111-1111-4111-8111-111111111111.webp',imagem_alt:'Foto',imagem_credito:'',categoria_id:null,autor_id:null,status:'publicado',publicado_em:'2026-11-01T00:00:00Z',visualizacoes:0,criado_em:'2026-11-01T00:00:00Z',atualizado_em:'2026-11-02T00:00:00Z',category:null,author:null,tags:[]};
+describe('Public Blog',()=>{
+ it('requires published or due scheduled posts',()=>{expect(visiblePost({...post,status:'rascunho'})).toBe(false);expect(visiblePost({...post,status:'agendado',publicado_em:'2030-01-01T00:00:00Z'},Date.parse('2026-11-10'))).toBe(false);expect(visiblePost(post,Date.parse('2026-11-10'))).toBe(true);});
+ it('estimates reading time from text at 200 words per minute',()=>{expect(readingMinutes('<p>'+Array(401).fill('palavra').join(' ')+'</p>')).toBe(3);});
+ it('uses post SEO and canonical on the real public URL',()=>{const head=articleHead(post);expect(head.meta).toContainEqual({title:'SEO específico | Compare e Compre'});expect(head.links).toEqual([{rel:'canonical',href:'https://compareecompre.com/blog/titulo-real'}]);});
+ it('private previews are noindex and emit no article structured data',()=>{const head=articleHead(post,true);expect(head.meta).toContainEqual({name:'robots',content:'noindex, nofollow'});expect(head.scripts).toEqual([]);});
+ it('share images use the same cover as the article with an absolute public URL',()=>{expect(articleImage(post.imagem_url)).toBe('https://compareecompre.com'+post.imagem_url);expect(articleHead(post).meta).toContainEqual({property:'og:image',content:'https://compareecompre.com'+post.imagem_url});});
+ it('structured data preserves editorial modified timestamp',()=>{const schema=JSON.parse(articleHead(post).scripts[0]?.children??'{}');expect(schema.dateModified).toBe('2026-11-02T00:00:00Z');expect(schema.datePublished).toBe('2026-11-01T00:00:00Z');});
+ it('paginated category pages canonicalize to themselves',()=>{expect(blogListHead('Informática','/blog/categoria/informatica',2).links).toEqual([{rel:'canonical',href:'https://compareecompre.com/blog/categoria/informatica?pagina=2'}]);});
+});

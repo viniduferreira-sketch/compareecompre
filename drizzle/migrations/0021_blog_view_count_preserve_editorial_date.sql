@@ -1,0 +1,4 @@
+CREATE OR REPLACE FUNCTION public.touch_blog_post() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$ BEGIN IF (to_jsonb(NEW)-'visualizacoes'-'atualizado_em') IS DISTINCT FROM (to_jsonb(OLD)-'visualizacoes'-'atualizado_em') THEN NEW.atualizado_em=now(); ELSE NEW.atualizado_em=OLD.atualizado_em; END IF; RETURN NEW; END; $$;
+CREATE FUNCTION public.count_blog_view(_id uuid) RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path=public AS $$ UPDATE public.posts SET visualizacoes=visualizacoes+1 WHERE id=_id AND status IN ('publicado','agendado') AND publicado_em<=now(); $$;
+REVOKE ALL ON FUNCTION public.count_blog_view(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.count_blog_view(uuid) TO anon,authenticated,service_role;

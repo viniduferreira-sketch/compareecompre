@@ -1,0 +1,19 @@
+import type { Database } from '@/integrations/supabase/types';
+export type BlogArticle = Database['public']['Tables']['posts']['Row'] & {
+ category: {id:string;nome:string;slug:string}|null;
+ author: {id:string;nome:string;foto_url:string;biografia:string}|null;
+ tags: {id:string;nome:string;slug:string}[];
+};
+export const BLOG_PAGE_SIZE=9;
+export const BLOG_ORIGIN='https://compareecompre.com';
+export function readingMinutes(html:string){return Math.max(1,Math.ceil(html.replace(/<[^>]*>/g,' ').replace(/&[^;]+;/g,' ').trim().split(/\s+/).filter(Boolean).length/200));}
+export function blogDate(value:string|null){return value?new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).format(new Date(value)):'';}
+export function articleImage(url:string){return url.startsWith('/')?`${BLOG_ORIGIN}${url}`:/^https:\/\//.test(url)?url:undefined;}
+export function articleHead(post:BlogArticle|undefined,preview=false){
+ const url=post?`${BLOG_ORIGIN}/blog/${post.slug}`:BLOG_ORIGIN+'/blog';
+ const title=post?.titulo_seo||post?.titulo||'Artigo indisponível';
+ const description=post?.descricao_seo||post?.resumo||'Artigos do Compare e Compre.';
+ const image=post?articleImage(post.imagem_url):undefined;
+ return {meta:[{title:`${title} | Compare e Compre`},{name:'description',content:description},{property:'og:title',content:title},{property:'og:description',content:description},{property:'og:type',content:'article'},{property:'og:url',content:url},{name:'twitter:card',content:'summary_large_image'},...(preview||!post?[{name:'robots',content:'noindex, nofollow'}]:[]),...(image?[{property:'og:image',content:image},{name:'twitter:image',content:image}]:[])],links:post?[{rel:'canonical',href:url}]:[],scripts:post&&!preview?[{type:'application/ld+json',children:JSON.stringify({'@context':'https://schema.org','@type':'Article',headline:post.titulo,description,datePublished:post.publicado_em,dateModified:post.atualizado_em,...(image?{image:[image]}:{}),...(post.author?{author:{'@type':'Person',name:post.author.nome,...(post.author.foto_url?{image:articleImage(post.author.foto_url)}:{})}}:{}),publisher:{'@type':'Organization',name:'Compare e Compre',url:BLOG_ORIGIN},mainEntityOfPage:url})},{type:'application/ld+json',children:JSON.stringify({'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Início',item:BLOG_ORIGIN},{'@type':'ListItem',position:2,name:'Blog',item:BLOG_ORIGIN+'/blog'},{'@type':'ListItem',position:3,name:post.titulo,item:url}]})}]:[]};
+}
+export function blogListHead(title:string,path:string,page=1){const url=`${BLOG_ORIGIN}${path}${page>1?`?pagina=${page}`:''}`;const description=`${title}: comparativos e dicas de compras no Compare e Compre.`;return {meta:[{title:`${title}${page>1?` — Página ${page}`:''} | Compare e Compre`},{name:'description',content:description},{property:'og:title',content:title},{property:'og:description',content:description},{property:'og:type',content:'website'},{property:'og:url',content:url},{name:'twitter:card',content:'summary_large_image'}],links:[{rel:'canonical',href:url}]};}

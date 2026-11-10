@@ -1,0 +1,2 @@
+- Public blog reads use anonymous RLS clients and explicit due-publication filters; protected previews use the same article component through an authenticated admin-only route to keep drafts out of public SSR and caches.
+- View counting uses one atomic database function restricted to visible posts; it never touches the editorial update timestamp or collects visitor identifiers.

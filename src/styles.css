@@ -243,6 +243,13 @@
 .blog-prose blockquote { border-left: 3px solid var(--primary); padding-left: 1rem; }
 .blog-prose pre { white-space: pre-wrap; background: var(--muted); padding: 1rem; }
 .blog-prose figcaption { color: var(--muted-foreground); font-size: 0.8rem; }
+.blog-reading { line-height: 1.85; }
+.blog-reading h2 { margin-top: 2.5rem; }
+.blog-reading h3 { margin-top: 2rem; }
+.blog-reading p { margin: 1.25rem 0; }
+.blog-reading li { margin: 0.4rem 0; }
+.blog-reading table { display: block; overflow-x: auto; table-layout: auto; font-size: 0.9rem; }
+.blog-reading td, .blog-reading th { min-width: 100px; padding: 0.8rem; }
 
 .google-sign-in {
   background: var(--google-background);

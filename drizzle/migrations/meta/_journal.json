@@ -148,6 +148,13 @@
       "when": 1794328727049,
       "tag": "0020_create_admin_blog",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794330335653,
+      "tag": "0021_blog_view_count_preserve_editorial_date",
+      "breakpoints": true
     }
   ]
 }

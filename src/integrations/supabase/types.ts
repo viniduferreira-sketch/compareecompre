@@ -820,6 +820,7 @@ export type Database = {
         Args: { _cron_secret: string }
         Returns: number
       }
+      count_blog_view: { Args: { _id: string }; Returns: undefined }
       outbound_click_report: { Args: never; Returns: Json }
       patch_catalog_popularity: { Args: { _updates: Json }; Returns: number }
       patch_catalog_price_review: { Args: { _updates: Json }; Returns: number }
