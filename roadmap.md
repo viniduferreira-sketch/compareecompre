@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Agrupamento configurável por loja (sem importações)
+- [x] Opção persistente ligada para Nike/Adidas, desligada nas demais, com controle confirmado por loja em Parceiros.
+- [x] Importadores consultam a opção; alterações atualizam somente group_key em lotes retomáveis. 6.166 chaves Nike atualizadas, zero colisões entre lojas; Adidas sem produtos atuais.
+- [x] 19 testes passaram; navegador autenticado salvou/releu Adidas desligada e ligada (estado final ligado), confirmou Nike ligada e KaBuM desligada; mobile sem overflow, sem erros de execução. Nenhuma importação acionada.
+
 ## Posição da seção de feeds Awin (sem importações)
 - [x] Feeds de dados movido para imediatamente abaixo das abas, antes dos filtros/lista de lojas. Navegador autenticado em 1250×735 confirmou botão na primeira tela, abertura/cancelamento do formulário e ausência na aba Lomadee; nenhuma gravação ou importação.
 

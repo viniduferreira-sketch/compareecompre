@@ -1,8 +1,24 @@
 import { describe, it, expect } from "vitest";
-import { calculatePopularity, productGroupId } from "./popularity";
+import { calculatePopularity, productGroupId, defaultVariantGrouping } from "./popularity";
 
 const product = { objectID: "one", store: "Nike", source: "awin", title: "Tênis Nike Azul tamanho 42", gtin: "7891234567890", status: "active", inStock: true, imageUrl: "https://example.com/shoe.jpg", price: 70, originalPrice: 100 };
 describe("popularity and variants", () => {
+  it("defaults Nike and Adidas on and all other stores off", () => {
+    for (const name of ["Nike", "Nike BR", "adidas BR", "Adidas"]) expect(defaultVariantGrouping(name)).toBe(true);
+    for (const name of ["KaBuM", "Mercado Livre", "Lauri Esporte", "Monsterpub"]) expect(defaultVariantGrouping(name)).toBe(false);
+  });
+  it("groups Adidas sizes when enabled and restores singleton keys when disabled", () => {
+    const a = { ...product, store: "79926", colour: "Azul", size: "42", parent_product_id: "shoe" };
+    const b = { ...a, objectID: "two", size: "40" };
+    expect(productGroupId(a, true)).toBe(productGroupId(b, true));
+    expect(productGroupId(a, false)).toBe("single:one");
+    expect(productGroupId(b, false)).toBe("single:two");
+  });
+  it("never merges enabled stores or networks even with identical products and colours", () => {
+    const a = { ...product, store: "17652", colour: "Azul", parent_product_id: "shoe" };
+    expect(productGroupId(a, true)).not.toBe(productGroupId({ ...a, store: "79926" }, true));
+    expect(productGroupId(a, true)).not.toBe(productGroupId({ ...a, source: "lomadee" }, true));
+  });
   it("uses all signals and stays between zero and 100", () => {
     expect(calculatePopularity(product)).toBe(100);
     expect(calculatePopularity({ objectID: "empty" })).toBe(0);

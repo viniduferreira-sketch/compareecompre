@@ -1,5 +1,6 @@
 import { normalizeGtin } from "./product-identifiers";
 import { normalizePolicyText } from "./content-policy";
+import { normalizeAwinMerchantName } from "./awin-allowlist";
 
 // All ranking weights, thresholds and high-demand categories live here.
 export const POPULARITY_CONFIG = {
@@ -14,7 +15,7 @@ export const POPULARITY_CONFIG = {
 } as const;
 
 export type PopularityRecord = {
-  objectID: string; title?: string; store?: string; merchantId?: string;
+  objectID: string; title?: string; store?: string; merchantId?: string; merchant_id?: string; organizationId?: string;
   source?: string; gtin?: string | null; imageUrl?: string | null;
   status?: string; inStock?: boolean; price?: number; originalPrice?: number | null;
   category?: string | null; categoryName?: string | null;
@@ -41,10 +42,14 @@ export function calculatePopularity(record: PopularityRecord, clicks = 0, totalC
   return Math.max(0, Math.min(100, Math.round(base * (1 - weight) + behavioral * weight)));
 }
 
-/** Only Awin Nike sizes of the same product and colour share a card. Every other record stays singleton. */
-export function productGroupId(record: PopularityRecord): string {
+export function defaultVariantGrouping(store: string): boolean {
+  return ["nike", "adidas"].includes(normalizeAwinMerchantName(store));
+}
+
+/** Enabled stores group sizes of the same product and colour, always scoped by source and store. */
+export function productGroupId(record: PopularityRecord, enabled = record.source === "awin" && defaultVariantGrouping(record.store ?? "")): string {
   const store = normalizePolicyText(record.store ?? record.merchantId ?? record.objectID);
-  if (record.source !== "awin" || (store !== "nike" && store !== "nike br")) return `single:${record.objectID}`;
+  if (!enabled || !record.source || !store) return `single:${record.objectID}`;
   const attributes = record.attributes ?? [];
   const attributeValue = (name: RegExp) => attributes.find((a) => name.test(a.name ?? ""))?.value;
   const colour = normalizePolicyText(record.colour ?? attributeValue(/^cor$/i) ?? "");
@@ -63,7 +68,7 @@ export function productGroupId(record: PopularityRecord): string {
   const parent = normalizePolicyText(record.parent_product_id ?? "");
   const product = parent ? `parent:${parent}` : `title:${title}`;
   if (!parent && !title) return `single:${record.objectID}`;
-  return `${store}|${product}|colour:${colour}`;
+  return `${record.source}|${store}|${product}|colour:${colour}`;
 }
 
 export const POPULARITY_INDEX_SETTINGS = {

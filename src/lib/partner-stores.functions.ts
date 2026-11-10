@@ -39,6 +39,17 @@ export const setStoreImport = createServerFn({ method: "POST" }).middleware([req
   if (result.error) throw new Error(`Falha ao alterar importação: ${result.error.code} ${result.error.message}`);
   return { saved: true };
 });
+export const storeGroupingBatch = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).inputValidator(z.object({ id: z.string().uuid(), enabled: z.boolean(), cursor: z.string().max(20000).optional() })).handler(async ({ context, data }) => {
+  await admin(context);
+  const row = await context.supabase.from("partner_stores").select("network,external_id,merchant_name,import_enabled,display_enabled,group_variants").eq("id", data.id).single();
+  if (row.error || !row.data) throw new Error("Loja não encontrada.");
+  if (!data.cursor) {
+    const saved = await context.supabase.from("partner_stores").update({ group_variants: data.enabled, updated_at: new Date().toISOString() }).eq("id", data.id);
+    if (saved.error) throw new Error(`Falha ao salvar agrupamento: ${saved.error.code} ${saved.error.message}`);
+  } else if (row.data.group_variants !== data.enabled) throw new Error("A opção mudou. Reinicie o agrupamento desta loja.");
+  const { groupingPage } = await import("./partner-stores.server");
+  return groupingPage({ ...row.data, group_variants: data.enabled }, data.cursor);
+});
 export const storeVisibilityBatch = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).inputValidator(z.object({ id: z.string().uuid(), enabled: z.boolean(), preview: z.boolean(), cursor: z.string().max(20000).optional() })).handler(async ({ context, data }) => {
   await admin(context);
   const row = await context.supabase.from("partner_stores").select("network,external_id,merchant_name,import_enabled,display_enabled").eq("id", data.id).single();

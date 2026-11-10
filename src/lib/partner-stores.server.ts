@@ -2,6 +2,21 @@ import { lomadeeRequests } from "./lomadee-client.server";
 import { getAlgoliaIndexingConfig } from "./algolia-indexing.server";
 import type { LomadeeBrand } from "./lomadee-catalog";
 import { storeMatches, type StoreControl } from "./partner-stores";
+import { productGroupId, type PopularityRecord } from "./popularity";
+
+/** Updates only grouping keys, never imports, visibility, prices or affiliate links. */
+export async function groupingPage(store: StoreControl & { group_variants: boolean }, cursor?: string) {
+  const { client, indexName } = getAlgoliaIndexingConfig();
+  const page = await client.browse<PopularityRecord & { merchant_id?: string; organizationId?: string }>({ indexName, browseParams: cursor ? { cursor } : { hitsPerPage: 500 } });
+  const updates = page.hits.filter((record) => storeMatches(store, record)).map((record) => ({ objectID: record.objectID, group_key: productGroupId({ ...record, store: store.external_id }, store.group_variants) }));
+  if (updates.length) {
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+    const saved = await db.rpc("patch_store_groups", { _updates: updates, _network: store.network });
+    if (saved.error) throw new Error(`Falha ao salvar agrupamento: ${saved.error.code} ${saved.error.message}`);
+    await client.partialUpdateObjects({ indexName, objects: updates, createIfNotExists: false, waitForTasks: true });
+  }
+  return { count: updates.length, cursor: page.cursor ?? null };
+}
 
 export async function readNetworkStores() {
   const requests = lomadeeRequests(30);

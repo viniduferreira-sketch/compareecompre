@@ -469,6 +469,7 @@ export type Database = {
           display_enabled: boolean
           enrollment_status: string
           external_id: string
+          group_variants: boolean
           id: string
           import_enabled: boolean
           logo_url: string | null
@@ -484,6 +485,7 @@ export type Database = {
           display_enabled?: boolean
           enrollment_status?: string
           external_id: string
+          group_variants?: boolean
           id?: string
           import_enabled?: boolean
           logo_url?: string | null
@@ -499,6 +501,7 @@ export type Database = {
           display_enabled?: boolean
           enrollment_status?: string
           external_id?: string
+          group_variants?: boolean
           id?: string
           import_enabled?: boolean
           logo_url?: string | null
@@ -660,6 +663,10 @@ export type Database = {
       patch_catalog_price_review: { Args: { _updates: Json }; Returns: number }
       patch_store_display: {
         Args: { _hidden: boolean; _ids: string[]; _network: string }
+        Returns: number
+      }
+      patch_store_groups: {
+        Args: { _network: string; _updates: Json }
         Returns: number
       }
       product_click_counts_30d: {
