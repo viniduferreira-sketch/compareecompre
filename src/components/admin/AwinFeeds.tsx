@@ -16,7 +16,7 @@ export function AwinFeeds() {
   const refresh=async()=>{ for (const key of ['awin-feeds','partner-stores','awin-allowlist','awin-rules']) await client.invalidateQueries({queryKey:['admin',key]}); };
   const work=async(fn:()=>Promise<void>)=>{setBusy(true);try{await fn();}catch(e){toast.error(e instanceof Error?e.message:'Não foi possível concluir.');}finally{setBusy(false);}};
   const date=(v:string|null)=>v?new Date(v).toLocaleString('pt-BR'):'—';
-  return <section className="mt-8 border-t border-border pt-6" aria-labelledby="awin-feeds-title">
+  return <section className="mt-4 border-b border-border pb-6" aria-labelledby="awin-feeds-title">
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 id="awin-feeds-title" className="text-xl font-bold">Feeds de dados</h2><Button disabled={busy} onClick={()=>{setForm({nome:'',url:''});setResult(null);}}><Plus className="size-4"/>Adicionar feed</Button></div>
     {form && <form className="mt-4 grid gap-3" onSubmit={e=>{e.preventDefault();void work(async()=>{if(!await confirm('Salvar o feed e cadastrar os anunciantes novos com todas as categorias, limite de 20.000 e exclusão de gift card/cartão presente? Não importa nem altera produtos; leva até 20 segundos.'))return;await save({data:form});setForm(null);setResult(null);await refresh();toast.success('Feed salvo. Nenhum produto importado.');});}}>
       <label className="grid gap-1 text-sm">Nome (opcional)<Input aria-label="Nome do feed" value={form.nome} maxLength={200} onChange={e=>setForm({...form,nome:e.target.value})}/></label>

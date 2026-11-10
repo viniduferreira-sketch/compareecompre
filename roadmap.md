@@ -1,5 +1,8 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Posição da seção de feeds Awin (sem importações)
+- [x] Feeds de dados movido para imediatamente abaixo das abas, antes dos filtros/lista de lojas. Navegador autenticado em 1250×735 confirmou botão na primeira tela, abertura/cancelamento do formulário e ausência na aba Lomadee; nenhuma gravação ou importação.
+
 ## Cadastro seguro de feeds Awin (sem importações)
 - [x] Cadastro privado e funções administrativas com user_roles, URLs mascaradas, gravação atômica e migração do segredo de uso único persistente.
 - [x] Seção Feeds de dados na aba Awin: adicionar/testar/salvar, pausar/ativar, substituir com campo vazio e remover com confirmação; regras existentes preservadas.
