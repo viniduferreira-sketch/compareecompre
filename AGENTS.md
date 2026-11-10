@@ -34,4 +34,4 @@
 - Admin pages nest under the authenticated admin layout; its loader checks the existing admin-protected history function before rendering children, and action handlers retain their own role checks. Shared confirmation controls gate UI writes without replacing existing operations.
 - partner_stores controls import_enabled/display_enabled independently; bounded cursor writes only site_hidden, preserved on import and filtered publicly. Public identity returns name/logo/description; admin aggregates verify user_roles and use five-minute Query caching.
 
-- Awin feed credentials stay in service-role-only tables; authenticated RPCs verify user_roles before privileged access and return only masked URLs. Both workflow and partial tests share the Web-stream reader, while workflow batches retain global numbering and source-qualified product IDs to preserve retry safety across feeds.
+- Awin feed rules: see scripts/AGENTS.md.
