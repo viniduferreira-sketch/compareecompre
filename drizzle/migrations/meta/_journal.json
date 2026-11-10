@@ -141,6 +141,13 @@
       "when": 1794327441322,
       "tag": "0019_store_variant_grouping",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794328727049,
+      "tag": "0020_create_admin_blog",
+      "breakpoints": true
     }
   ]
 }

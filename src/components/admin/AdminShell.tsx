@@ -1,7 +1,7 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { LayoutDashboard, Store, RefreshCw, ShieldCheck, Search, MousePointerClick, Ticket, Menu, LogOut, ExternalLink, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { LayoutDashboard, Store, RefreshCw, ShieldCheck, Search, MousePointerClick, Ticket, NotebookPen, Menu, LogOut, ExternalLink, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { BrandLogo } from "@/components/marketplace/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -16,6 +16,7 @@ const pages = [
   { to: "/admin/busca", title: "Busca e ranking", icon: Search },
   { to: "/admin/cliques", title: "Cliques de saída", icon: MousePointerClick },
   { to: "/admin/cupons", title: "Cupons", icon: Ticket },
+  { to: "/admin/blog", title: "Blog", icon: NotebookPen },
 ] as const;
 export function AdminPending() { return <div className="space-y-6 p-6"><Skeleton className="h-8 w-60" /><div className="grid gap-4 sm:grid-cols-3">{[1,2,3].map((n) => <Skeleton key={n} className="h-28 w-full rounded-lg" />)}</div><Skeleton className="h-80 w-full rounded-lg" /></div>; }
 export function AdminShell() {

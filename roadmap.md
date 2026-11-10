@@ -1,5 +1,11 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Blog — parte 1 (sem catálogo, importações ou páginas públicas)
+- [x] Criar posts, categorias, tags, relações e autores com RLS administrativa e leitura pública restrita; cadastrar oito categorias iniciais separadamente.
+- [x] Implementar lista, editor rico, preenchimento Markdown, SEO, agendamento e prévia privada.
+- [x] Gerenciar categorias, tags e autores reais; imagens WebP em bucket privado com entrega pública controlada.
+- [x] 15 testes; navegador autenticado salvou, reabriu, publicou, editou, agendou e excluiu artigo temporário; celular sem rolagem lateral. Envio real de imagem não testado.
+
 ## Agrupamento configurável por loja (sem importações)
 - [x] Opção persistente ligada para Nike/Adidas, desligada nas demais, com controle confirmado por loja em Parceiros.
 - [x] Importadores consultam a opção; alterações atualizam somente group_key em lotes retomáveis. 6.166 chaves Nike atualizadas, zero colisões entre lojas; Adidas sem produtos atuais.

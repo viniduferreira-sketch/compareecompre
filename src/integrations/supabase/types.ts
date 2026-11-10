@@ -26,6 +26,27 @@ export type Database = {
         }
         Relationships: []
       }
+      autores: {
+        Row: {
+          biografia: string
+          foto_url: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          biografia?: string
+          foto_url?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          biografia?: string
+          foto_url?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       awin_allowed_merchants: {
         Row: {
           created_at: string
@@ -257,6 +278,24 @@ export type Database = {
           status?: string
           sync_cursor?: Json | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      categorias: {
+        Row: {
+          id: string
+          nome: string
+          slug: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+          slug: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          slug?: string
         }
         Relationships: []
       }
@@ -514,6 +553,111 @@ export type Database = {
         }
         Relationships: []
       }
+      post_tags: {
+        Row: {
+          post_id: string
+          tag_id: string
+        }
+        Insert: {
+          post_id: string
+          tag_id: string
+        }
+        Update: {
+          post_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_tags_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          atualizado_em: string
+          autor_id: string | null
+          categoria_id: string | null
+          corpo: string
+          criado_em: string
+          descricao_seo: string
+          id: string
+          imagem_alt: string
+          imagem_credito: string
+          imagem_url: string
+          publicado_em: string | null
+          resumo: string
+          slug: string
+          status: string
+          titulo: string
+          titulo_seo: string
+          visualizacoes: number
+        }
+        Insert: {
+          atualizado_em?: string
+          autor_id?: string | null
+          categoria_id?: string | null
+          corpo?: string
+          criado_em?: string
+          descricao_seo?: string
+          id?: string
+          imagem_alt?: string
+          imagem_credito?: string
+          imagem_url?: string
+          publicado_em?: string | null
+          resumo?: string
+          slug: string
+          status?: string
+          titulo?: string
+          titulo_seo?: string
+          visualizacoes?: number
+        }
+        Update: {
+          atualizado_em?: string
+          autor_id?: string | null
+          categoria_id?: string | null
+          corpo?: string
+          criado_em?: string
+          descricao_seo?: string
+          id?: string
+          imagem_alt?: string
+          imagem_credito?: string
+          imagem_url?: string
+          publicado_em?: string | null
+          resumo?: string
+          slug?: string
+          status?: string
+          titulo?: string
+          titulo_seo?: string
+          visualizacoes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "autores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       price_alert_subscribers: {
         Row: {
           consent_at: string | null
@@ -616,6 +760,24 @@ export type Database = {
         }
         Relationships: []
       }
+      tags: {
+        Row: {
+          id: string
+          nome: string
+          slug: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+          slug: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -707,6 +869,10 @@ export type Database = {
           _secret?: boolean
           _url: string
         }
+        Returns: string
+      }
+      save_blog_post: {
+        Args: { _post: Json; _tags: string[] }
         Returns: string
       }
       set_awin_quality_mark: {

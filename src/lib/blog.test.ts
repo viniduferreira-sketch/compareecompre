@@ -1,0 +1,21 @@
+import { describe,it,expect } from 'vitest';
+import { blogPostSchema,emptyPost,parseArticle,seoChecks,publicationChecklist,visiblePost,slugify } from './blog';
+import { sanitizeArticle } from './blog-sanitize';
+const base={...emptyPost,titulo:'Teste real',slug:'teste-real'};
+describe('Blog rules',()=>{
+ it('SEO accepts 60-character title and 160-character description',()=>{const checks=seoChecks({...base,titulo_seo:'x'.repeat(60),descricao_seo:'x'.repeat(160),imagem_url:'https://example.org/a.webp',imagem_alt:'Foto',categoria_id:'11111111-1111-4111-8111-111111111111'});expect(Object.values(checks).every(Boolean)).toBe(true);});
+ it('SEO rejects title above 60',()=>expect(seoChecks({...base,titulo_seo:'x'.repeat(61)})['Título SEO (1–60 caracteres)']).toBe(false));
+ it('SEO rejects description above 160',()=>expect(seoChecks({...base,descricao_seo:'x'.repeat(161)})['Descrição SEO (1–160 caracteres)']).toBe(false));
+ it('SEO warnings do not prevent publishing',()=>expect(blogPostSchema.safeParse({...base,status:'publicado'}).success).toBe(true));
+ it('accepts database publication timestamp offsets',()=>expect(blogPostSchema.safeParse({...base,status:'publicado',publicado_em:'2026-11-10T16:00:00+00:00'}).success).toBe(true));
+ it('featured images require alt text',()=>expect(blogPostSchema.safeParse({...base,imagem_url:'https://example.org/a.webp'}).success).toBe(false));
+ it('author is included in publication warning',()=>expect(publicationChecklist(base)['Autor definido']).toBe(false));
+ it('future scheduled post remains private',()=>expect(visiblePost({status:'agendado',publicado_em:'2030-01-01T00:00:00Z'},Date.parse('2029-12-31T00:00:00Z'))).toBe(false));
+ it('scheduled article is published when its date passes',()=>expect(visiblePost({status:'agendado',publicado_em:'2030-01-01T00:00:00Z'},Date.parse('2030-01-01T00:00:00Z'))).toBe(true));
+ it('draft never becomes public',()=>expect(visiblePost({status:'rascunho',publicado_em:'2020-01-01T00:00:00Z'})).toBe(false));
+ it('scheduling requires future date',()=>expect(blogPostSchema.safeParse({...base,status:'agendado',publicado_em:'2020-01-01T00:00:00Z'}).success).toBe(false));
+ it('missing metadata is empty and Markdown tables convert',()=>{const p=parseArticle('---\ntitulo: Artigo\n---\n## Comparação\n\n| A | B |\n| - | - |\n| 1 | 2 |');expect(p.titulo).toBe('Artigo');expect(p.slug).toBe('');expect(p.tags).toEqual([]);expect(p.corpo).toContain('<table>');});
+ it('reads comma-separated tags and category',()=>{const p=parseArticle('---\ncategoria: Informática\ntags: SSD, Notebook\n---\nTexto');expect(p.categoria).toBe('Informática');expect(p.tags).toEqual(['SSD','Notebook']);});
+ it('slug is editable and normalized',()=>expect(slugify('Comparação de tênis')).toBe('comparacao-de-tenis'));
+ it('removes scripts, event handlers and unsafe links',()=>{const html=sanitizeArticle('<script>alert(1)</script><img src="https://example.org/a.webp" onerror="alert(1)"><a href="javascript:alert(1)">teste</a>');expect(html).not.toContain('<script');expect(html).not.toContain('onerror');expect(html).not.toContain('javascript:');});
+});

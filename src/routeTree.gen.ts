@@ -21,6 +21,7 @@ import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ProdutoIdRouteImport } from './routes/produto.$id'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminBlogRouteImport } from './routes/_authenticated/admin.blog'
 import { Route as AuthenticatedAdminBuscaRouteImport } from './routes/_authenticated/admin.busca'
 import { Route as AuthenticatedAdminCliquesRouteImport } from './routes/_authenticated/admin.cliques'
 import { Route as AuthenticatedAdminCuponsRouteImport } from './routes/_authenticated/admin.cupons'
@@ -28,7 +29,14 @@ import { Route as AuthenticatedAdminParceirosRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminQualidadeRouteImport } from './routes/_authenticated/admin.qualidade'
 import { Route as AuthenticatedAdminSincronizacaoRouteImport } from './routes/_authenticated/admin.sincronizacao'
 import { Route as ApiPublicOutboundClickRouteImport } from './routes/api/public/outbound-click'
+import { Route as AuthenticatedAdminBlogIndexRouteImport } from './routes/_authenticated/admin.blog.index'
+import { Route as AuthenticatedAdminBlogIdRouteImport } from './routes/_authenticated/admin.blog.$id'
+import { Route as AuthenticatedAdminBlogAutoresRouteImport } from './routes/_authenticated/admin.blog.autores'
+import { Route as AuthenticatedAdminBlogCategoriasRouteImport } from './routes/_authenticated/admin.blog.categorias'
+import { Route as AuthenticatedAdminBlogNovoRouteImport } from './routes/_authenticated/admin.blog.novo'
+import { Route as AuthenticatedAdminBlogTagsRouteImport } from './routes/_authenticated/admin.blog.tags'
 import { Route as ApiPublicAwinImportRouteImport } from './routes/api/public/awin/import'
+import { Route as ApiPublicBlogImageFileRouteImport } from './routes/api/public/blog-image.$file'
 import { Route as ApiPublicHooksSyncAlgoliaRouteImport } from './routes/api/public/hooks/sync-algolia'
 import { Route as ApiPublicHooksSyncLomadeeRouteImport } from './routes/api/public/hooks/sync-lomadee'
 
@@ -91,6 +99,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminBlogRoute = AuthenticatedAdminBlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminBuscaRoute = AuthenticatedAdminBuscaRouteImport.update({
   id: '/busca',
   path: '/busca',
@@ -131,9 +144,50 @@ const ApiPublicOutboundClickRoute = ApiPublicOutboundClickRouteImport.update({
   path: '/api/public/outbound-click',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminBlogIndexRoute =
+  AuthenticatedAdminBlogIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminBlogRoute,
+  } as any)
+const AuthenticatedAdminBlogIdRoute =
+  AuthenticatedAdminBlogIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminBlogRoute,
+  } as any)
+const AuthenticatedAdminBlogAutoresRoute =
+  AuthenticatedAdminBlogAutoresRouteImport.update({
+    id: '/autores',
+    path: '/autores',
+    getParentRoute: () => AuthenticatedAdminBlogRoute,
+  } as any)
+const AuthenticatedAdminBlogCategoriasRoute =
+  AuthenticatedAdminBlogCategoriasRouteImport.update({
+    id: '/categorias',
+    path: '/categorias',
+    getParentRoute: () => AuthenticatedAdminBlogRoute,
+  } as any)
+const AuthenticatedAdminBlogNovoRoute =
+  AuthenticatedAdminBlogNovoRouteImport.update({
+    id: '/novo',
+    path: '/novo',
+    getParentRoute: () => AuthenticatedAdminBlogRoute,
+  } as any)
+const AuthenticatedAdminBlogTagsRoute =
+  AuthenticatedAdminBlogTagsRouteImport.update({
+    id: '/tags',
+    path: '/tags',
+    getParentRoute: () => AuthenticatedAdminBlogRoute,
+  } as any)
 const ApiPublicAwinImportRoute = ApiPublicAwinImportRouteImport.update({
   id: '/api/public/awin/import',
   path: '/api/public/awin/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBlogImageFileRoute = ApiPublicBlogImageFileRouteImport.update({
+  id: '/api/public/blog-image/$file',
+  path: '/api/public/blog-image/$file',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHooksSyncAlgoliaRoute =
@@ -160,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/produto/$id': typeof ProdutoIdRoute
+  '/admin/blog': typeof AuthenticatedAdminBlogRouteWithChildren
   '/admin/busca': typeof AuthenticatedAdminBuscaRoute
   '/admin/cliques': typeof AuthenticatedAdminCliquesRoute
   '/admin/cupons': typeof AuthenticatedAdminCuponsRoute
@@ -168,9 +223,16 @@ export interface FileRoutesByFullPath {
   '/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/admin/blog/autores': typeof AuthenticatedAdminBlogAutoresRoute
+  '/admin/blog/categorias': typeof AuthenticatedAdminBlogCategoriasRoute
+  '/admin/blog/novo': typeof AuthenticatedAdminBlogNovoRoute
+  '/admin/blog/tags': typeof AuthenticatedAdminBlogTagsRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
+  '/api/public/blog-image/$file': typeof ApiPublicBlogImageFileRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
   '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
+  '/admin/blog/': typeof AuthenticatedAdminBlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -190,9 +252,16 @@ export interface FileRoutesByTo {
   '/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/admin/blog/autores': typeof AuthenticatedAdminBlogAutoresRoute
+  '/admin/blog/categorias': typeof AuthenticatedAdminBlogCategoriasRoute
+  '/admin/blog/novo': typeof AuthenticatedAdminBlogNovoRoute
+  '/admin/blog/tags': typeof AuthenticatedAdminBlogTagsRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
+  '/api/public/blog-image/$file': typeof ApiPublicBlogImageFileRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
   '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
+  '/admin/blog': typeof AuthenticatedAdminBlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -207,6 +276,7 @@ export interface FileRoutesById {
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/produto/$id': typeof ProdutoIdRoute
+  '/_authenticated/admin/blog': typeof AuthenticatedAdminBlogRouteWithChildren
   '/_authenticated/admin/busca': typeof AuthenticatedAdminBuscaRoute
   '/_authenticated/admin/cliques': typeof AuthenticatedAdminCliquesRoute
   '/_authenticated/admin/cupons': typeof AuthenticatedAdminCuponsRoute
@@ -215,9 +285,16 @@ export interface FileRoutesById {
   '/_authenticated/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/_authenticated/admin/blog/autores': typeof AuthenticatedAdminBlogAutoresRoute
+  '/_authenticated/admin/blog/categorias': typeof AuthenticatedAdminBlogCategoriasRoute
+  '/_authenticated/admin/blog/novo': typeof AuthenticatedAdminBlogNovoRoute
+  '/_authenticated/admin/blog/tags': typeof AuthenticatedAdminBlogTagsRoute
   '/api/public/awin/import': typeof ApiPublicAwinImportRoute
+  '/api/public/blog-image/$file': typeof ApiPublicBlogImageFileRoute
   '/api/public/hooks/sync-algolia': typeof ApiPublicHooksSyncAlgoliaRoute
   '/api/public/hooks/sync-lomadee': typeof ApiPublicHooksSyncLomadeeRoute
+  '/_authenticated/admin/blog/': typeof AuthenticatedAdminBlogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -232,6 +309,7 @@ export interface FileRouteTypes {
     | '/termos-de-uso'
     | '/admin'
     | '/produto/$id'
+    | '/admin/blog'
     | '/admin/busca'
     | '/admin/cliques'
     | '/admin/cupons'
@@ -240,9 +318,16 @@ export interface FileRouteTypes {
     | '/admin/sincronizacao'
     | '/api/public/outbound-click'
     | '/admin/'
+    | '/admin/blog/$id'
+    | '/admin/blog/autores'
+    | '/admin/blog/categorias'
+    | '/admin/blog/novo'
+    | '/admin/blog/tags'
     | '/api/public/awin/import'
+    | '/api/public/blog-image/$file'
     | '/api/public/hooks/sync-algolia'
     | '/api/public/hooks/sync-lomadee'
+    | '/admin/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -262,9 +347,16 @@ export interface FileRouteTypes {
     | '/admin/sincronizacao'
     | '/api/public/outbound-click'
     | '/admin'
+    | '/admin/blog/$id'
+    | '/admin/blog/autores'
+    | '/admin/blog/categorias'
+    | '/admin/blog/novo'
+    | '/admin/blog/tags'
     | '/api/public/awin/import'
+    | '/api/public/blog-image/$file'
     | '/api/public/hooks/sync-algolia'
     | '/api/public/hooks/sync-lomadee'
+    | '/admin/blog'
   id:
     | '__root__'
     | '/'
@@ -278,6 +370,7 @@ export interface FileRouteTypes {
     | '/termos-de-uso'
     | '/_authenticated/admin'
     | '/produto/$id'
+    | '/_authenticated/admin/blog'
     | '/_authenticated/admin/busca'
     | '/_authenticated/admin/cliques'
     | '/_authenticated/admin/cupons'
@@ -286,9 +379,16 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/sincronizacao'
     | '/api/public/outbound-click'
     | '/_authenticated/admin/'
+    | '/_authenticated/admin/blog/$id'
+    | '/_authenticated/admin/blog/autores'
+    | '/_authenticated/admin/blog/categorias'
+    | '/_authenticated/admin/blog/novo'
+    | '/_authenticated/admin/blog/tags'
     | '/api/public/awin/import'
+    | '/api/public/blog-image/$file'
     | '/api/public/hooks/sync-algolia'
     | '/api/public/hooks/sync-lomadee'
+    | '/_authenticated/admin/blog/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -304,6 +404,7 @@ export interface RootRouteChildren {
   ProdutoIdRoute: typeof ProdutoIdRoute
   ApiPublicOutboundClickRoute: typeof ApiPublicOutboundClickRoute
   ApiPublicAwinImportRoute: typeof ApiPublicAwinImportRoute
+  ApiPublicBlogImageFileRoute: typeof ApiPublicBlogImageFileRoute
   ApiPublicHooksSyncAlgoliaRoute: typeof ApiPublicHooksSyncAlgoliaRoute
   ApiPublicHooksSyncLomadeeRoute: typeof ApiPublicHooksSyncLomadeeRoute
 }
@@ -394,6 +495,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/blog': {
+      id: '/_authenticated/admin/blog'
+      path: '/blog'
+      fullPath: '/admin/blog'
+      preLoaderRoute: typeof AuthenticatedAdminBlogRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/busca': {
       id: '/_authenticated/admin/busca'
       path: '/busca'
@@ -443,11 +551,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOutboundClickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/blog/': {
+      id: '/_authenticated/admin/blog/'
+      path: '/'
+      fullPath: '/admin/blog/'
+      preLoaderRoute: typeof AuthenticatedAdminBlogIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminBlogRoute
+    }
+    '/_authenticated/admin/blog/$id': {
+      id: '/_authenticated/admin/blog/$id'
+      path: '/$id'
+      fullPath: '/admin/blog/$id'
+      preLoaderRoute: typeof AuthenticatedAdminBlogIdRouteImport
+      parentRoute: typeof AuthenticatedAdminBlogRoute
+    }
+    '/_authenticated/admin/blog/autores': {
+      id: '/_authenticated/admin/blog/autores'
+      path: '/autores'
+      fullPath: '/admin/blog/autores'
+      preLoaderRoute: typeof AuthenticatedAdminBlogAutoresRouteImport
+      parentRoute: typeof AuthenticatedAdminBlogRoute
+    }
+    '/_authenticated/admin/blog/categorias': {
+      id: '/_authenticated/admin/blog/categorias'
+      path: '/categorias'
+      fullPath: '/admin/blog/categorias'
+      preLoaderRoute: typeof AuthenticatedAdminBlogCategoriasRouteImport
+      parentRoute: typeof AuthenticatedAdminBlogRoute
+    }
+    '/_authenticated/admin/blog/novo': {
+      id: '/_authenticated/admin/blog/novo'
+      path: '/novo'
+      fullPath: '/admin/blog/novo'
+      preLoaderRoute: typeof AuthenticatedAdminBlogNovoRouteImport
+      parentRoute: typeof AuthenticatedAdminBlogRoute
+    }
+    '/_authenticated/admin/blog/tags': {
+      id: '/_authenticated/admin/blog/tags'
+      path: '/tags'
+      fullPath: '/admin/blog/tags'
+      preLoaderRoute: typeof AuthenticatedAdminBlogTagsRouteImport
+      parentRoute: typeof AuthenticatedAdminBlogRoute
+    }
     '/api/public/awin/import': {
       id: '/api/public/awin/import'
       path: '/api/public/awin/import'
       fullPath: '/api/public/awin/import'
       preLoaderRoute: typeof ApiPublicAwinImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/blog-image/$file': {
+      id: '/api/public/blog-image/$file'
+      path: '/api/public/blog-image/$file'
+      fullPath: '/api/public/blog-image/$file'
+      preLoaderRoute: typeof ApiPublicBlogImageFileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/sync-algolia': {
@@ -467,7 +624,33 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminBlogRouteChildren {
+  AuthenticatedAdminBlogIdRoute: typeof AuthenticatedAdminBlogIdRoute
+  AuthenticatedAdminBlogAutoresRoute: typeof AuthenticatedAdminBlogAutoresRoute
+  AuthenticatedAdminBlogCategoriasRoute: typeof AuthenticatedAdminBlogCategoriasRoute
+  AuthenticatedAdminBlogNovoRoute: typeof AuthenticatedAdminBlogNovoRoute
+  AuthenticatedAdminBlogTagsRoute: typeof AuthenticatedAdminBlogTagsRoute
+  AuthenticatedAdminBlogIndexRoute: typeof AuthenticatedAdminBlogIndexRoute
+}
+
+const AuthenticatedAdminBlogRouteChildren: AuthenticatedAdminBlogRouteChildren =
+  {
+    AuthenticatedAdminBlogIdRoute: AuthenticatedAdminBlogIdRoute,
+    AuthenticatedAdminBlogAutoresRoute: AuthenticatedAdminBlogAutoresRoute,
+    AuthenticatedAdminBlogCategoriasRoute:
+      AuthenticatedAdminBlogCategoriasRoute,
+    AuthenticatedAdminBlogNovoRoute: AuthenticatedAdminBlogNovoRoute,
+    AuthenticatedAdminBlogTagsRoute: AuthenticatedAdminBlogTagsRoute,
+    AuthenticatedAdminBlogIndexRoute: AuthenticatedAdminBlogIndexRoute,
+  }
+
+const AuthenticatedAdminBlogRouteWithChildren =
+  AuthenticatedAdminBlogRoute._addFileChildren(
+    AuthenticatedAdminBlogRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminBlogRoute: typeof AuthenticatedAdminBlogRouteWithChildren
   AuthenticatedAdminBuscaRoute: typeof AuthenticatedAdminBuscaRoute
   AuthenticatedAdminCliquesRoute: typeof AuthenticatedAdminCliquesRoute
   AuthenticatedAdminCuponsRoute: typeof AuthenticatedAdminCuponsRoute
@@ -478,6 +661,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminBlogRoute: AuthenticatedAdminBlogRouteWithChildren,
   AuthenticatedAdminBuscaRoute: AuthenticatedAdminBuscaRoute,
   AuthenticatedAdminCliquesRoute: AuthenticatedAdminCliquesRoute,
   AuthenticatedAdminCuponsRoute: AuthenticatedAdminCuponsRoute,
@@ -514,6 +698,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProdutoIdRoute: ProdutoIdRoute,
   ApiPublicOutboundClickRoute: ApiPublicOutboundClickRoute,
   ApiPublicAwinImportRoute: ApiPublicAwinImportRoute,
+  ApiPublicBlogImageFileRoute: ApiPublicBlogImageFileRoute,
   ApiPublicHooksSyncAlgoliaRoute: ApiPublicHooksSyncAlgoliaRoute,
   ApiPublicHooksSyncLomadeeRoute: ApiPublicHooksSyncLomadeeRoute,
 }
