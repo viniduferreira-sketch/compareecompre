@@ -76,6 +76,21 @@ export type Database = {
           },
         ]
       }
+      awin_feed_settings: {
+        Row: {
+          secret_migrated: boolean
+          singleton: boolean
+        }
+        Insert: {
+          secret_migrated?: boolean
+          singleton?: boolean
+        }
+        Update: {
+          secret_migrated?: boolean
+          singleton?: boolean
+        }
+        Relationships: []
+      }
       awin_feeds: {
         Row: {
           anunciantes: string[]
@@ -668,6 +683,16 @@ export type Database = {
         Returns: undefined
       }
       save_awin_feed: {
+        Args: {
+          _id?: string
+          _merchants: Json
+          _nome: string
+          _secret?: boolean
+          _url: string
+        }
+        Returns: string
+      }
+      save_awin_feed_internal: {
         Args: {
           _id: string
           _merchants: Json

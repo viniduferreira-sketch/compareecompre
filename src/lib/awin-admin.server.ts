@@ -8,45 +8,8 @@ import { getAlgoliaIndexingConfig } from "./algolia-indexing.server";
 
 type Row = Record<string, string>;
 
-/** Minimal streaming RFC 4180 CSV parser (Workers have no Node streams). */
-export async function* parseCsv(stream: ReadableStream<string>): AsyncGenerator<Row> {
-  const reader = stream.getReader();
-  let header: string[] | null = null;
-  let field = "";
-  let record: string[] = [];
-  let quoted = false;
-  let pendingQuote = false;
-  const emit = (): Row | null => {
-    record.push(field); field = "";
-    const values = record; record = [];
-    if (!header) { header = values.map((h, i) => (i === 0 ? h.replace(/^\uFEFF/, "") : h)); return null; }
-    if (values.length === 1 && values[0] === "") return null;
-    const row: Row = {};
-    header.forEach((h, i) => { row[h] = values[i] ?? ""; });
-    return row;
-  };
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    for (let i = 0; i < value.length; i++) {
-      const ch = value[i]!;
-      if (pendingQuote) {
-        pendingQuote = false;
-        if (ch === '"') { field += '"'; continue; }
-        quoted = false;
-      }
-      if (quoted) {
-        if (ch === '"') pendingQuote = true; else field += ch;
-        continue;
-      }
-      if (ch === '"') quoted = true;
-      else if (ch === ",") { record.push(field); field = ""; }
-      else if (ch === "\n") { const row = emit(); if (row) yield row; }
-      else if (ch !== "\r") field += ch;
-    }
-  }
-  if (field || record.length) { const row = emit(); if (row) yield row; }
-}
+import { parseCsv, openFeed } from "../../scripts/awin-feed-reader.mjs";
+export { parseCsv };
 
 export type AwinSimulationStore = {
   merchant: string;
@@ -61,17 +24,15 @@ export type AwinSimulationStore = {
 };
 
 export async function simulateAwinFeed(allowed: string[], rules: AwinMerchantRule[]) {
-  const feedUrl = process.env["AWIN_FEED_URL"];
-  if (!feedUrl) throw new Error("Feed Awin não configurado.");
-  const response = await fetch(feedUrl);
-  if (!response.ok || !response.body) throw new Error(`Não foi possível baixar o feed Awin (HTTP ${response.status}).`);
-  const gz = feedUrl.includes("compression/gzip") || (response.headers.get("content-type") ?? "").includes("gzip");
-  const body = gz ? response.body.pipeThrough(new DecompressionStream("gzip")) : response.body;
+  const { readImportFeeds } = await import("./awin-feeds.server");
+  const feeds = await readImportFeeds(process.env["AWIN_FEED_URL"]);
 
   type Eligible = { row: Row; priority: number; order: number };
   const stores = new Map<string, { s: AwinSimulationStore; eligible: Eligible[]; catRows: Map<string, number> }>();
   let total = 0;
-  for await (const row of parseCsv(body.pipeThrough(new TextDecoderStream()))) {
+  for (const feed of feeds) {
+  const body = await openFeed(feed.url);
+  for await (const row of parseCsv(body)) {
     total++;
     const name = row["merchant_name"] || "(sem nome)";
     let entry = stores.get(name);
@@ -95,6 +56,7 @@ export async function simulateAwinFeed(allowed: string[], rules: AwinMerchantRul
     });
   }
 
+  }
   const result: AwinSimulationStore[] = [];
   for (const { s, eligible, catRows } of stores.values()) {
     eligible.sort((a, b) => b.priority - a.priority || a.order - b.order);

@@ -1,10 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
 ## Cadastro seguro de feeds Awin (sem importações)
-- [ ] Criar cadastro privado, testes limitados e gravação administrativa sem expor URLs.
-- [ ] Adicionar seção Feeds de dados na aba Awin e ações confirmadas.
-- [ ] Adaptar workflow a feeds ativos sequenciais, falhas isoladas e chave existente.
-- [ ] Validar segurança, limites, interface autenticada e ausência de alterações em produtos.
+- [x] Cadastro privado e funções administrativas com user_roles, URLs mascaradas, gravação atômica e migração do segredo de uso único persistente.
+- [x] Seção Feeds de dados na aba Awin: adicionar/testar/salvar, pausar/ativar, substituir com campo vazio e remover com confirmação; regras existentes preservadas.
+- [x] Workflow sequencial com falhas isoladas, lotes globais e IDs source-qualified; segredo somente quando tabela vazia, nenhum fallback quando todos pausados.
+- [x] Testes de limites 300 KB/200 linhas/20s, gzip e erros seguros; navegador autenticado validou salvar/reler/pausar/substituir/remover cadastro temporário; mobile sem overflow. Teste real parcial: 181 linhas Nike, colunas completas, 3 exemplos. Nenhuma importação acionada; tabela vazia ao final e regras KaBuM/Nike intactas. Rotinas agendadas preexistentes atualizaram 8 registros durante a verificação, fora das ações desta tarefa.
 
 ## Google Search Console (pedido atual)
 - [x] Vincular a conta Google Search Console ao projeto.

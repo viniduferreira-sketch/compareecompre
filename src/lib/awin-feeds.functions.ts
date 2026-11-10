@@ -20,8 +20,10 @@ export const getAwinFeeds = createServerFn({method:'POST'}).middleware([requireS
   const db = await admin(context);
   const result = await db.from('awin_feeds').select('*').order('created_at');
   if (result.error) throw new Error('Não foi possível listar os feeds.');
+  const marker = await db.from('awin_feed_settings').select('secret_migrated').eq('singleton',true).maybeSingle();
+  if(marker.error) throw new Error('Não foi possível conferir o feed atual.');
   const {maskFeedUrl} = await import('./awin-feeds.server');
-  return {feeds:(result.data ?? []).map(({url,...feed})=>({...feed,url_mascarada:maskFeedUrl(url)})),canBringSecret: !(result.data ?? []).some(f=>f.origem_segredo) && Boolean(process.env['AWIN_FEED_URL'])};
+  return {feeds:(result.data ?? []).map(({url,...feed})=>({...feed,url_mascarada:maskFeedUrl(url)})),canBringSecret: !marker.data?.secret_migrated && Boolean(process.env['AWIN_FEED_URL'])};
 });
 export const testAwinFeed = createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(urlInput).handler(async ({data,context}) => {
   await admin(context); const {inspectFeed,validateFeedUrl} = await import('./awin-feeds.server');
@@ -45,7 +47,7 @@ export const saveAwinFeed = createServerFn({method:'POST'}).middleware([requireS
   const db = await admin(context); const {inspectFeed,validateFeedUrl} = await import('./awin-feeds.server');
   const url = validateFeedUrl(data.url); const test = await inspectFeed(url);
   if (!test.valid) throw new Error('Feed sem anunciantes ou colunas obrigatórias. Não foi salvo.');
-  const saved = await db.rpc('save_awin_feed',{_id:data.id ?? null as unknown as string,_nome:data.nome || test.merchants.map(m=>m.name).join(', ').slice(0,200),_url:url,_merchants:test.merchants,_secret:false});
+  const saved = await db.rpc('save_awin_feed',{...(data.id ? {_id:data.id} : {}),_nome:data.nome || test.merchants.map(m=>m.name).join(', ').slice(0,200),_url:url,_merchants:test.merchants,_secret:false});
   if (saved.error) throw new Error('Não foi possível salvar o feed e seus anunciantes.');
   return {id:saved.data,anunciantes:test.merchants.map(m=>m.name)};
 });
@@ -57,13 +59,13 @@ export const changeAwinFeed = createServerFn({method:'POST'}).middleware([requir
 });
 export const bringAwinSecret = createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).handler(async ({context}) => {
   const db = await admin(context);
-  const existing = await db.from('awin_feeds').select('id').eq('origem_segredo',true).maybeSingle();
-  if (existing.error || existing.data) throw new Error('O feed atual já foi trazido ou não pôde ser conferido.');
+  const existing = await db.from('awin_feed_settings').select('secret_migrated').eq('singleton',true).maybeSingle();
+  if (existing.error || existing.data?.secret_migrated) throw new Error('O feed atual já foi trazido ou não pôde ser conferido.');
   const secret = process.env['AWIN_FEED_URL']; if (!secret) throw new Error('Feed atual não configurado.');
   const {inspectFeed,validateFeedUrl} = await import('./awin-feeds.server');
   const url=validateFeedUrl(secret); const test=await inspectFeed(url);
   if (!test.valid) throw new Error('O feed atual não passou no teste.');
-  const result=await db.rpc('save_awin_feed',{_id:null as unknown as string,_nome:'Feed atual',_url:url,_merchants:test.merchants,_secret:true});
+  const result=await db.rpc('save_awin_feed',{_nome:'Feed atual',_url:url,_merchants:test.merchants,_secret:true});
   if (result.error) throw new Error('Não foi possível trazer o feed atual.');
   return {ok:true};
 });

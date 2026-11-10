@@ -127,6 +127,13 @@
       "when": 1794259378806,
       "tag": "0017_create_private_awin_feeds",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794320325271,
+      "tag": "0018_awin_feed_secret_one_time_marker",
+      "breakpoints": true
     }
   ]
 }

@@ -5,14 +5,15 @@ export async function inspectFeed(url: string) {
   const merchants = new Map<string,string>();
   const examples: { title: string; merchant: string; price: string; category: string }[] = [];
   let columns: string[] = []; let rows = 0;
-  const scrub = (value: string) => value.replace(/https?:\/\/\S+/gi, '[link protegido]').slice(0,200);
+  const key = /\/apikey\/([^/]+)/i.exec(new URL(url).pathname)?.[1] ?? new URL(url).searchParams.get('apikey') ?? '';
+  const scrub = (value: string) => (key ? value.split(key).join('[chave protegida]') : value).replace(/https?:\/\/\S+/gi, '[link protegido]').slice(0,200);
   try {
     const stream = await openFeed(url, { limited: true });
-    for await (const row of parseCsv(stream)) {
+    for await (const row of parseCsv(stream, {partial:true})) {
       if (!rows) columns = Object.keys(row);
       rows++;
       const name = (row['merchant_name'] ?? '').trim(); const id = (row['merchant_id'] ?? '').trim();
-      if (name && id && /^[\w.-]{1,40}$/.test(id)) merchants.set(id, name.slice(0,200));
+      if (name && id && /^[\w.-]{1,40}$/.test(id)) merchants.set(id, scrub(name));
       if (examples.length < 3) examples.push({title:scrub(row['product_name'] ?? ''),merchant:scrub(name),price:scrub(row['search_price'] ?? ''),category:scrub(row['merchant_category'] ?? '')});
       if (rows >= FEED_TEST_MAX_ROWS) break;
     }

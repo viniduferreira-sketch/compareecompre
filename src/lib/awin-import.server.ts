@@ -31,6 +31,7 @@ export const importRequestSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("start"), importId: z.string().uuid().optional() }),
   z.object({ action: z.literal("batch"), importId: z.string().uuid(), batch: z.number().int().min(0), rows: z.array(awinRowSchema).min(1).max(100) }),
   z.object({ action: z.literal("testBatch"), batch: z.number().int().min(0), rows: z.array(awinRowSchema).min(1).max(100) }),
+  z.object({ action: z.literal("feedResult"), importId: z.string().uuid(), feedId: z.string().uuid(), linhas: z.number().int().min(0), success: z.boolean() }),
   z.object({ action: z.literal("finish"), importId: z.string().uuid(), success: z.boolean(), error: z.string().max(500).optional() }),
 ]);
 
@@ -82,14 +83,6 @@ function batchCounts(rowCount: number, indexed: number, duplicates: number) {
   return { indexed, skipped: rowCount - indexed - duplicates };
 }
 
-function readAwinFeedUrl(): string {
-  const feedUrl = process.env["AWIN_FEED_URL"];
-  if (!feedUrl) throw new Error("Feed Awin não configurado.");
-  const url = new URL(feedUrl);
-  if (url.protocol !== "https:" || url.hostname !== "productdata.awin.com" || !url.pathname.startsWith("/datafeed/download/")) throw new Error("URL do feed inválida.");
-  return feedUrl;
-}
-
 export async function handleAwinImport(runId: string, input: z.infer<typeof importRequestSchema>) {
   const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
   if (input.action === "testBatch") {
@@ -103,18 +96,28 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
     await ensureIdentifierFacets();
     // Clear only abandoned jobs, not catalog records. Workflow concurrency prevents simultaneous downloads.
     await db.from("catalog_imports").update({ status: "failed", error: "Execução interrompida; solicite novamente." }).in("status", ["queued", "running"]).lt("updated_at", new Date(Date.now() - 3 * 3600_000).toISOString());
-    const feedUrl = readAwinFeedUrl();
+    const { readImportFeeds } = await import("./awin-feeds.server");
+    const feeds = await readImportFeeds(process.env["AWIN_FEED_URL"]);
     const existing = await db.from("catalog_imports").select("id,status").eq("github_run_id", runId).maybeSingle();
     if (existing.error) throw new Error("Não foi possível ler a importação.");
-    if (existing.data) return { importId: existing.data.id, feedUrl };
+    if (existing.data) return { importId: existing.data.id, feeds };
     const result = input.importId
       ? await db.from("catalog_imports").update({ status: "running", github_run_id: runId, updated_at: new Date().toISOString() }).eq("id", input.importId).eq("status", "queued").select("id").single()
       : await db.from("catalog_imports").insert({ status: "running", github_run_id: runId }).select("id").single();
     if (result.error || !result.data) throw new Error("Importação já em andamento ou solicitação inválida.");
-    return { importId: result.data.id, feedUrl };
+    return { importId: result.data.id, feeds };
   }
   const { data: job, error } = await db.from("catalog_imports").select("id,status,created_at").eq("id", input.importId).eq("github_run_id", runId).single();
   if (error || !job) throw new Error("Importação não autorizada.");
+  if (input.action === "feedResult") {
+    if (job.status !== "running") throw new Error("Importação encerrada.");
+    const erro = input.success ? null : "Falha no download ou processamento deste feed.";
+    const saved = await db.from("awin_feed_import_results").upsert({import_id:job.id,feed_id:input.feedId,linhas:input.linhas,status:input.success?"completed":"failed",erro});
+    if (saved.error) throw new Error("Não foi possível registrar o resultado do feed.");
+    const updated = await db.from("awin_feeds").update({ultima_importacao_em:new Date().toISOString(),ultima_importacao_linhas:input.linhas}).eq("id",input.feedId);
+    if (updated.error) throw new Error("Não foi possível atualizar o histórico do feed.");
+    return {ok:true};
+  }
   if (input.action === "finish") {
     let indexed = 0;
     for (let offset = 0; ; offset += 1000) {
@@ -123,7 +126,10 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
       indexed += (batches.data ?? []).reduce((n, b) => n + b.indexed, 0);
       if ((batches.data ?? []).length < 1000) break;
     }
-    const success = input.success && indexed > 0;
+    const feedResults = await db.from("awin_feed_import_results").select("status").eq("import_id",job.id);
+    if (feedResults.error) throw new Error("Não foi possível conferir os feeds.");
+    const failedFeeds = (feedResults.data ?? []).filter(f=>f.status==="failed").length;
+    const success = input.success && indexed > 0 && !failedFeeds;
     const result = await db.from("catalog_imports").update({ status: success ? "completed" : "failed", finished_at: new Date().toISOString(), updated_at: new Date().toISOString(), error: success ? null : "Importação incompleta ou sem produtos válidos. Consulte a execução no GitHub." }).eq("id", job.id);
     if (result.error) throw new Error("Não foi possível finalizar a importação.");
     return { success, indexed };
@@ -137,7 +143,7 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
   const products: AwinProduct[] = [];
   for (const [merchant, list] of byMerchant) {
     // Durable per-import, per-store counter; idempotent for retried batches.
-    const claim = await db.rpc("claim_awin_merchant_slots", { _import_id: job.id, _batch: input.batch, _merchant: merchant, _requested: list.length, _limit: list[0]!.rule.max_products });
+    const claim = await db.rpc("claim_awin_merchant_slots", { _import_id: job.id, _batch: input.batch, _merchant: merchant, _requested: list.length, _limit: list[0]?.rule.max_products ?? 0 });
     if (claim.error || typeof claim.data !== "number") throw new Error("Não foi possível reservar o limite da loja.");
     products.push(...list.slice(0, claim.data).map((candidate) => candidate.product));
     for (let i = claim.data; i < list.length; i++) addDiscard(reasons, MERCHANT_LIMIT_REASON);
@@ -167,19 +173,19 @@ export async function testAwinImporterDryRun(): Promise<{
   acceptedByMerchant: Record<string, number>;
   sampled: number;
 }> {
-  const feedUrl = readAwinFeedUrl();
-  const response = await fetch(feedUrl);
-  if (!response.ok || !response.body) throw new Error(`Não foi possível baixar o feed Awin (HTTP ${response.status}).`);
-  const gz = feedUrl.includes("compression/gzip") || (response.headers.get("content-type") ?? "").includes("gzip");
-  const body = gz ? response.body.pipeThrough(new DecompressionStream("gzip")) : response.body;
-  const { parseCsv } = await import("./awin-admin.server");
+  const { readImportFeeds } = await import("./awin-feeds.server");
+  const { parseCsv, openFeed } = await import("../../scripts/awin-feed-reader.mjs");
+  const feeds = await readImportFeeds(process.env["AWIN_FEED_URL"]);
   const sampled = new Map<string, AwinRow[]>();
-  for await (const row of parseCsv(body.pipeThrough(new TextDecoderStream()))) {
+  for (const feed of feeds) {
+  const body = await openFeed(feed.url, {limited:true});
+  for await (const row of parseCsv(body)) {
     const merchant = normalizeAwinMerchantName(row["merchant_name"] ?? "");
     if (merchant !== "kabum" && merchant !== "nike") continue;
     const list = sampled.get(merchant) ?? [];
     if (list.length < 50) { list.push(row); sampled.set(merchant, list); }
     if ((sampled.get("kabum")?.length ?? 0) === 50 && (sampled.get("nike")?.length ?? 0) === 50) break;
+  }
   }
   const rows = [...sampled.values()].flat();
   if (!rows.length) throw new Error("O feed não contém linhas da KaBuM ou da Nike para o teste.");

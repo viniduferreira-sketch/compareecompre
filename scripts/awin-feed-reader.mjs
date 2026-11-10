@@ -14,7 +14,7 @@ export function maskFeedUrl(value) {
   const key = /\/apikey\/([^/]+)/i.exec(u.pathname)?.[1] ?? u.searchParams.get('apikey') ?? u.searchParams.get('api_key') ?? u.searchParams.get('key') ?? '';
   return `https://productdata.awin.com/… (chave ••••${key.slice(-4)})`;
 }
-export async function* parseCsv(stream) {
+export async function* parseCsv(stream, { partial = false } = {}) {
   const reader = stream.getReader();
   let header = null, field = '', record = [], quoted = false, pendingQuote = false;
   const emit = () => {
@@ -37,7 +37,7 @@ export async function* parseCsv(stream) {
         else if (ch !== '\r') field += ch;
       }
     }
-    if (field || record.length) { const row = emit(); if (row) yield row; }
+    if (!partial && (field || record.length)) { const row = emit(); if (row) yield row; }
   } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
 }
 function bounded(stream, limit) {
@@ -66,7 +66,7 @@ export async function openFeed(url, { limited = false } = {}) {
     }, cancel() { return reader.cancel().catch(() => {}); }
   });
   const gzip = first.value[0] === 0x1f && first.value[1] === 0x8b;
-  const source = limited ? bounded(raw, FEED_TEST_MAX_BYTES) : raw;
+  const source = raw;
   const decoded = gzip ? source.pipeThrough(new DecompressionStream('gzip')) : source;
   return (limited ? bounded(decoded, FEED_TEST_MAX_BYTES) : decoded).pipeThrough(new TextDecoderStream());
 }

@@ -1,6 +1,5 @@
-import { Readable } from 'node:stream';
-import { createGunzip } from 'node:zlib';
-import { parse } from 'csv-parse';
+import { openFeed, parseCsv } from './awin-feed-reader.mjs';
+import { processFeedSequence } from './awin-feed-sequence.mjs';
 
 const endpoint = process.env.AWIN_IMPORT_ENDPOINT;
 if (!endpoint || new URL(endpoint).protocol !== 'https:') throw new Error('Configure AWIN_IMPORT_ENDPOINT with the published import endpoint.');
@@ -28,34 +27,20 @@ let importId;
 try {
   const started = await send({ action: 'start', ...(id ? { importId: id } : {}) });
   importId = started.importId;
-  // Feed URL is intentionally returned only to this OIDC-verified workflow and never printed.
-  const response = await fetch(started.feedUrl);
-  if (!response.ok || !response.body) throw new Error(`Awin download failed (HTTP ${response.status}).`);
-  const source = Readable.fromWeb(response.body);
-  const iterator = source[Symbol.asyncIterator]();
-  const first = await iterator.next();
-  if (first.done) throw new Error('Awin feed is empty.');
-  const combined = Readable.from((async function* () { yield first.value; for await (const chunk of { [Symbol.asyncIterator]: () => iterator }) yield chunk; })());
-  const gzip = first.value[0] === 0x1f && first.value[1] === 0x8b;
-  const decoded = gzip ? combined.pipe(createGunzip()) : combined;
-  const csv = decoded.pipe(parse({ columns: true, bom: true, skip_empty_lines: true, max_record_size: 1000000 }));
-  combined.on('error', () => csv.destroy(new Error('Feed stream interrupted.')));
-  if (decoded !== combined) decoded.on('error', () => csv.destroy(new Error('Invalid compressed feed.')));
-  // Buffer the feed so rows with GTIN, stock and image reach the per-store limit first.
-  // The server applies the same priority inside each batch and owns the durable counter.
-  const all = [];
-  for await (const row of csv) all.push(row);
-  const gtin = (v) => /^\d{8,14}$/.test(String(v ?? '').replace(/\D/g, '')) && /[1-9]/.test(String(v ?? ''));
-  const off = (v) => ['0', 'false', 'no', 'n', 'out of stock', 'out_of_stock', 'unavailable'].includes(String(v ?? '').trim().toLowerCase());
-  const score = (r) => (gtin(r.ean) || gtin(r.product_GTIN) ? 4 : 0) + (!off(r.in_stock) && !off(r.stock_status) ? 2 : 0) + (/^https?:\/\//.test(r.merchant_image_url || r.aw_image_url || '') ? 1 : 0);
-  const ordered = all.map((row, i) => ({ row, i, s: score(row) })).sort((a, b) => b.s - a.s || a.i - b.i).map((x) => x.row);
-  all.length = 0;
-  let batch = 0;
-  for (let start = 0; start < ordered.length; start += 100) {
-    await send({ action: 'batch', importId, batch: batch++, rows: ordered.slice(start, start + 100) });
-    if (batch % 10 === 0) console.info(`Processed ${Math.min(start + 100, ordered.length)} of ${ordered.length} rows.`);
-  }
-  const result = await send({ action: 'finish', importId, success: true });
+  const feeds = started.feeds ?? [{id:null,url:started.feedUrl}];
+  const { failures } = await processFeedSequence(feeds, {
+    read: async (url, count) => {
+      const all = [];
+      for await (const row of parseCsv(await openFeed(url))) { count(); all.push(row); }
+      const gtin = v => /^\d{8,14}$/.test(String(v ?? '').replace(/\D/g,'')) && /[1-9]/.test(String(v ?? ''));
+      const off = v => ['0','false','no','n','out of stock','out_of_stock','unavailable'].includes(String(v ?? '').trim().toLowerCase());
+      const score = r => (gtin(r.ean)||gtin(r.product_GTIN)?4:0)+(!off(r.in_stock)&&!off(r.stock_status)?2:0)+(/^https?:\/\//.test(r.merchant_image_url||r.aw_image_url||'')?1:0);
+      return all.map((row,i)=>({row,i,s:score(row)})).sort((a,b)=>b.s-a.s||a.i-b.i).map(x=>x.row);
+    },
+    batch: (batch,rows) => send({action:'batch',importId,batch,rows}),
+    record: (feedId,linhas,success) => send({action:'feedResult',importId,feedId,linhas,success}),
+  });
+  const result = await send({ action: 'finish', importId, success: failures === 0 });
   if (!result.success) throw new Error('Import produced no valid records.');
   console.info(`Import complete: ${result.indexed} records processed.`);
 } catch {
