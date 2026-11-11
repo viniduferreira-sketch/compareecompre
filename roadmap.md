@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Produtos relacionados na página de produto
+- [x] Alternativas: categoria, preço 70–130% com ampliação, exclusão de variantes, popularidade e duas ofertas por marca.
+- [x] Mais na categoria: oito ofertas sem repetição de produto/grupo, carregamento por proximidade, cards existentes e carrossel no celular.
+- [x] Sete testes; produto real exibiu 4 alternativas e 8 da categoria, sem repetição; clique interno validado. Cliques internos não entram no registro de saída para lojas.
+
 ## Páginas institucionais de lojas e comparação
 - [x] Criar as duas páginas SSR com dados públicos, contagens em cache de cinco minutos, textos fiéis ao código e SEO. Avaliação extra ML descrita como simulação; comissão não entra no ranking.
 - [x] Rodapé, catálogo filtrado por loja, voltar, HTML inicial, canonical, dados estruturados, sitemap e FAQ verificados no navegador; celular sem overflow. Sem importações ou alterações em busca, produto, blog e importadores.
