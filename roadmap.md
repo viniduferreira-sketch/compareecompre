@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Páginas institucionais de lojas e comparação
+- [x] Criar as duas páginas SSR com dados públicos, contagens em cache de cinco minutos, textos fiéis ao código e SEO. Avaliação extra ML descrita como simulação; comissão não entra no ranking.
+- [x] Rodapé, catálogo filtrado por loja, voltar, HTML inicial, canonical, dados estruturados, sitemap e FAQ verificados no navegador; celular sem overflow. Sem importações ou alterações em busca, produto, blog e importadores.
+
 ## Páginas próprias de categoria
 - [x] Criar sete URLs SSR com lista compartilhada, filtros e ordenação na URL, canonical e breadcrumbs.
 - [x] Atualizar atalhos e filtros de categoria, redirecionar URLs antigas com 301 e incluir no sitemap.
