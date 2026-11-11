@@ -127,6 +127,10 @@ export function SearchResults({
   onPage,
   activeFilters,
   onToggleFilter,
+  headingLabel,
+  sortOptions,
+  showStore=false,
+  emptyContent,
 }: {
   activeFilters: ActiveFilter[];
   onToggleFilter: (filter: ActiveFilter) => void;
@@ -143,13 +147,17 @@ export function SearchResults({
   isLoading: boolean;
   onSort: (sort: OfferSort) => void;
   onPage: (page: number) => void;
+  headingLabel?:string;
+  sortOptions?:Array<{value:string;label:string}>;
+  showStore?:boolean;
+  emptyContent?:ReactNode;
 }) {
   return (
     <section className="mx-auto max-w-7xl px-5 py-8 lg:px-8">
       {categoryMode&&<nav aria-label="Você está em" className="mb-5 flex gap-2 text-sm text-muted-foreground"><a href="/">Início</a><span>›</span><span>{term}</span></nav>}
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <p className="text-xs font-semibold uppercase text-primary">{categoryMode?'Categoria':'Resultados da busca'}</p>
+          <p className="text-xs font-semibold uppercase text-primary">{headingLabel??(categoryMode?'Categoria':'Resultados da busca')}</p>
           <h1 className="font-display text-2xl font-bold">{term}</h1>
           {introduction}
           <p className="mt-1 text-sm text-muted-foreground">{total.toLocaleString("pt-BR")} produtos encontrados</p>
@@ -159,9 +167,7 @@ export function SearchResults({
           <Select value={sort} onValueChange={(value) => onSort(value as OfferSort)}>
             <SelectTrigger className="w-44 bg-card"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="relevance">Mais populares</SelectItem>
-              <SelectItem value="price_asc">Menor preço</SelectItem>
-              <SelectItem value="price_desc">Maior preço</SelectItem>
+              {(sortOptions??[{value:'relevance',label:'Mais populares'},{value:'price_asc',label:'Menor preço'},{value:'price_desc',label:'Maior preço'}]).map(option=><SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -175,13 +181,13 @@ export function SearchResults({
               {Array.from({ length: 9 }).map((_, index) => <Skeleton key={index} className="h-80 rounded-lg" />)}
             </div>
           ) : offers.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border bg-card px-6 py-16 text-center">
+            emptyContent ?? <div className="rounded-lg border border-dashed border-border bg-card px-6 py-16 text-center">
               <h2 className="font-display text-lg font-bold">Nenhum resultado encontrado</h2>
               <p className="mt-1 text-sm text-muted-foreground">{categoryMode?"Ainda não há ofertas nesta seleção. Confira outros produtos na busca.":"Tente buscar outro termo ou remover os filtros."}</p>{categoryMode&&<Button asChild variant="outline" className="mt-4"><a href="/?q=">Buscar produtos</a></Button>}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {offers.map((offer) => <OfferCard key={`${offer.store}-${offer.id}`} offer={offer} />)}
+              {offers.map((offer) => <OfferCard key={`${offer.store}-${offer.id}`} offer={offer} showStore={showStore} />)}
             </div>
           )}
           {!isLoading && offers.length > 0 ? (

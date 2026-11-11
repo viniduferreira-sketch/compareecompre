@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Link } from '@tanstack/react-router';
 import {
   Carousel,
   CarouselContent,
@@ -25,7 +26,7 @@ import heroNikeDesktopAsset from "@/assets/banners/hero-nike-desktop.webp.asset.
 import heroNikeMobileAsset from "@/assets/banners/hero-nike-mobile.webp.asset.json";
 
 type BannerAction =
-  | { type: "search"; value: string }
+  | { type: "page"; value: '/ofertas' }
   | { type: "store"; value: "Kabum BR" | "Nike BR" };
 
 type BannerImage = {
@@ -99,7 +100,7 @@ export const HOME_BANNERS: HomeBanner[] = [
     title: "Busque, compare e vá à loja",
     description: "Pesquise ofertas de lojas parceiras em um só lugar e finalize a compra no site da loja.",
     buttonLabel: "Explorar ofertas",
-    action: { type: "search", value: "ofertas do dia" },
+    action: { type: "page", value: '/ofertas' },
     backgroundClass: "bg-beauty-gradient",
     steps: [
       { title: "Busque o produto", description: "Digite o que você procura.", icon: Search },
@@ -150,11 +151,6 @@ export function HeroCarousel({
       api.off("select", onSelect);
     };
   }, [api]);
-
-  const runAction = (action: BannerAction) => {
-    if (action.type === "store") onSelectStore(action.value);
-    else onSearch(action.value);
-  };
 
   return (
     <section className="mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:px-8" aria-label="Destaques">
@@ -216,9 +212,9 @@ export function HeroCarousel({
                     <Button
                       variant="hero"
                       className="mt-6 rounded-full px-6"
-                      onClick={() => runAction(banner.action)}
+                      asChild
                     >
-                      {banner.buttonLabel} <ArrowRight className="size-4" />
+                      {banner.action.type==='store'?<Link to="/lojas-monitoradas" search={{loja:banner.action.value}}>{banner.buttonLabel} <ArrowRight className="size-4" /></Link>:<Link to="/ofertas">{banner.buttonLabel} <ArrowRight className="size-4" /></Link>}
                     </Button>
                   </div>
                 </div>

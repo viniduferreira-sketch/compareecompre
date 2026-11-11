@@ -1,12 +1,13 @@
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight} from 'lucide-react';
 import {Button} from '@/components/ui/button';
+import {Link} from '@tanstack/react-router';
 import {prepareBlogReading} from '@/lib/blog-portal';
 
 export function CompareCallout({compact=false}:{compact?:boolean}) {
  return <section className={compact?'border-t border-border pt-6':'col-span-full flex flex-col items-start justify-between gap-4 border-y border-border bg-secondary px-6 py-7 sm:flex-row sm:items-center'}>
   <h2 className={compact?'mb-3 text-lg font-bold':'text-xl font-bold'}>{compact?'Compare preços':'Já escolheu o produto? Compare o preço nas lojas'}</h2>
-  <Button asChild><a href="/?q=">{compact?'Buscar ofertas':'Comparar preços'}<ArrowRight className="size-4"/></a></Button>
+  <Button asChild><Link to="/ofertas">{compact?'Buscar ofertas':'Comparar preços'}<ArrowRight className="size-4"/></Link></Button>
  </section>;
 }
 export function BlogReading({html}:{html:string}) {

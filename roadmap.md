@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Ofertas, busca e destinos dos botões (sem importações)
+- [ ] Criar /ofertas com descontos reais, filtros, três ordens, 24 por página, fallback popular, SEO e sitemap.
+- [ ] Criar /busca com estado na URL, noindex e recuperação de busca vazia com oito populares.
+- [ ] Corrigir destinos dos banners, Ver todos e CTAs; validar fluxo real, SSR e celular e listar alterações.
+
 ## Conteúdo das categorias
 - [x] Sete textos e 28 perguntas/respostas gravados em category_content, leitura pública e escrita com o padrão admin existente.
 - [x] Introdução de três linhas expansível no celular, FAQ nativo acessível e BlogCard só na página 1 inclusive filtrada; HTML inicial e FAQPage derivados das mesmas respostas.

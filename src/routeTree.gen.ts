@@ -14,9 +14,11 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthCallbackRouteImport } from './routes/auth-callback'
 import { Route as BlogRouteImport } from './routes/blog'
+import { Route as BuscaRouteImport } from './routes/busca'
 import { Route as ComoComparamosRouteImport } from './routes/como-comparamos'
 import { Route as CuponsRouteImport } from './routes/cupons'
 import { Route as LojasMonitoradasRouteImport } from './routes/lojas-monitoradas'
+import { Route as OfertasRouteImport } from './routes/ofertas'
 import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-privacidade'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SobreNosRouteImport } from './routes/sobre-nos'
@@ -74,6 +76,11 @@ const BlogRoute = BlogRouteImport.update({
   path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BuscaRoute = BuscaRouteImport.update({
+  id: '/busca',
+  path: '/busca',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComoComparamosRoute = ComoComparamosRouteImport.update({
   id: '/como-comparamos',
   path: '/como-comparamos',
@@ -87,6 +94,11 @@ const CuponsRoute = CuponsRouteImport.update({
 const LojasMonitoradasRoute = LojasMonitoradasRouteImport.update({
   id: '/lojas-monitoradas',
   path: '/lojas-monitoradas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfertasRoute = OfertasRouteImport.update({
+  id: '/ofertas',
+  path: '/ofertas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliticaDePrivacidadeRoute = PoliticaDePrivacidadeRouteImport.update({
@@ -270,9 +282,11 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/auth-callback': typeof AuthCallbackRoute
   '/blog': typeof BlogRouteWithChildren
+  '/busca': typeof BuscaRoute
   '/como-comparamos': typeof ComoComparamosRoute
   '/cupons': typeof CuponsRoute
   '/lojas-monitoradas': typeof LojasMonitoradasRoute
+  '/ofertas': typeof OfertasRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
@@ -310,9 +324,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/auth-callback': typeof AuthCallbackRoute
+  '/busca': typeof BuscaRoute
   '/como-comparamos': typeof ComoComparamosRoute
   '/cupons': typeof CuponsRoute
   '/lojas-monitoradas': typeof LojasMonitoradasRoute
+  '/ofertas': typeof OfertasRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
@@ -351,9 +367,11 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/auth-callback': typeof AuthCallbackRoute
   '/blog': typeof BlogRouteWithChildren
+  '/busca': typeof BuscaRoute
   '/como-comparamos': typeof ComoComparamosRoute
   '/cupons': typeof CuponsRoute
   '/lojas-monitoradas': typeof LojasMonitoradasRoute
+  '/ofertas': typeof OfertasRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
@@ -394,9 +412,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/auth-callback'
     | '/blog'
+    | '/busca'
     | '/como-comparamos'
     | '/cupons'
     | '/lojas-monitoradas'
+    | '/ofertas'
     | '/politica-de-privacidade'
     | '/sitemap.xml'
     | '/sobre-nos'
@@ -434,9 +454,11 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/auth-callback'
+    | '/busca'
     | '/como-comparamos'
     | '/cupons'
     | '/lojas-monitoradas'
+    | '/ofertas'
     | '/politica-de-privacidade'
     | '/sitemap.xml'
     | '/sobre-nos'
@@ -474,9 +496,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/auth-callback'
     | '/blog'
+    | '/busca'
     | '/como-comparamos'
     | '/cupons'
     | '/lojas-monitoradas'
+    | '/ofertas'
     | '/politica-de-privacidade'
     | '/sitemap.xml'
     | '/sobre-nos'
@@ -517,9 +541,11 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   BlogRoute: typeof BlogRouteWithChildren
+  BuscaRoute: typeof BuscaRoute
   ComoComparamosRoute: typeof ComoComparamosRoute
   CuponsRoute: typeof CuponsRoute
   LojasMonitoradasRoute: typeof LojasMonitoradasRoute
+  OfertasRoute: typeof OfertasRoute
   PoliticaDePrivacidadeRoute: typeof PoliticaDePrivacidadeRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SobreNosRoute: typeof SobreNosRoute
@@ -570,6 +596,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/busca': {
+      id: '/busca'
+      path: '/busca'
+      fullPath: '/busca'
+      preLoaderRoute: typeof BuscaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/como-comparamos': {
       id: '/como-comparamos'
       path: '/como-comparamos'
@@ -589,6 +622,13 @@ declare module '@tanstack/react-router' {
       path: '/lojas-monitoradas'
       fullPath: '/lojas-monitoradas'
       preLoaderRoute: typeof LojasMonitoradasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ofertas': {
+      id: '/ofertas'
+      path: '/ofertas'
+      fullPath: '/ofertas'
+      preLoaderRoute: typeof OfertasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/politica-de-privacidade': {
@@ -905,9 +945,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   BlogRoute: BlogRouteWithChildren,
+  BuscaRoute: BuscaRoute,
   ComoComparamosRoute: ComoComparamosRoute,
   CuponsRoute: CuponsRoute,
   LojasMonitoradasRoute: LojasMonitoradasRoute,
+  OfertasRoute: OfertasRoute,
   PoliticaDePrivacidadeRoute: PoliticaDePrivacidadeRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SobreNosRoute: SobreNosRoute,

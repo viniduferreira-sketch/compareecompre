@@ -26,7 +26,7 @@ import {
 
 export const Route = createFileRoute("/")({
   staticData: { sitemap: true },
-  beforeLoad: ({search})=>{const category=categoryByName(search.categoria??search.category??search.q??'');if(category)throw redirect({href:categoryHref(category.slug),statusCode:301});},
+  beforeLoad: ({search})=>{const category=categoryByName(search.categoria??search.category??search.q??'');if(category)throw redirect({href:categoryHref(category.slug),statusCode:301});if(search.q!==undefined)throw redirect({to:'/busca',search:{q:search.q},statusCode:301});},
   loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(homeBlogPromotionsQuery()),context.queryClient.ensureQueryData(homeShowcasesQuery())]),
   errorComponent: HomeError,
   notFoundComponent: HomeError,

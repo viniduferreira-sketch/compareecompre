@@ -1,5 +1,5 @@
-import { BookOpen, Search, Ticket } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { BookOpen, Search, Ticket, Tags } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ export function Header({
   initialTerm: string;
 }) {
   const [term, setTerm] = useState(initialTerm);
+  const navigate = useNavigate();
+  useEffect(()=>setTerm(initialTerm),[initialTerm]);
   const [isScrolled, setIsScrolled] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
@@ -59,7 +61,7 @@ export function Header({
             if (term.trim()) {
               const search_term = safeAnalyticsText(term);
               if (search_term) trackEvent('search', { search_term });
-              onSearch(term.trim());
+              void navigate({to:'/busca',search:{q:term.trim()}});
             }
           }}
         >
@@ -76,6 +78,7 @@ export function Header({
           </Button>
         </form>
         <nav aria-label="Atalhos" className="col-start-2 row-start-1 flex shrink-0 items-center">
+          <Button asChild variant="ghost" className="px-2 text-xs font-semibold sm:text-sm"><Link to="/ofertas"><Tags className="size-4" aria-hidden="true"/>Ofertas</Link></Button>
           <Button asChild variant="ghost" className="px-2 text-xs font-semibold sm:text-sm">
             <Link to="/cupons"><Ticket className="size-4" aria-hidden="true" />Cupons</Link>
           </Button>

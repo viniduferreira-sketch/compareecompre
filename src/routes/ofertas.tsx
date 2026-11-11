@@ -1,0 +1,14 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { catalogSearch, dealsCanonical } from '@/lib/catalog-pages';
+import { catalogSourceQuery, catalogResult } from '@/lib/catalog-pages.queries';
+import { CatalogPage, CatalogError } from '@/components/marketplace/CatalogPage';
+import { getPublicBlogArticle } from '@/lib/blog-public.functions';
+import { useSuspenseQuery, queryOptions } from '@tanstack/react-query';
+const guideQuery=()=>queryOptions({queryKey:['offers-published-guide'],queryFn:async()=>Boolean(await getPublicBlogArticle({data:{slug:'desconto-real'}})),staleTime:300000});
+export const Route = createFileRoute('/ofertas')({
+  staticData:{sitemap:true}, validateSearch:catalogSearch, loaderDeps:({search})=>search,
+  loader:async({context,deps})=>{const [hits,popular,guide]=await Promise.all([context.queryClient.ensureQueryData(catalogSourceQuery('',true)),context.queryClient.ensureQueryData(catalogSourceQuery()),context.queryClient.ensureQueryData(guideQuery())]);const result=catalogResult(hits,deps,true);return {offers:result.paging.total?result.offers:catalogResult(popular,{pagina:1},false).offers,guide};},
+  head:({match,loaderData})=>{const title='Ofertas do dia: descontos em várias lojas | Compare e Compre',description='Veja as melhores ofertas do dia em várias lojas: produtos com desconto sobre o preço anterior, de eletrônicos a moda e casa. Compare e vá direto à loja.',url=dealsCanonical(match.search);return {meta:[{title},{name:'description',content:description},{property:'og:title',content:title},{property:'og:description',content:description},{property:'og:type',content:'website'},{property:'og:url',content:url},{name:'twitter:card',content:'summary_large_image'}],links:[{rel:'canonical',href:url}],scripts:[{type:'application/ld+json',children:JSON.stringify({'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Início',item:'https://compareecompre.com'},{'@type':'ListItem',position:2,name:'Ofertas',item:'https://compareecompre.com/ofertas'}]})},{type:'application/ld+json',children:JSON.stringify({'@context':'https://schema.org','@type':'ItemList',itemListElement:(loaderData?.offers??[]).map((offer,i)=>({'@type':'ListItem',position:((match.search.pagina??1)-1)*24+i+1,url:`https://compareecompre.com/produto/${encodeURIComponent(offer.id)}`,name:offer.title}))})}]};},
+  component:OffersPage,errorComponent:CatalogError,notFoundComponent:CatalogError,
+});
+function OffersPage(){const {data:guide}=useSuspenseQuery(guideQuery());return <CatalogPage deals search={Route.useSearch()} guidePublished={guide}/>;}
