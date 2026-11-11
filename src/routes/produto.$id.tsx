@@ -1,3 +1,4 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   BadgeCheck,
@@ -23,7 +24,9 @@ import {
 } from "recharts";
 
 import { Header } from "@/components/marketplace/Header";
+import { BlogPromotions } from "@/components/marketplace/BlogPromotions";
 import { SiteFooter } from "@/components/marketplace/SiteFooter";
+import { productBlogPromotionsQuery } from "@/lib/blog-promotions.queries";
 import {
   Accordion,
   AccordionContent,
@@ -42,7 +45,11 @@ import { recordOutboundClick } from "@/lib/outbound-clicks";
 
 export const Route = createFileRoute("/produto/$id")({
   staticData: { sitemap: true },
-  loader: ({ params }) => getProductDetail({ data: { id: params.id } }),
+  loader: async ({ context, params }) => {
+    const product = await getProductDetail({ data: { id: params.id } });
+    await context.queryClient.ensureQueryData(productBlogPromotionsQuery(product?.categoryName ?? null));
+    return product;
+  },
   head: ({ loaderData }) => {
     const product = loaderData;
     const title = product
@@ -157,6 +164,7 @@ function formatQADate(value: string) {
 
 function ProductPage() {
   const data = Route.useLoaderData();
+  const { data: blogPosts } = useSuspenseQuery(productBlogPromotionsQuery(data?.categoryName ?? null));
   const navigate = Route.useNavigate();
   const [activeImage, setActiveImage] = useState(0);
   const [favorite, setFavorite] = useState(false);
@@ -339,6 +347,7 @@ function ProductPage() {
             <CompareOffers product={data} />
 
             {data.last_synced_at && <p className="mt-3 text-xs text-muted-foreground">Preço atualizado em {new Date(data.last_synced_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}</p>}
+            <BlogPromotions posts={blogPosts} variant="product" />
             <Tabs defaultValue="specs" className="mt-8">
               <TabsList className="flex w-full justify-start gap-1 overflow-x-auto rounded-lg bg-muted/60 p-1 text-xs">
                 <TabsTrigger value="specs">Ficha técnica</TabsTrigger>

@@ -1,5 +1,11 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Divulgação do blog na home e nos produtos (sem alterar busca/importações/páginas do blog)
+- [x] Home: carregar no servidor os três artigos publicados mais recentes e exibir cards antes do rodapé.
+- [x] Produto: carregar no servidor até três artigos, priorizando a categoria e completando com os dois guias gerais.
+- [x] Adicionar Blog ao cabeçalho e rodapé; imagens lazy com alt e dimensões fixas; esconder blocos vazios.
+- [x] 11 testes e typecheck passaram; HTML inicial da home/produto, ordem dos oito artigos reais, links, imagens 1600 px e mobile 390 px sem overflow validados no navegador. Nenhuma importação ou alteração na busca/páginas do blog.
+
 ## Blog — parte pública (sem importações e sem links no menu/rodapé)
 - [x] Páginas públicas SSR: destaque, grade, categorias/tags e paginação; artigo, autor, compartilhamento e relacionados.
 - [x] Prévia administrativa no mesmo visual, inclusive rascunhos, sempre noindex e privada.

@@ -27,6 +27,7 @@ export function SiteFooter() {
           <h2 className="mb-4 text-sm font-bold text-footer-foreground">Sobre</h2>
           <ul className="space-y-3">
             <li><Link to="/sobre-nos" className={linkClass}>Quem somos</Link></li>
+            <li><Link to="/blog" className={linkClass}>Blog</Link></li>
             <li><Link to="/" className={linkClass}>Como comparamos</Link></li>
             <li><Link to="/" className={linkClass}>Lojas monitoradas</Link></li>
           </ul>

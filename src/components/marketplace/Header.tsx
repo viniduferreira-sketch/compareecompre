@@ -1,4 +1,4 @@
-import { Search, Ticket } from "lucide-react";
+import { BookOpen, Search, Ticket } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
@@ -70,9 +70,14 @@ export function Header({
             Buscar
           </Button>
         </form>
-        <Button asChild variant="ghost" className="col-start-2 row-start-1 shrink-0 px-2 text-sm font-semibold">
-          <Link to="/cupons"><Ticket className="size-4" aria-hidden="true" />Cupons</Link>
-        </Button>
+        <nav aria-label="Atalhos" className="col-start-2 row-start-1 flex shrink-0 items-center">
+          <Button asChild variant="ghost" className="px-2 text-xs font-semibold sm:text-sm">
+            <Link to="/cupons"><Ticket className="size-4" aria-hidden="true" />Cupons</Link>
+          </Button>
+          <Button asChild variant="ghost" className="px-2 text-xs font-semibold sm:text-sm">
+            <Link to="/blog"><BookOpen className="size-4" aria-hidden="true" />Blog</Link>
+          </Button>
+        </nav>
       </div>
     </header>
   );

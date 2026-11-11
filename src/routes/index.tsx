@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
@@ -9,7 +9,9 @@ import { OfferCard } from "@/components/marketplace/OfferCard";
 import { PopularCategories } from "@/components/marketplace/PopularCategories";
 import { ProductRail } from "@/components/marketplace/ProductRail";
 import { SiteFooter } from "@/components/marketplace/SiteFooter";
+import { BlogPromotions } from "@/components/marketplace/BlogPromotions";
 import { MonitoredStores, PriceAlertSignup, TrustBanner } from "@/components/marketplace/HomeExperience";
+import { homeBlogPromotionsQuery } from "@/lib/blog-promotions.queries";
 import { SITE_CATEGORIES } from "@/lib/storefront-mix";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -30,6 +32,9 @@ import {
 
 export const Route = createFileRoute("/")({
   staticData: { sitemap: true },
+  loader: ({ context }) => context.queryClient.ensureQueryData(homeBlogPromotionsQuery()),
+  errorComponent: HomeError,
+  notFoundComponent: HomeError,
   head: () => ({
     meta: [
       { title: "Compare e Compre | Compare preços online" },
@@ -54,6 +59,15 @@ export const Route = createFileRoute("/")({
 });
 
 const PAGE_SIZE = 40;
+
+function HomeError() {
+  return (
+    <main className="mx-auto max-w-3xl px-5 py-24 text-center">
+      <h1 className="font-display text-2xl font-bold">Não foi possível carregar a página</h1>
+      <a href="/" className="mt-5 inline-block font-semibold text-primary underline">Tentar novamente</a>
+    </main>
+  );
+}
 
 type ActiveFilter = { id: string; value: string };
 
@@ -234,6 +248,7 @@ function SearchResults({
 function Home() {
   const run = searchOffers;
   const loadHome = getHomeOffers;
+  const { data: blogPosts } = useSuspenseQuery(homeBlogPromotionsQuery());
   const { q } = Route.useSearch();
   const initialCategory = SITE_CATEGORIES.find((name) => name.localeCompare(q ?? "", "pt-BR", { sensitivity: "base" }) === 0);
   const [term, setTerm] = useState(initialCategory ? "" : q ?? "");
@@ -339,6 +354,7 @@ function Home() {
               ranked
             />
             <PriceAlertSignup />
+            <BlogPromotions posts={blogPosts} variant="home" />
           </>
         )}
       </main>
