@@ -1,7 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Cozinha após Lojas monitoradas
+- [x] Casa e Cozinha imediatamente após Lojas monitoradas; Games continua após a faixa de segurança e as demais seções ficaram inalteradas. Desktop e celular validados, 12 produtos em cada vitrine e sem overflow.
+
 ## Home com exatamente três vitrines (sem importações)
-- [x] Somente Mais buscados (mínimo R$ 50), Cozinha e Games, nesta ordem, com 12 cartões e seis por vez no desktop; faixa de segurança, alertas e Blog nas posições pedidas.
+- [x] Somente Mais buscados (mínimo R$ 50), Cozinha e Games, com 12 cartões e seis por vez no desktop; alertas e Blog permanecem após Games.
 - [x] Demais vitrines ocultas reversivelmente; painel e servidor limitam a três no total, incluindo Mais buscados, com aviso ao tentar ativar a quarta.
 - [x] Games em todas as categorias, oito termos OU, mínimo R$ 150, oito exclusões, quatro por loja e Ver todos em “gamer”; 12 testes, desktop/mobile e build OK, sem importações.
 

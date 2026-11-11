@@ -4,9 +4,10 @@ import { ProductRail } from './ProductRail';
 import { relatedOffer, type RelatedHit } from '@/lib/related-products';
 import { homeShowcasesQuery } from '@/lib/home-showcases.queries';
 import type { Showcase } from '@/lib/home-showcases';
-export function HomeShowcases() {
+export function HomeShowcases({categorySlug,excludeCategorySlug}:{categorySlug?:string;excludeCategorySlug?:string}={}) {
   const {data}=useSuspenseQuery(homeShowcasesQuery());
-  return <>{data.map((showcase,index)=><ShowcaseRail key={showcase.id} showcase={showcase} first={index===0}/>)}</>;
+  const showcases=data.filter(showcase=>(!categorySlug||showcase.category_slug===categorySlug)&&showcase.category_slug!==excludeCategorySlug);
+  return <>{showcases.map((showcase,index)=><ShowcaseRail key={showcase.id} showcase={showcase} first={Boolean(categorySlug)&&index===0}/>)}</>;
 }
 function ShowcaseRail({showcase,first}:{showcase:Showcase & {hits:RelatedHit[]};first:boolean}) {
   const root=useRef<HTMLDivElement>(null);

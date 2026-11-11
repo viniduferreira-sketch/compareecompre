@@ -133,6 +133,7 @@ function Home() {
               stores={homeOffers.data?.stores ?? []}
               onSelect={selectStore}
             />
+            <HomeShowcases categorySlug="casa" />
             <PopularCategories
               onSearch={startSearch}
               covers={homeOffers.data?.categoryCovers ?? {}}
@@ -149,7 +150,7 @@ function Home() {
               showcase
             />
             <TrustBanner />
-            <HomeShowcases />
+            <HomeShowcases excludeCategorySlug="casa" />
             <PriceAlertSignup />
             <BlogPromotions posts={blogPosts} variant="home" />
           </>
