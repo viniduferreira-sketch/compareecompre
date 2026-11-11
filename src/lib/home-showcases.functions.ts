@@ -3,7 +3,7 @@ import { setResponseHeader } from '@tanstack/react-start/server';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
-import { showcaseSchema, type Showcase } from './home-showcases';
+import { canActivateShowcase, MAX_THEMATIC_SHOWCASES, SHOWCASE_ACTIVE_LIMIT_MESSAGE, showcaseSchema, type Showcase } from './home-showcases';
 async function requireAdmin(context: {supabase: SupabaseClient<Database>; userId: string}) {
   setResponseHeader('Cache-Control','private, no-store');
   const role = await context.supabase.from('user_roles').select('role').eq('user_id',context.userId).eq('role','admin').maybeSingle();
@@ -13,7 +13,7 @@ export const publicShowcases = createServerFn({method:'GET'}).handler(async (): 
   const key=process.env['SUPABASE_PUBLISHABLE_KEY']; const url=process.env['SUPABASE_URL'];
   if (!key || !url) throw new Error('Vitrines indisponíveis.');
   const db=createClient<Database>(url,key,{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:(input,init)=>{const headers=new Headers(init?.headers);if(key.startsWith('sb_') && headers.get('Authorization')===`Bearer ${key}`)headers.delete('Authorization');headers.set('apikey',key);return fetch(input,{...init,headers});}}});
-  const result=await db.from('home_showcases').select('id,title,subtitle,category_slug,terms,sort_order,active,label,stores,min_price,max_price,store_quota').eq('active',true).order('sort_order').order('id').limit(30);
+  const result=await db.from('home_showcases').select('id,title,subtitle,category_slug,terms,sort_order,active,label,stores,min_price,max_price,store_quota').eq('active',true).order('sort_order').order('id').limit(MAX_THEMATIC_SHOWCASES);
   if(result.error)throw new Error('Não foi possível carregar as vitrines.');
   return result.data ?? [];
 });
@@ -24,6 +24,14 @@ export const adminShowcases = createServerFn({method:'POST'}).middleware([requir
 });
 export const saveShowcase = createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(showcaseSchema).handler(async ({context,data}) => {
   await requireAdmin(context); const {id,...fields}=data;
+  if(data.active){
+    const [current,active]=await Promise.all([
+      id ? context.supabase.from('home_showcases').select('active').eq('id',id).maybeSingle() : Promise.resolve({data:null,error:null}),
+      context.supabase.from('home_showcases').select('id',{count:'exact',head:true}).eq('active',true),
+    ]);
+    if(current.error || active.error)throw new Error('Não foi possível verificar o limite de vitrines ativas.');
+    if(!canActivateShowcase(active.count ?? 0,current.data?.active ?? false,true))throw new Error(SHOWCASE_ACTIVE_LIMIT_MESSAGE);
+  }
   const row={...fields,updated_at:new Date().toISOString()};
   const result=id ? await context.supabase.from('home_showcases').update(row).eq('id',id).select('id').single() : await context.supabase.from('home_showcases').insert(row).select('id').single();
   if(result.error)throw new Error('Não foi possível salvar a vitrine.'); return {saved:true};

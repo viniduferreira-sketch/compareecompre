@@ -139,23 +139,6 @@ function Home() {
               isLoading={homeOffers.isPending}
             />
             <ProductRail
-              eyebrow="Urgência"
-              title="Ofertas que acabam rápido"
-              description="Descontos em destaque para decidir antes que o preço mude"
-              offers={homeOffers.data?.urgent ?? []}
-              isLoading={homeOffers.isPending}
-              debugError={homeOffers.data?.debugError}
-            />
-            <ProductRail
-              eyebrow="Oportunidade do dia"
-              title="Baixaram de preço hoje"
-              description="Veja a diferença entre o preço anterior e a melhor oferta atual"
-              offers={homeOffers.data?.priceDrops ?? []}
-              isLoading={homeOffers.isPending}
-              debugError={homeOffers.data?.debugError}
-            />
-            <TrustBanner />
-            <ProductRail
               eyebrow="Escolha de quem pesquisa"
               title="Os mais buscados da semana"
               description="Produtos que estão concentrando a atenção dos consumidores"
@@ -163,9 +146,11 @@ function Home() {
               isLoading={homeOffers.isPending}
               debugError={homeOffers.data?.debugError}
               ranked
+              showcase
             />
-            <PriceAlertSignup />
+            <TrustBanner />
             <HomeShowcases />
+            <PriceAlertSignup />
             <BlogPromotions posts={blogPosts} variant="home" />
           </>
         )}

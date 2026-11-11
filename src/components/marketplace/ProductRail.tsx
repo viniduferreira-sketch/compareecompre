@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef,useState } from "react";
 import { validProductImage } from '@/lib/rail-products';
+import { HOME_PRODUCT_RAIL_LIMIT } from '@/lib/home-showcases';
 
 import { OfferCard } from "@/components/marketplace/OfferCard";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,7 @@ export function ProductRail({
 }) {
   const railRef = useRef<HTMLDivElement>(null);
   const [failed,setFailed]=useState<string[]>([]);
-  const visible=offers.filter(offer=>validProductImage(offer.imageUrl)&&!failed.includes(offer.id));
+  const visible=offers.filter(offer=>validProductImage(offer.imageUrl)&&!failed.includes(offer.id)).slice(0,HOME_PRODUCT_RAIL_LIMIT);
   if(showcase && visible.length<4)return null;
   const scroll = (direction: -1 | 1) => {
     railRef.current?.scrollBy({
@@ -67,7 +68,7 @@ export function ProductRail({
               <Skeleton key={index} className="h-[290px] w-[160px] shrink-0 rounded-lg sm:w-[192px]" />
             ))
           : visible.map((offer, index) => (
-              <div key={offer.id} className={showcase?"w-[calc((100%-24px)/2.5)] shrink-0 snap-start sm:w-[calc((100%-36px)/4)]":"w-[160px] shrink-0 snap-start sm:w-[192px]"}>
+              <div key={offer.id} className={showcase?"w-[calc((100%-24px)/2.5)] shrink-0 snap-start sm:w-[calc((100%-36px)/4)] md:w-[calc((100%-48px)/5)] lg:w-[calc((100%-60px)/6)]":"w-[160px] shrink-0 snap-start sm:w-[192px]"}>
                 <OfferCard offer={offer} showStore onImageUnavailable={()=>setFailed(current=>current.includes(offer.id)?current:[...current,offer.id])} {...(ranked ? { rank: index + 1 } : {})} />
               </div>
             ))}

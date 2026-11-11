@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Home com exatamente três vitrines (sem importações)
+- [ ] Manter somente Mais buscados (mínimo R$ 50), Cozinha e Games, nesta ordem, com 12 cartões e seis por vez no desktop.
+- [ ] Ocultar reversivelmente as demais vitrines e limitar a ativação administrativa a três no total, incluindo Mais buscados.
+- [ ] Games em todas as categorias, termos OU, mínimo R$ 150, exclusões, quatro por loja e Ver todos em “gamer”; validar regras, navegador e build sem importações.
+
 ## Ajustes das vitrines temáticas (sem importações)
 - [x] Reuso de ProductRail, setas e Ver todos no topo, loja abaixo do preço e remoção de cartões com foto ausente/quebrada também nas três vitrines existentes; mesma verificação antes/depois confirmou zero placeholders.
 - [x] Definições Games, Casa, R$ 20–100 e Nike/Adidas; termos OU, deduplicação por imagem/título e quatro por loja esportiva intercalados. Games tem somente três candidatos (dois headsets e um suporte) e continua oculta; não há teclados/mouses visíveis classificados em Games.

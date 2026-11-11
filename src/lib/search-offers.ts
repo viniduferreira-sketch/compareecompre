@@ -180,7 +180,7 @@ export async function getHomeOffers(): Promise<{
       const [urgentResponses, priceDropsResponses, popularResponses, categoryResponses] = await Promise.all([
         perStore(indexName, { filters: `${activeFilter} AND discountPercent >= 10` }),
         perStore(`${indexName}_price_asc`, { filters: activeFilter }),
-        perStore(indexName, { filters: activeFilter }),
+        perStore(indexName, { filters: `${activeFilter} AND price >= 50` }),
         Promise.all(categoryCoversConfig.map(({ name, query }) =>
           client.searchSingleIndex<AlgoliaOffer>({
             indexName,
@@ -242,7 +242,7 @@ export async function getHomeOffers(): Promise<{
       return {
         urgent: interleaveByStore(urgentResponses.map((r) => selectVisibleOffers(mapHits(r.hits))), 14, seed),
         priceDrops: interleaveByStore(priceDropsResponses.map((r) => selectVisibleOffers(mapHits(r.hits))), 14, seed + 1),
-        popular: interleaveByStore(popularResponses.map((r) => selectVisibleOffers(mapHits(r.hits))), 14, seed + 2),
+        popular: interleaveByStore(popularResponses.map((r) => selectVisibleOffers(mapHits(r.hits))), 24, seed + 2),
         categoryCovers,
         stores: Object.entries(storesResponse?.facets?.["store"] ?? {})
           .filter(([name]) => name && name !== "null")
