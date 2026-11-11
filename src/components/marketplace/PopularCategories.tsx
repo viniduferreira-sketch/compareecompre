@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { CategoryCover } from "@/lib/search-offers.functions";
 
 export function PopularCategories({
-  onSearch,
+  onSearch: _onSearch,
   covers: _covers,
   isLoading: _isLoading,
 }: {
@@ -20,7 +20,7 @@ export function PopularCategories({
       <h2 className="mb-5 mt-1 font-display text-2xl font-extrabold">O que você está procurando?</h2>
 
       <ul className="category-shortcuts -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 pt-2 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-7 lg:gap-4 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden">
-        {CATEGORY_ITEMS.map(({ name, slug, term, imageSrc, imageAlt, blobColor, blobVariant }) => {
+        {CATEGORY_ITEMS.map(({ name, slug, imageSrc, imageAlt, blobColor, blobVariant }) => {
           return (
           <li key={slug} className="category-shortcut-item min-w-0 shrink-0 snap-start lg:w-auto">
             <Button
@@ -28,11 +28,7 @@ export function PopularCategories({
               variant="ghost"
               className="category-card h-auto w-full flex-col gap-0 p-0 text-center text-foreground [&_svg]:size-auto"
             >
-              <a href={`/?q=${encodeURIComponent(term)}`} aria-label={`Ver ofertas de ${name}`} onClick={(event) => {
-                if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                event.preventDefault();
-                onSearch(term);
-              }}>
+              <a href={`/categoria/${slug}`} aria-label={`Ver ofertas de ${name}`}>
                 <span className="category-icon-stage">
                   <CategoryBlob color={blobColor} variant={blobVariant} />
                   {imageSrc && !failedImages.has(imageSrc) ? (

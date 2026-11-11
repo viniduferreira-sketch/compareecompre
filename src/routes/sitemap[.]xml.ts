@@ -8,6 +8,8 @@ import {
   type SitemapEntry,
 } from "@/lib/sitemap";
 
+import {PRODUCT_CATEGORIES} from '@/lib/category-pages';
+
 const PRODUCT_ROUTE_ID = "/produto/$id";
 
 export const Route = createFileRoute("/sitemap.xml")({
@@ -18,6 +20,8 @@ export const Route = createFileRoute("/sitemap.xml")({
         const baseURL = 'https://compareecompre.com';
         const router = await getRouterInstance();
         const entries: SitemapEntry[] = sitemapStaticPaths(router).map((path) => ({ path }));
+
+        for(const category of PRODUCT_CATEGORIES)entries.push({path:`/categoria/${category.slug}`});
 
         // Product pages are the site's main content: list every indexed offer.
         const productRoute = router.routesById[PRODUCT_ROUTE_ID];

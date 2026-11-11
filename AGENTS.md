@@ -38,3 +38,4 @@
 
 - Public blog navigation uses server-filtered URL search and a shared card; heading IDs and table wrappers are derived at render time so editorial content remains unchanged.
 - Blog pagination handles only PostgREST PGRST103 as an empty out-of-range page and recovers the filtered count with a one-row query; other errors remain visible rather than being masked.
+- Category pages reuse the offer-results layout and public-key catalog query in SSR-capable Query loaders, never a privileged search proxy; URL filters resolve existing facet names and sitemap paths use the same category registry.

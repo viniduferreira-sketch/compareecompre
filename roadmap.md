@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Páginas próprias de categoria
+- [x] Criar sete URLs SSR com lista compartilhada, filtros e ordenação na URL, canonical e breadcrumbs.
+- [x] Atualizar atalhos e filtros de categoria, redirecionar URLs antigas com 301 e incluir no sitemap.
+- [x] Sete testes passaram; sete páginas HTTP 200 com produtos no HTML inicial, filtros reais de marca/loja, ordem, página 2, canonical, histórico, vazio, 404 e celular validados. Sitemap HTTP 200 inclui sete categorias; URLs antigas retornam 301. Não existem subcategorias cadastradas. Sem importações ou mudanças em produto/blog.
+
 ## Blog — visual de portal
 - [x] Corrigir 500 em páginas além dos artigos existentes: PGRST103 vira resultado vazio com contagem real; páginas do blog/categoria retornam HTTP 200, 14 testes passaram e build OK.
 - [x] Reorganizar listagem, busca de artigos, categorias e paginação de 12 itens.
