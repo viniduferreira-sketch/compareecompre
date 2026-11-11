@@ -35,3 +35,5 @@
 - partner_stores controls import_enabled/display_enabled independently; bounded cursor writes only site_hidden, preserved on import and filtered publicly. Public identity returns name/logo/description; admin aggregates verify user_roles and use five-minute Query caching.
 
 - Awin feed rules: see scripts/AGENTS.md.
+
+- Public blog navigation uses server-filtered URL search and a shared card; heading IDs and table wrappers are derived at render time so editorial content remains unchanged.

@@ -432,3 +432,17 @@
     transform: none !important;
   }
 }
+
+/* Scoped public blog reading, with the measured site header as anchor offset. */
+.blog-reading-layout { display: grid; grid-template-columns: minmax(0, 720px); }
+.blog-reading h2 { scroll-margin-top: calc(var(--header-height, 120px) + 24px); }
+.blog-reading-progress { position: fixed; top: var(--header-height, 120px); left: 0; z-index: 40; height: 3px; width: 100%; background: var(--primary); transform: scaleX(var(--reading-progress, 0)); transform-origin: left; pointer-events: none; }
+.blog-table-scroll { max-width: 100%; overflow-x: auto; margin: 1.5rem 0; }
+.blog-reading .blog-table-scroll table { display: table; margin: 0; min-width: 100%; }
+.blog-reading .blog-table-scroll th { text-align: left; }
+.blog-reading .blog-table-scroll tr:nth-child(even) { background: var(--secondary); }
+.blog-reading img { aspect-ratio: 16 / 9; object-fit: contain; }
+@media (min-width: 1024px) {
+ .blog-reading-layout { grid-template-columns: minmax(0, 720px) minmax(0, 260px); gap: 60px; }
+ .blog-reading-sticky { position: sticky; top: calc(var(--header-height, 120px) + 28px); max-height: calc(100dvh - var(--header-height, 120px) - 50px); overflow-y: auto; }
+}

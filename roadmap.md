@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Blog — visual de portal
+- [x] Reorganizar listagem, busca de artigos, categorias e paginação de 12 itens.
+- [x] Melhorar leitura com sumário, progresso, tabelas e três relacionados.
+- [x] 14 testes passaram; navegador validou busca real, categoria, canonical da página 2, sumário ativo, três relacionados e celular sem overflow; build OK. Artigos, painel e importações preservados.
+
 ## Divulgação do blog na home e nos produtos (sem alterar busca/importações/páginas do blog)
 - [x] Home: carregar no servidor os três artigos publicados mais recentes e exibir cards antes do rodapé.
 - [x] Produto: carregar no servidor até três artigos, priorizando a categoria e completando com os dois guias gerais.

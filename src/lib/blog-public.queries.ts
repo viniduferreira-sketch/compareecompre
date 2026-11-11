@@ -1,6 +1,6 @@
 import {queryOptions} from '@tanstack/react-query';
 import {notFound} from '@tanstack/react-router';
 import {listBlogArticles,getPublicBlogArticle,getAdminBlogPreview} from './blog-public.functions';
-export const blogListQuery=(page=1,kind?:'category'|'tag',slug?:string)=>queryOptions({queryKey:['public-blog','list',page,kind,slug],queryFn:async()=>{const result=await listBlogArticles({data:{page,...(kind?{kind}:{}),...(slug?{slug}:{})}});if(result.missing)throw notFound();return result;},staleTime:30000});
+export const blogListQuery=(page=1,kind?:'category'|'tag',slug?:string,q='')=>queryOptions({queryKey:['public-blog','list',page,kind,slug,q],queryFn:async()=>{const result=await listBlogArticles({data:{page,q,...(kind?{kind}:{}),...(slug?{slug}:{})}});if(result.missing)throw notFound();return result;},staleTime:30000});
 export const blogArticleQuery=(slug:string)=>queryOptions({queryKey:['public-blog','article',slug],queryFn:async()=>{const result=await getPublicBlogArticle({data:{slug}});if(!result)throw notFound();return result;},staleTime:30000});
 export const blogPreviewQuery=(id:string)=>queryOptions({queryKey:['blog','preview',id],queryFn:async()=>{if(id==='novo')throw notFound();const result=await getAdminBlogPreview({data:{id}});if(!result)throw notFound();return result;},staleTime:Infinity,gcTime:300000});

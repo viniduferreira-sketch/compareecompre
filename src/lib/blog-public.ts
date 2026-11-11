@@ -4,7 +4,7 @@ export type BlogArticle = Database['public']['Tables']['posts']['Row'] & {
  author: {id:string;nome:string;foto_url:string;biografia:string}|null;
  tags: {id:string;nome:string;slug:string}[];
 };
-export const BLOG_PAGE_SIZE=9;
+export const BLOG_PAGE_SIZE=12;
 export const BLOG_ORIGIN='https://compareecompre.com';
 export function readingMinutes(html:string){return Math.max(1,Math.ceil(html.replace(/<[^>]*>/g,' ').replace(/&[^;]+;/g,' ').trim().split(/\s+/).filter(Boolean).length/200));}
 export function blogDate(value:string|null){return value?new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).format(new Date(value)):'';}
