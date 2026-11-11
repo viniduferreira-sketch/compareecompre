@@ -1,5 +1,11 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Cartões de produtos nos artigos do Blog
+- [x] Interpretar {{produtos}} e {{produto}} no Markdown/editor e na prévia administrativa, sem alterar o restante do Blog.
+- [x] Consultar apenas o catálogo público perto da tela, com filtros, popularidade, deduplicação, limite por loja e blocos insuficientes ocultos.
+- [x] Renderizar cards/lista responsivos, links de detalhes/loja e aviso de preço; registrar saída anônima com origem blog_card e slug no banco/GA4.
+- [x] Testar regras e fluxo real no navegador; não tocar em Awin, importações, vitrines, categorias ou páginas de loja.
+
 ## Páginas próprias das lojas (sem importações)
 - [x] Criar /loja/<slug> para lojas visíveis com descrição, logo, catálogo SSR, filtros e 24 produtos por página; quatro descrições fornecidas cadastradas sem alterar outros dados.
 - [x] Home, 123 links do diretório e nomes das lojas nas ofertas levam às páginas próprias; URLs antigas retornam 301; sitemap com lojas visíveis, canonical e dados estruturados.

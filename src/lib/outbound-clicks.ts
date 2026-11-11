@@ -7,8 +7,9 @@ export const outboundClickSchema = z.object({
   source: z.enum(["mercadolivre", "lomadee", "awin"]),
   store_name: z.string().trim().min(1).max(100).regex(/^[\p{L}\p{N} &.'()_-]+$/u),
   category: z.string().trim().min(1).max(100).regex(/^[\p{L}\p{N} &.'()_-]+$/u).nullable(),
-  page_type: z.enum(["produto", "home", "cupom", "busca"]),
-  placement: z.enum(["best_offer", "compare_store", "compare_dialog_best", "compare_dialog_alternative", "coupon_store"]),
+  page_type: z.enum(["produto", "home", "cupom", "busca", "blog"]),
+  placement: z.enum(["best_offer", "compare_store", "compare_dialog_best", "compare_dialog_alternative", "coupon_store", "blog_card"]),
+  article_slug: z.string().max(200).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).nullable().optional(),
   referrer_host: z.string().max(253).regex(/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/).nullable(),
   utm_source: campaignToken, utm_medium: campaignToken, utm_campaign: campaignToken,
   device: z.enum(["mobile", "desktop"]),
@@ -28,12 +29,12 @@ export function clickContext(url: string, referrer: string, mobile: boolean) {
 }
 
 /** No navigation interception, cookies, storage, IP or user-agent collection. */
-export function recordOutboundClick(item: { id: string; source?: string | undefined; store: string; category?: string | null | undefined; title?: string | undefined; price?: number | null | undefined }, placement: OutboundClick["placement"]) {
-  try { trackOutbound(item, placement); } catch { /* Analytics must never block the anonymous record or navigation. */ }
+export function recordOutboundClick(item: { id: string; source?: string | undefined; store: string; category?: string | null | undefined; title?: string | undefined; price?: number | null | undefined }, placement: OutboundClick["placement"], editorial?: { articleSlug?: string }) {
+  try { trackOutbound(item, placement, editorial); } catch { /* Analytics must never block the anonymous record or navigation. */ }
   try {
     const path = window.location.pathname;
-    const page_type = path.startsWith("/produto/") ? "produto" : path === "/cupons" ? "cupom" : new URLSearchParams(window.location.search).has("q") ? "busca" : "home";
-    const parsed = outboundClickSchema.safeParse({ offer_id: item.id, source: item.source, store_name: item.store, category: item.category || null, placement, page_type,
+    const page_type = path.startsWith("/produto/") ? "produto" : path === "/cupons" ? "cupom" : path.startsWith("/blog/") || path.startsWith("/blog-preview/") ? "blog" : new URLSearchParams(window.location.search).has("q") ? "busca" : "home";
+    const parsed = outboundClickSchema.safeParse({ offer_id: item.id, source: item.source, store_name: item.store, category: item.category || null, placement, page_type, article_slug: editorial?.articleSlug ?? null,
       ...clickContext(window.location.href, document.referrer, window.matchMedia("(max-width: 767px)").matches),
     });
     if (!parsed.success) return;

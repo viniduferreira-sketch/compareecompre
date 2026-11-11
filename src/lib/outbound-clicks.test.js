@@ -9,6 +9,12 @@ describe("anonymous outbound clicks", () => {
   it("bounds identifiers and merchant names", () => { expect(outboundClickSchema.safeParse({ ...click, offer_id: "a".repeat(161) }).success).toBe(false); expect(outboundClickSchema.safeParse({ ...click, store_name: "a".repeat(101) }).success).toBe(false); });
   it("stores referrer hostname only", () => { expect(clickContext("https://compareecompre.com/?utm_source=telegram", "https://example.com/private?email=user", false).referrer_host).toBe("example.com"); expect(outboundClickSchema.safeParse({ ...click, referrer_host: "https://example.com/private" }).success).toBe(false); });
   it("drops personal-looking UTM values and keeps campaign tokens", () => { expect(clickContext("https://compareecompre.com/?utm_source=telegram&utm_medium=user@example.com&utm_campaign=black_friday", "", true)).toEqual({ referrer_host: null, utm_source: "telegram", utm_medium: null, utm_campaign: "black_friday", device: "mobile" }); });
+  it("accepts blog_card with the article slug and no visitor identifier", () => {
+    const parsed = outboundClickSchema.parse({ ...click, page_type: "blog", placement: "blog_card", article_slug: "guia-de-ssds" });
+    expect(parsed).toMatchObject({ page_type: "blog", placement: "blog_card", article_slug: "guia-de-ssds" });
+    expect(parsed).not.toHaveProperty("visitor_id");
+  });
+  it("rejects an invalid article slug", () => { expect(outboundClickSchema.safeParse({ ...click, page_type: "blog", placement: "blog_card", article_slug: "slug com espaços" }).success).toBe(false); });
   it("does not propagate beacon or network errors into navigation", () => {
     vi.stubGlobal("window", { location: { href: "https://compareecompre.com/produto/awin:123", pathname: "/produto/awin:123", search: "" }, matchMedia: () => ({ matches: false }) });
     vi.stubGlobal("document", { referrer: "" }); vi.stubGlobal("navigator", { sendBeacon: () => { throw new Error("offline"); } });

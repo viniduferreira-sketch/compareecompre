@@ -4,6 +4,8 @@ import {Button} from '@/components/ui/button';
 import {Link} from '@tanstack/react-router';
 import {prepareBlogReading} from '@/lib/blog-portal';
 import {blogArticleCta} from '@/lib/blog-cta';
+import {splitBlogProductBlocks} from '@/lib/blog-product-blocks';
+import {BlogProductBlock} from './BlogProductBlock';
 
 export function CompareCallout({compact=false,articleTitle}:{compact?:boolean;articleTitle?:string|undefined}) {
  const cta=articleTitle?blogArticleCta(articleTitle):undefined;
@@ -12,8 +14,9 @@ export function CompareCallout({compact=false,articleTitle}:{compact?:boolean;ar
    {cta?<Button asChild className="h-auto max-w-full whitespace-normal px-4 py-2 text-center leading-tight"><a href={cta.href}>{cta.label}<ArrowRight className="size-4 shrink-0"/></a></Button>:<Button asChild><Link to="/ofertas">{compact?'Buscar ofertas':'Comparar preços'}<ArrowRight className="size-4"/></Link></Button>}
  </section>;
 }
-export function BlogReading({html,title}:{html:string;title?:string}) {
+export function BlogReading({html,title,articleSlug}:{html:string;title?:string;articleSlug:string}) {
  const {body,headings}=prepareBlogReading(html);
+ const segments=splitBlogProductBlocks(body);
  const content=useRef<HTMLDivElement>(null),progress=useRef<HTMLDivElement>(null);
  const [active,setActive]=useState('');
  useEffect(()=>{
@@ -37,7 +40,7 @@ export function BlogReading({html,title}:{html:string;title?:string}) {
   <div ref={progress} className="blog-reading-progress" aria-hidden="true"/>
   <div className="blog-reading-layout">
    {headings.length>0&&<details className="mb-7 border-y border-border py-4 lg:hidden"><summary className="cursor-pointer text-sm font-bold">Neste artigo</summary><div className="mt-3">{toc}</div></details>}
-   <div ref={content} className="blog-prose blog-reading min-w-0 text-[18px]" dangerouslySetInnerHTML={{__html:body}}/>
+    <div ref={content} className="blog-reading min-w-0 text-[18px]">{segments.map(segment=>segment.type==='html'?<div key={segment.html.slice(0,80)+segments.indexOf(segment)} className="blog-prose" dangerouslySetInnerHTML={{__html:segment.html}}/>:<BlogProductBlock key={segment.key} directive={segment.block} articleSlug={articleSlug}/>)}</div>
    <aside className="blog-reading-sidebar hidden lg:block"><div className="blog-reading-sticky space-y-6">{headings.length>0&&<div><h2 className="mb-4 text-sm font-bold uppercase">Neste artigo</h2>{toc}</div>}<CompareCallout compact articleTitle={title}/></div></aside>
   </div>
  </>;

@@ -21,6 +21,8 @@ it('sends no Google script until consent, records one page per navigation, gates
   expect(events().filter(v => v[1] === 'page_view')).toHaveLength(2);
   trackOutbound({ id: 'awin:123', store: 'KaBuM', category: 'Eletrônicos', title: 'Notebook', price: 2500 }, 'best_offer');
   expect(events().find(v => v[1] === 'outbound_click')?.[2]).toMatchObject({ loja: 'KaBuM', categoria: 'Eletrônicos', nome_produto: 'Notebook', value: 2500, currency: 'BRL', origem: 'oferta_pagina_produto' });
+  trackOutbound({ id: 'awin:456', store: 'KaBuM', category: 'Eletrônicos', title: 'SSD', price: 500 }, 'blog_card', { articleSlug: 'guia-de-ssds' });
+  expect(events().filter(v => v[1] === 'outbound_click').at(-1)?.[2]).toMatchObject({ origem: 'blog_card', artigo: 'guia-de-ssds' });
   const length = win.dataLayer.length;
   win.location.pathname = '/admin'; trackEvent('search', { search_term: 'ssd' }); expect(win.dataLayer).toHaveLength(length);
   win.location.pathname = '/'; saveConsent(false, false); syncAnalyticsAudience(true); expect(remove).toHaveBeenCalled();

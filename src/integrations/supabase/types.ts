@@ -456,6 +456,7 @@ export type Database = {
       }
       outbound_clicks: {
         Row: {
+          article_slug: string | null
           category: string | null
           created_at: string
           device: string
@@ -471,6 +472,7 @@ export type Database = {
           utm_source: string | null
         }
         Insert: {
+          article_slug?: string | null
           category?: string | null
           created_at?: string
           device: string
@@ -486,6 +488,7 @@ export type Database = {
           utm_source?: string | null
         }
         Update: {
+          article_slug?: string | null
           category?: string | null
           created_at?: string
           device?: string

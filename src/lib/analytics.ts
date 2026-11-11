@@ -72,6 +72,7 @@ export function trackPageView(key: string) {
 }
 export function rememberProductOrigin(id: string, origin: string) { if (analyticsAllowed()) origins.set(id, origin); }
 export function outboundOrigin(id: string, placement: string) {
+  if (placement === 'blog_card') return 'blog_card';
   const path = window.location.pathname;
   if (path.startsWith('/blog/')) return 'blog';
   if (path.startsWith('/categoria/')) return 'categoria';
@@ -79,6 +80,6 @@ export function outboundOrigin(id: string, placement: string) {
   if (path.startsWith('/produto/')) return placement === 'best_offer' ? origins.get(id) || 'oferta_pagina_produto' : 'oferta_pagina_produto';
   return origins.get(id) || 'oferta_pagina_produto';
 }
-export function trackOutbound(item: { id: string; store: string; category?: string | null | undefined; title?: string | undefined; price?: number | null | undefined }, placement: string) {
-  trackEvent('outbound_click', { loja: safeAnalyticsText(item.store), categoria: safeAnalyticsText(item.category || ''), nome_produto: safeAnalyticsText(item.title || ''), ...(typeof item.price === 'number' && Number.isFinite(item.price) ? { value: item.price } : {}), currency: 'BRL', origem: outboundOrigin(item.id, placement) });
+export function trackOutbound(item: { id: string; store: string; category?: string | null | undefined; title?: string | undefined; price?: number | null | undefined }, placement: string, editorial?: { articleSlug?: string }) {
+  trackEvent('outbound_click', { loja: safeAnalyticsText(item.store), categoria: safeAnalyticsText(item.category || ''), nome_produto: safeAnalyticsText(item.title || ''), ...(typeof item.price === 'number' && Number.isFinite(item.price) ? { value: item.price } : {}), currency: 'BRL', origem: outboundOrigin(item.id, placement), ...(placement === 'blog_card' && editorial?.articleSlug ? { artigo: safeAnalyticsText(editorial.articleSlug) } : {}) });
 }
