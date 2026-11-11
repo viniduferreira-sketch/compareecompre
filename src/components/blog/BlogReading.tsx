@@ -3,14 +3,16 @@ import {ArrowRight} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Link} from '@tanstack/react-router';
 import {prepareBlogReading} from '@/lib/blog-portal';
+import {blogArticleCta} from '@/lib/blog-cta';
 
-export function CompareCallout({compact=false}:{compact?:boolean}) {
+export function CompareCallout({compact=false,articleTitle}:{compact?:boolean;articleTitle?:string|undefined}) {
+ const cta=articleTitle?blogArticleCta(articleTitle):undefined;
  return <section className={compact?'border-t border-border pt-6':'col-span-full flex flex-col items-start justify-between gap-4 border-y border-border bg-secondary px-6 py-7 sm:flex-row sm:items-center'}>
   <h2 className={compact?'mb-3 text-lg font-bold':'text-xl font-bold'}>{compact?'Compare preços':'Já escolheu o produto? Compare o preço nas lojas'}</h2>
-  <Button asChild><Link to="/ofertas">{compact?'Buscar ofertas':'Comparar preços'}<ArrowRight className="size-4"/></Link></Button>
+   {cta?<Button asChild className="h-auto max-w-full whitespace-normal px-4 py-2 text-center leading-tight"><a href={cta.href}>{cta.label}<ArrowRight className="size-4 shrink-0"/></a></Button>:<Button asChild><Link to="/ofertas">{compact?'Buscar ofertas':'Comparar preços'}<ArrowRight className="size-4"/></Link></Button>}
  </section>;
 }
-export function BlogReading({html}:{html:string}) {
+export function BlogReading({html,title}:{html:string;title?:string}) {
  const {body,headings}=prepareBlogReading(html);
  const content=useRef<HTMLDivElement>(null),progress=useRef<HTMLDivElement>(null);
  const [active,setActive]=useState('');
@@ -36,7 +38,7 @@ export function BlogReading({html}:{html:string}) {
   <div className="blog-reading-layout">
    {headings.length>0&&<details className="mb-7 border-y border-border py-4 lg:hidden"><summary className="cursor-pointer text-sm font-bold">Neste artigo</summary><div className="mt-3">{toc}</div></details>}
    <div ref={content} className="blog-prose blog-reading min-w-0 text-[18px]" dangerouslySetInnerHTML={{__html:body}}/>
-   <aside className="blog-reading-sidebar hidden lg:block"><div className="blog-reading-sticky space-y-6">{headings.length>0&&<div><h2 className="mb-4 text-sm font-bold uppercase">Neste artigo</h2>{toc}</div>}<CompareCallout compact/></div></aside>
+   <aside className="blog-reading-sidebar hidden lg:block"><div className="blog-reading-sticky space-y-6">{headings.length>0&&<div><h2 className="mb-4 text-sm font-bold uppercase">Neste artigo</h2>{toc}</div>}<CompareCallout compact articleTitle={title}/></div></aside>
   </div>
  </>;
 }
