@@ -5,6 +5,7 @@ import {Select,SelectContent,SelectItem,SelectTrigger,SelectValue} from '@/compo
 import {OfferCard} from './OfferCard';
 import {categoryHref,categoryByName,categorySlug} from '@/lib/category-pages';
 import type {Offer,OfferFilter,OfferSort} from '@/lib/search-offers';
+import type {ReactNode} from 'react';
 export type ActiveFilter = { id: string; value: string };
 
 function FilterSidebar({
@@ -112,6 +113,7 @@ function Pagination({
 
 export function SearchResults({
   term,
+  introduction,
   categoryMode=false,
   pageHref,
   offers,
@@ -129,6 +131,7 @@ export function SearchResults({
   activeFilters: ActiveFilter[];
   onToggleFilter: (filter: ActiveFilter) => void;
   term: string;
+  introduction?:ReactNode;
   categoryMode?:boolean;
   pageHref?:((page:number)=>string)|undefined;
   offers: Offer[];
@@ -148,6 +151,7 @@ export function SearchResults({
         <div>
           <p className="text-xs font-semibold uppercase text-primary">{categoryMode?'Categoria':'Resultados da busca'}</p>
           <h1 className="font-display text-2xl font-bold">{term}</h1>
+          {introduction}
           <p className="mt-1 text-sm text-muted-foreground">{total.toLocaleString("pt-BR")} produtos encontrados</p>
         </div>
         <div className="flex items-center gap-2 self-end">

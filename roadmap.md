@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Conteúdo das categorias
+- [x] Sete textos e 28 perguntas/respostas gravados em category_content, leitura pública e escrita com o padrão admin existente.
+- [x] Introdução de três linhas expansível no celular, FAQ nativo acessível e BlogCard só na página 1 inclusive filtrada; HTML inicial e FAQPage derivados das mesmas respostas.
+- [x] 12 testes e navegador confirmaram sete categorias SSR, pergunta aberta, página 2 sem conteúdo, primeira filtrada com conteúdo e celular sem overflow. Eletrônicos/Games têm um guia publicado cada, links abertos; demais escondem guias vazios. Nenhuma importação ou alteração de filtros/produtos.
+
 ## Consentimento de cookies e GA4
 - [x] Aviso, personalização, escolha por 12 meses e preferências no rodapé; política atualizada.
 - [x] GA4 bloqueado sem Estatísticas, fora dos domínios publicados e para administradores; eventos no ponto de saída existente, sem alterar importações ou artigos.

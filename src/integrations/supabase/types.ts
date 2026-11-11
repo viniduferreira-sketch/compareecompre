@@ -299,6 +299,27 @@ export type Database = {
         }
         Relationships: []
       }
+      category_content: {
+        Row: {
+          faq: Json
+          guide_slugs: string[]
+          introduction: string
+          slug: string
+        }
+        Insert: {
+          faq?: Json
+          guide_slugs?: string[]
+          introduction?: string
+          slug: string
+        }
+        Update: {
+          faq?: Json
+          guide_slugs?: string[]
+          introduction?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       home_showcases: {
         Row: {
           active: boolean

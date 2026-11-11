@@ -1,0 +1,1 @@
+- Category editorial content is loaded from the public category-content projection only on page one; FAQ structured data uses the same validated answers as the accordion, and guides reuse BlogCard with due-published slug selection.
