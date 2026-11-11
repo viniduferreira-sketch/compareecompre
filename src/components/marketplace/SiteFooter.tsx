@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { CreditCard, LockKeyhole, ShieldCheck } from "lucide-react";
 import { BrandLogo } from "./BrandLogo";
+import { Button } from '@/components/ui/button';
+import { openCookiePreferences } from '@/lib/cookie-consent';
 
 const linkClass = "text-sm text-footer-muted transition-colors hover:text-footer-accent";
 
@@ -47,6 +49,7 @@ export function SiteFooter() {
           <ul className="space-y-3">
             <li><Link to="/termos-de-uso" className={linkClass}>Termos de Uso</Link></li>
             <li><Link to="/politica-de-privacidade" className={linkClass}>Política de Privacidade</Link></li>
+            <li><Button variant="link" onClick={openCookiePreferences} className={`${linkClass} h-auto justify-start p-0 font-normal`}>Preferências de cookies</Button></li>
           </ul>
           <div className="mt-6">
             <p className="flex items-center gap-2 text-xs font-semibold text-footer-foreground"><CreditCard className="size-4 text-footer-accent" /> Pagamento na loja escolhida</p>

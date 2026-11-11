@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Consentimento de cookies e GA4
+- [x] Aviso, personalização, escolha por 12 meses e preferências no rodapé; política atualizada.
+- [x] GA4 bloqueado sem Estatísticas, fora dos domínios publicados e para administradores; eventos no ponto de saída existente, sem alterar importações ou artigos.
+- [x] 16 testes passaram; navegador confirmou aceitar/personalizar/recusar, persistência, reabertura, Esc e revogação; celular com aviso de 194px (< 1/3), zero envios GA na prévia e sem erros. Recebimento real no Google depende de publicação e permanece não verificado.
+
 ## Cozinha após Lojas monitoradas
 - [x] Casa e Cozinha imediatamente após Lojas monitoradas; Games continua após a faixa de segurança e as demais seções ficaram inalteradas. Desktop e celular validados, 12 produtos em cada vitrine e sem overflow.
 

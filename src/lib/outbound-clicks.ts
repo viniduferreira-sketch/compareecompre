@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trackOutbound } from './analytics';
 
 const campaignToken = z.string().max(80).regex(/^[a-zA-Z0-9_-]+$/).nullable();
 export const outboundClickSchema = z.object({
@@ -27,7 +28,8 @@ export function clickContext(url: string, referrer: string, mobile: boolean) {
 }
 
 /** No navigation interception, cookies, storage, IP or user-agent collection. */
-export function recordOutboundClick(item: { id: string; source?: string | undefined; store: string; category?: string | null | undefined }, placement: OutboundClick["placement"]) {
+export function recordOutboundClick(item: { id: string; source?: string | undefined; store: string; category?: string | null | undefined; title?: string | undefined; price?: number | null | undefined }, placement: OutboundClick["placement"]) {
+  try { trackOutbound(item, placement); } catch { /* Analytics must never block the anonymous record or navigation. */ }
   try {
     const path = window.location.pathname;
     const page_type = path.startsWith("/produto/") ? "produto" : path === "/cupons" ? "cupom" : new URLSearchParams(window.location.search).has("q") ? "busca" : "home";

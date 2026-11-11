@@ -75,7 +75,7 @@ export function CompareOffers({ product }: { product: { id: string; title: strin
               <p className="font-display text-base font-bold text-graphite">{formatBRL(offer.price)}</p>
               <a
                 href={offer.affiliateUrl}
-                onClick={() => recordOutboundClick({ ...offer, category: product.category }, "compare_store")}
+                onClick={() => recordOutboundClick({ ...offer, title: product.title, category: product.category }, "compare_store")}
                 target="_blank"
                 rel="noopener noreferrer sponsored"
                 className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand px-4 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

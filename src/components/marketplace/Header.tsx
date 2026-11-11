@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./BrandLogo";
+import { safeAnalyticsText, trackEvent } from '@/lib/analytics';
 
 export function Header({
   onSearch,
@@ -55,7 +56,11 @@ export function Header({
           className="col-span-2 row-start-2 flex min-w-0 flex-1 items-center gap-2 rounded-xl border-2 border-transparent bg-muted p-1 pl-3.5 transition-colors focus-within:border-primary/30 focus-within:bg-card md:mx-auto md:max-w-2xl"
           onSubmit={(event) => {
             event.preventDefault();
-            if (term.trim()) onSearch(term.trim());
+            if (term.trim()) {
+              const search_term = safeAnalyticsText(term);
+              if (search_term) trackEvent('search', { search_term });
+              onSearch(term.trim());
+            }
           }}
         >
           <Search className="size-4 shrink-0 text-muted-foreground" />

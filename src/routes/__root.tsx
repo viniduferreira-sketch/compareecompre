@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { CookieConsent } from "@/components/marketplace/CookieConsent";
 
 function NotFoundComponent() {
   return (
@@ -153,6 +154,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <CookieConsent />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );
