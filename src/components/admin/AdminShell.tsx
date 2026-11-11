@@ -17,6 +17,7 @@ const pages = [
   { to: "/admin/cliques", title: "Cliques de saída", icon: MousePointerClick },
   { to: "/admin/cupons", title: "Cupons", icon: Ticket },
   { to: "/admin/blog", title: "Blog", icon: NotebookPen },
+  { to: "/admin/vitrines", title: "Vitrines da home", icon: Store },
 ] as const;
 export function AdminPending() { return <div className="space-y-6 p-6"><Skeleton className="h-8 w-60" /><div className="grid gap-4 sm:grid-cols-3">{[1,2,3].map((n) => <Skeleton key={n} className="h-28 w-full rounded-lg" />)}</div><Skeleton className="h-80 w-full rounded-lg" /></div>; }
 export function AdminShell() {

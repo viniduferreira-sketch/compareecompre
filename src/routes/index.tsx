@@ -11,6 +11,8 @@ import { PopularCategories } from "@/components/marketplace/PopularCategories";
 import { ProductRail } from "@/components/marketplace/ProductRail";
 import { SiteFooter } from "@/components/marketplace/SiteFooter";
 import { BlogPromotions } from "@/components/marketplace/BlogPromotions";
+import { HomeShowcases } from "@/components/marketplace/HomeShowcases";
+import { homeShowcasesQuery } from "@/lib/home-showcases.queries";
 import { MonitoredStores, PriceAlertSignup, TrustBanner } from "@/components/marketplace/HomeExperience";
 import { homeBlogPromotionsQuery } from "@/lib/blog-promotions.queries";
 import { SITE_CATEGORIES } from "@/lib/storefront-mix";
@@ -25,7 +27,7 @@ import {
 export const Route = createFileRoute("/")({
   staticData: { sitemap: true },
   beforeLoad: ({search})=>{const category=categoryByName(search.categoria??search.category??search.q??'');if(category)throw redirect({href:categoryHref(category.slug),statusCode:301});},
-  loader: ({ context }) => context.queryClient.ensureQueryData(homeBlogPromotionsQuery()),
+  loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(homeBlogPromotionsQuery()),context.queryClient.ensureQueryData(homeShowcasesQuery())]),
   errorComponent: HomeError,
   notFoundComponent: HomeError,
   head: () => ({
@@ -163,6 +165,7 @@ function Home() {
               ranked
             />
             <PriceAlertSignup />
+            <HomeShowcases />
             <BlogPromotions posts={blogPosts} variant="home" />
           </>
         )}

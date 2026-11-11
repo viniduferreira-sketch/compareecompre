@@ -34,6 +34,7 @@ import { Route as AuthenticatedAdminCuponsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminParceirosRouteImport } from './routes/_authenticated/admin.parceiros'
 import { Route as AuthenticatedAdminQualidadeRouteImport } from './routes/_authenticated/admin.qualidade'
 import { Route as AuthenticatedAdminSincronizacaoRouteImport } from './routes/_authenticated/admin.sincronizacao'
+import { Route as AuthenticatedAdminVitrinesRouteImport } from './routes/_authenticated/admin.vitrines'
 import { Route as AuthenticatedBlogPreviewIdRouteImport } from './routes/_authenticated/blog-preview.$id'
 import { Route as ApiPublicOutboundClickRouteImport } from './routes/api/public/outbound-click'
 import { Route as BlogCategoriaSlugRouteImport } from './routes/blog.categoria.$slug'
@@ -178,6 +179,12 @@ const AuthenticatedAdminSincronizacaoRoute =
     path: '/sincronizacao',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminVitrinesRoute =
+  AuthenticatedAdminVitrinesRouteImport.update({
+    id: '/vitrines',
+    path: '/vitrines',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedBlogPreviewIdRoute =
   AuthenticatedBlogPreviewIdRouteImport.update({
     id: '/blog-preview/$id',
@@ -282,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/admin/parceiros': typeof AuthenticatedAdminParceirosRoute
   '/admin/qualidade': typeof AuthenticatedAdminQualidadeRoute
   '/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
+  '/admin/vitrines': typeof AuthenticatedAdminVitrinesRoute
   '/blog-preview/$id': typeof AuthenticatedBlogPreviewIdRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
   '/blog/categoria/$slug': typeof BlogCategoriaSlugRoute
@@ -319,6 +327,7 @@ export interface FileRoutesByTo {
   '/admin/parceiros': typeof AuthenticatedAdminParceirosRoute
   '/admin/qualidade': typeof AuthenticatedAdminQualidadeRoute
   '/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
+  '/admin/vitrines': typeof AuthenticatedAdminVitrinesRoute
   '/blog-preview/$id': typeof AuthenticatedBlogPreviewIdRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
   '/blog/categoria/$slug': typeof BlogCategoriaSlugRoute
@@ -361,6 +370,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/parceiros': typeof AuthenticatedAdminParceirosRoute
   '/_authenticated/admin/qualidade': typeof AuthenticatedAdminQualidadeRoute
   '/_authenticated/admin/sincronizacao': typeof AuthenticatedAdminSincronizacaoRoute
+  '/_authenticated/admin/vitrines': typeof AuthenticatedAdminVitrinesRoute
   '/_authenticated/blog-preview/$id': typeof AuthenticatedBlogPreviewIdRoute
   '/api/public/outbound-click': typeof ApiPublicOutboundClickRoute
   '/blog/categoria/$slug': typeof BlogCategoriaSlugRoute
@@ -403,6 +413,7 @@ export interface FileRouteTypes {
     | '/admin/parceiros'
     | '/admin/qualidade'
     | '/admin/sincronizacao'
+    | '/admin/vitrines'
     | '/blog-preview/$id'
     | '/api/public/outbound-click'
     | '/blog/categoria/$slug'
@@ -440,6 +451,7 @@ export interface FileRouteTypes {
     | '/admin/parceiros'
     | '/admin/qualidade'
     | '/admin/sincronizacao'
+    | '/admin/vitrines'
     | '/blog-preview/$id'
     | '/api/public/outbound-click'
     | '/blog/categoria/$slug'
@@ -481,6 +493,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/parceiros'
     | '/_authenticated/admin/qualidade'
     | '/_authenticated/admin/sincronizacao'
+    | '/_authenticated/admin/vitrines'
     | '/_authenticated/blog-preview/$id'
     | '/api/public/outbound-click'
     | '/blog/categoria/$slug'
@@ -697,6 +710,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSincronizacaoRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/vitrines': {
+      id: '/_authenticated/admin/vitrines'
+      path: '/vitrines'
+      fullPath: '/admin/vitrines'
+      preLoaderRoute: typeof AuthenticatedAdminVitrinesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/blog-preview/$id': {
       id: '/_authenticated/blog-preview/$id'
       path: '/blog-preview/$id'
@@ -831,6 +851,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminParceirosRoute: typeof AuthenticatedAdminParceirosRoute
   AuthenticatedAdminQualidadeRoute: typeof AuthenticatedAdminQualidadeRoute
   AuthenticatedAdminSincronizacaoRoute: typeof AuthenticatedAdminSincronizacaoRoute
+  AuthenticatedAdminVitrinesRoute: typeof AuthenticatedAdminVitrinesRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -842,6 +863,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminParceirosRoute: AuthenticatedAdminParceirosRoute,
   AuthenticatedAdminQualidadeRoute: AuthenticatedAdminQualidadeRoute,
   AuthenticatedAdminSincronizacaoRoute: AuthenticatedAdminSincronizacaoRoute,
+  AuthenticatedAdminVitrinesRoute: AuthenticatedAdminVitrinesRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
