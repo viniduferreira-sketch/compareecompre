@@ -299,6 +299,39 @@ export type Database = {
         }
         Relationships: []
       }
+      home_showcases: {
+        Row: {
+          active: boolean
+          category_slug: string
+          id: string
+          sort_order: number
+          subtitle: string
+          terms: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category_slug: string
+          id?: string
+          sort_order?: number
+          subtitle?: string
+          terms?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category_slug?: string
+          id?: string
+          sort_order?: number
+          subtitle?: string
+          terms?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       offer_sync_category_leases: {
         Row: {
           category: string

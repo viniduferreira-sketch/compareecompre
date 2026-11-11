@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Vitrines temáticas da home (sem importações)
+- [ ] Cadastro das quatro vitrines, leitura pública de ativas e edição administrativa confirmada.
+- [ ] Uma multi-query com chave pública, seleção popular diversa e primeiro carrossel SSR; demais montados por proximidade.
+- [ ] Testar regras, HTML inicial, navegação, edição persistida e apresentação no celular.
+
 ## Produtos relacionados na página de produto
 - [x] Alternativas: categoria, preço 70–130% com ampliação, exclusão de variantes, popularidade e duas ofertas por marca.
 - [x] Mais na categoria: oito ofertas sem repetição de produto/grupo, carregamento por proximidade, cards existentes e carrossel no celular.
