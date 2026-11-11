@@ -11,7 +11,7 @@ async function readCatalog(q: string, deals: boolean) {
   if (!app || !key) throw new Error('A busca não está configurada.');
   const client = liteClient(app, key);
   const read = async (min: number, max: number, depth = 0): Promise<RelatedHit[]> => {
-    const { results } = await client.searchForHits<RelatedHit>({ requests: [{ indexName: INDEX, query: q.slice(0, 120), distinct: 1, hitsPerPage: 1000, filters: `${RELATED_VISIBILITY} AND price >= ${min} AND price < ${max}${deals ? ' AND discountPercent >= 10' : ''}` }] });
+    const { results } = await client.searchForHits<RelatedHit>({ requests: [{ indexName: INDEX, query: q.slice(0, 120), distinct: 1, hitsPerPage: 1000, attributesToRetrieve:['objectID','title','price','originalPrice','discountPercent','imageUrl','store','merchant_name','source','categoryName','brand','popularity_score','group_key','last_synced_at','affiliateUrl','aw_deep_link','storeLogoUrl','freeShipping'], filters: `${RELATED_VISIBILITY} AND price >= ${min} AND price < ${max}${deals ? ' AND discountPercent >= 10' : ''}` }] });
     const result = results[0];
     if (!result) throw new Error('Não foi possível carregar as ofertas.');
     if ((result.nbHits ?? 0) > result.hits.length) {
@@ -34,9 +34,8 @@ async function readCatalog(q: string, deals: boolean) {
     return result.hits;
   };
   const boundaries = deals ? [30, 100, 300, 1000, 3000, 10000, 100000, 1e12] : [0, 100, 300, 1000, 3000, 10000, 100000, 1e12];
-  const rows = [] as RelatedHit[];
-  for (let i = 0; i < boundaries.length - 1; i++) rows.push(...await read(boundaries[i] ?? 0, boundaries[i + 1] ?? 1e12));
-  return uniqueCatalog(selectCatalog(rows, deals));
+  const batches = await Promise.all(boundaries.slice(0,-1).map((min,i)=>read(min,boundaries[i+1]??1e12)));
+  return uniqueCatalog(selectCatalog(batches.flat(), deals));
 }
 export const catalogSourceQuery = (q = '', _deals = false) => queryOptions({ queryKey: ['public-catalog-source', q], queryFn: () => readCatalog(q, false), staleTime: 5 * 60 * 1000 });
 export function catalogResult(hits: RelatedHit[], search: CatalogSearch, deals: boolean) {

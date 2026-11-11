@@ -131,6 +131,7 @@ export function SearchResults({
   sortOptions,
   showStore=false,
   emptyContent,
+  collapsibleFilters=false,
 }: {
   activeFilters: ActiveFilter[];
   onToggleFilter: (filter: ActiveFilter) => void;
@@ -151,6 +152,7 @@ export function SearchResults({
   sortOptions?:Array<{value:string;label:string}>;
   showStore?:boolean;
   emptyContent?:ReactNode;
+  collapsibleFilters?:boolean;
 }) {
   return (
     <section className="mx-auto max-w-7xl px-5 py-8 lg:px-8">
@@ -174,7 +176,7 @@ export function SearchResults({
       </div>
 
       <div className="grid items-start gap-7 md:grid-cols-[210px_minmax(0,1fr)] lg:grid-cols-[230px_minmax(0,1fr)]">
-        <FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter} />
+        {collapsibleFilters?<><details className="border-b border-border pb-4 md:hidden"><summary className="cursor-pointer text-sm font-bold">Filtrar por loja e marca</summary><div className="mt-5"><FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter}/></div></details><div className="hidden md:block"><FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter}/></div></>:<FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter}/>}
         <div className="min-w-0">
           {isLoading ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

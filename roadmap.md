@@ -1,9 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
 ## Ofertas, busca e destinos dos botões (sem importações)
-- [ ] Criar /ofertas com descontos reais, filtros, três ordens, 24 por página, fallback popular, SEO e sitemap.
-- [ ] Criar /busca com estado na URL, noindex e recuperação de busca vazia com oito populares.
-- [ ] Corrigir destinos dos banners, Ver todos e CTAs; validar fluxo real, SSR e celular e listar alterações.
+- [x] Criar /ofertas com descontos reais, filtros, três ordens, 24 por página, fallback popular, SEO e sitemap automático sem lastmod artificial.
+- [x] Criar /busca com estado na URL, noindex e recuperação de busca vazia com oito populares; header global e redirecionamento de URLs antigas.
+- [x] Banners KaBuM/Nike para catálogo da loja, Explorar ofertas e CTAs do blog para /ofertas; Games para /categoria/games, vitrines gerais para /ofertas. Quinze testes; clique do banner, 24 produtos SSR, filtros, página 2/canonical, vazio com oito, fallback popular e celular sem overflow confirmados. Nenhuma importação.
 
 ## Conteúdo das categorias
 - [x] Sete textos e 28 perguntas/respostas gravados em category_content, leitura pública e escrita com o padrão admin existente.
