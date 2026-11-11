@@ -1,6 +1,7 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
 ## Blog — visual de portal
+- [x] Corrigir 500 em páginas além dos artigos existentes: PGRST103 vira resultado vazio com contagem real; páginas do blog/categoria retornam HTTP 200, 14 testes passaram e build OK.
 - [x] Reorganizar listagem, busca de artigos, categorias e paginação de 12 itens.
 - [x] Melhorar leitura com sumário, progresso, tabelas e três relacionados.
 - [x] 14 testes passaram; navegador validou busca real, categoria, canonical da página 2, sumário ativo, três relacionados e celular sem overflow; build OK. Artigos, painel e importações preservados.

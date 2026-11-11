@@ -3,6 +3,7 @@ import {setResponseHeader} from '@tanstack/react-start/server';
 import {z} from 'zod';
 import {requireSupabaseAuth} from '@/integrations/supabase/auth-middleware';
 import {BLOG_PAGE_SIZE} from './blog-public';
+import {readBlogPage} from './blog-pagination';
 const slug=z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(200);
 export const listBlogArticles=createServerFn({method:'GET'}).inputValidator((v:{page?:number;kind?:'category'|'tag';slug?:string;q?:string})=>z.object({q:z.string().trim().max(200).default(''),page:z.number().int().min(1).max(100000).default(1),kind:z.enum(['category','tag']).optional(),slug:slug.optional()}).parse(v)).handler(async({data})=>{
  const {blogPublicClient,articleColumns,enrichArticles}=await import('./blog-public.server');
@@ -22,9 +23,8 @@ export const listBlogArticles=createServerFn({method:'GET'}).inputValidator((v:{
  }
  if(data.q)query=query.ilike('titulo',`%${data.q.replace(/[%_]/g,'')}%`);
  const start=(data.page-1)*BLOG_PAGE_SIZE,end=data.page*BLOG_PAGE_SIZE-1;
- const result=data.kind==='tag'?await query.range(start,end):await (()=>{let all=db.from('posts').select(articleColumns,{count:'exact'}).in('status',['publicado','agendado']).lte('publicado_em',now).order('publicado_em',{ascending:false}).order('id');if(data.q)all=all.ilike('titulo',`%${data.q.replace(/[%_]/g,'')}%`);if(selected)all=all.eq('categoria_id',selected.id);return all.range(start,end);})();
- if(result.error)throw new Error('Não foi possível carregar os artigos.');
- return {posts:await enrichArticles(db,result.data??[]),total:result.count??0,categories:categories.data??[],selected,missing:false,page:data.page,q:data.q};
+ const result=await readBlogPage((from,to)=>data.kind==='tag'?query.range(from,to):(()=>{let all=db.from('posts').select(articleColumns,{count:'exact'}).in('status',['publicado','agendado']).lte('publicado_em',now).order('publicado_em',{ascending:false}).order('id');if(data.q)all=all.ilike('titulo',`%${data.q.replace(/[%_]/g,'')}%`);if(selected)all=all.eq('categoria_id',selected.id);return all.range(from,to);})(),start,end);
+ return {posts:await enrichArticles(db,result.rows),total:result.total,categories:categories.data??[],selected,missing:false,page:data.page,q:data.q};
 });
 export const getPublicBlogArticle=createServerFn({method:'GET'}).inputValidator((v:{slug:string})=>z.object({slug}).parse(v)).handler(async({data})=>{
  const {blogPublicClient,articleColumns,enrichArticles}=await import('./blog-public.server');
