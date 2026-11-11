@@ -1,9 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
 ## Home com exatamente três vitrines (sem importações)
-- [ ] Manter somente Mais buscados (mínimo R$ 50), Cozinha e Games, nesta ordem, com 12 cartões e seis por vez no desktop.
-- [ ] Ocultar reversivelmente as demais vitrines e limitar a ativação administrativa a três no total, incluindo Mais buscados.
-- [ ] Games em todas as categorias, termos OU, mínimo R$ 150, exclusões, quatro por loja e Ver todos em “gamer”; validar regras, navegador e build sem importações.
+- [x] Somente Mais buscados (mínimo R$ 50), Cozinha e Games, nesta ordem, com 12 cartões e seis por vez no desktop; faixa de segurança, alertas e Blog nas posições pedidas.
+- [x] Demais vitrines ocultas reversivelmente; painel e servidor limitam a três no total, incluindo Mais buscados, com aviso ao tentar ativar a quarta.
+- [x] Games em todas as categorias, oito termos OU, mínimo R$ 150, oito exclusões, quatro por loja e Ver todos em “gamer”; 12 testes, desktop/mobile e build OK, sem importações.
 
 ## Ajustes das vitrines temáticas (sem importações)
 - [x] Reuso de ProductRail, setas e Ver todos no topo, loja abaixo do preço e remoção de cartões com foto ausente/quebrada também nas três vitrines existentes; mesma verificação antes/depois confirmou zero placeholders.
