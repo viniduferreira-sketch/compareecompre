@@ -6,6 +6,8 @@ import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import { compareOffers, type ComparedOffer } from "@/lib/search-offers";
 import { cn } from "@/lib/utils";
 import { recordOutboundClick } from "@/lib/outbound-clicks";
+import { Link } from '@tanstack/react-router';
+import {storeSlug} from '@/lib/store-pages';
 
 const SOURCE_LABEL: Record<string, string> = { mercadolivre: "Mercado Livre", awin: "Awin", lomadee: "Lomadee" };
 
@@ -62,7 +64,7 @@ export function CompareOffers({ product }: { product: { id: string; title: strin
             >
               <StoreLogo store={offer.store} logoUrl={offer.storeLogoUrl ?? undefined} className="h-9 w-24 shrink-0 rounded-md" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-graphite">{offer.store}</p>
+                <Link to="/loja/$slug" params={{slug:storeSlug(offer.store)}} className="block truncate text-sm font-medium text-graphite hover:underline">{offer.store}</Link>
                 {offer.last_synced_at ? (
                   <p className="text-[11px] text-muted-foreground">
                     Verificado em {new Date(offer.last_synced_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}

@@ -13,7 +13,7 @@ describe('public store directory', () => {
     expect(monitoredStores(stores, {}).find(s => s.name === 'Empty')?.count).toBe(0);
   });
   it('uses the exact merchant facet for the filtered list', () => {
-    expect(monitoredStores(stores, {})[0]?.href).toBe('/lojas-monitoradas?loja=Empty');
-    expect(monitoredStores(stores, {}).find(s => s.name === 'Nike')?.href).toBe('/lojas-monitoradas?loja=Nike%20BR');
+    expect(monitoredStores(stores, {})[0]?.href).toBe('/loja/empty');
+    expect(monitoredStores(stores, {}).find(s => s.name === 'Nike')?.href).toBe('/loja/nike');
   });
 });

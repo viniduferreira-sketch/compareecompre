@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Páginas próprias das lojas (sem importações)
+- [x] Criar /loja/<slug> para lojas visíveis com descrição, logo, catálogo SSR, filtros e 24 produtos por página; quatro descrições fornecidas cadastradas sem alterar outros dados.
+- [x] Home, 123 links do diretório e nomes das lojas nas ofertas levam às páginas próprias; URLs antigas retornam 301; sitemap com lojas visíveis, canonical e dados estruturados.
+- [x] Vinte testes; quatro lojas principais com 24 cartões e H1 único, categoria, marca, preço, ordem, página 2, histórico, HTML inicial e celular sem overflow. Angeloni desativada e slug inexistente retornam 404; sitemap HTTP 200. Nenhuma importação.
+
 ## Ofertas, busca e destinos dos botões (sem importações)
 - [x] Criar /ofertas com descontos reais, filtros, três ordens, 24 por página, fallback popular, SEO e sitemap automático sem lastmod artificial.
 - [x] Criar /busca com estado na URL, noindex e recuperação de busca vazia com oito populares; header global e redirecionamento de URLs antigas.

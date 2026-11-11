@@ -13,11 +13,15 @@ function FilterSidebar({
   isLoading,
   active = [],
   onToggle,
+  categoryFilterHref,
+  extra,
 }: {
   filters: OfferFilter[];
   isLoading: boolean;
   active?: ActiveFilter[];
   onToggle?: (filter: ActiveFilter) => void;
+  categoryFilterHref?:((value:string)=>string)|undefined;
+  extra?:ReactNode;
 }) {
   if (isLoading) {
     return (
@@ -44,9 +48,9 @@ function FilterSidebar({
         <section key={filter.id} className="border-b border-border pb-5">
           <h3 className="mb-2.5 text-sm font-bold">{filter.name}</h3>
           <ul className="space-y-2">
-            {(filter.id === "store" ? filter.values : filter.values.slice(0, 8)).map((value) => (
+            {(filter.id === "store" || categoryFilterHref ? filter.values : filter.values.slice(0, 8)).map((value) => (
               <li key={value.id}>
-                {filter.id === 'categoryName' ? <a href={categoryHref(categoryByName(value.id)?.slug??categorySlug(value.id))} className="flex items-center justify-between text-sm"><span>{value.name}</span><span className="text-xs text-muted-foreground">({value.results})</span></a> : <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                {filter.id === 'categoryName' ? <a href={categoryFilterHref?.(value.id)??categoryHref(categoryByName(value.id)?.slug??categorySlug(value.id))} aria-current={active.some(a=>a.id==='categoryName'&&a.value===value.id)?'page':undefined} className="flex items-center justify-between text-sm"><span>{value.name}</span><span className="text-xs text-muted-foreground">({value.results})</span></a> : <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
                   <input
                     type="checkbox"
                     className="size-4 accent-primary"
@@ -61,6 +65,7 @@ function FilterSidebar({
           </ul>
         </section>
       ))}
+      {extra}
     </aside>
   );
 }
@@ -132,6 +137,10 @@ export function SearchResults({
   showStore=false,
   emptyContent,
   collapsibleFilters=false,
+  categoryFilterHref,
+  extraFilters,
+  filtersLabel='Filtrar por loja e marca',
+  headingLevel=1,
 }: {
   activeFilters: ActiveFilter[];
   onToggleFilter: (filter: ActiveFilter) => void;
@@ -153,6 +162,10 @@ export function SearchResults({
   showStore?:boolean;
   emptyContent?:ReactNode;
   collapsibleFilters?:boolean;
+  categoryFilterHref?:((value:string)=>string)|undefined;
+  extraFilters?:ReactNode;
+  filtersLabel?:string;
+  headingLevel?:1|2;
 }) {
   return (
     <section className="mx-auto max-w-7xl px-5 py-8 lg:px-8">
@@ -160,7 +173,7 @@ export function SearchResults({
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <p className="text-xs font-semibold uppercase text-primary">{headingLabel??(categoryMode?'Categoria':'Resultados da busca')}</p>
-          <h1 className="font-display text-2xl font-bold">{term}</h1>
+          {headingLevel===1?<h1 className="font-display text-2xl font-bold">{term}</h1>:<h2 className="font-display text-2xl font-bold">{term}</h2>}
           {introduction}
           <p className="mt-1 text-sm text-muted-foreground">{total.toLocaleString("pt-BR")} produtos encontrados</p>
         </div>
@@ -176,7 +189,7 @@ export function SearchResults({
       </div>
 
       <div className="grid items-start gap-7 md:grid-cols-[210px_minmax(0,1fr)] lg:grid-cols-[230px_minmax(0,1fr)]">
-        {collapsibleFilters?<><details className="border-b border-border pb-4 md:hidden"><summary className="cursor-pointer text-sm font-bold">Filtrar por loja e marca</summary><div className="mt-5"><FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter}/></div></details><div className="hidden md:block"><FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter}/></div></>:<FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter}/>}
+        {collapsibleFilters?<><details className="border-b border-border pb-4 md:hidden"><summary className="cursor-pointer text-sm font-bold">{filtersLabel}</summary><div className="mt-5"><FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter} categoryFilterHref={categoryFilterHref} extra={extraFilters}/></div></details><div className="hidden md:block"><FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter} categoryFilterHref={categoryFilterHref} extra={extraFilters}/></div></>:<FilterSidebar filters={filters} isLoading={isLoading} active={activeFilters} onToggle={onToggleFilter} categoryFilterHref={categoryFilterHref} extra={extraFilters}/>}
         <div className="min-w-0">
           {isLoading ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

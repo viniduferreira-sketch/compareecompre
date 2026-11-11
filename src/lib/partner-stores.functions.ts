@@ -13,10 +13,8 @@ async function admin(context: { userId: string; supabase: SupabaseClient<Databas
   if (role.error || !role.data) throw new Error("Acesso restrito ao administrador.");
 }
 export const getPublicStores = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
-  const result = await db.from("partner_stores").select("merchant_name,name,logo_url,description").eq("display_enabled", true);
-  if (result.error) throw new Error("Não foi possível ler as lojas públicas.");
-  return Object.fromEntries((result.data ?? []).map((row) => [row.merchant_name, { name: row.name, logo_url: row.logo_url, description: row.description }]));
+  const {readPublicStoreIdentities}=await import('./public-store-identities.server');
+  return readPublicStoreIdentities();
 });
 export const getPartnerStores = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   await admin(context);

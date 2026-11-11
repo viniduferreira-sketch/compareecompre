@@ -1,4 +1,5 @@
-import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
+import { createFileRoute, useNavigate, useRouter,redirect } from '@tanstack/react-router';
+import {storeSlug} from '@/lib/store-pages';
 import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
 import { Store, Package, RefreshCw, ShieldCheck, Building2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,8 +15,9 @@ const storeOffersQuery = (search: StoreSearch) => queryOptions({ queryKey: ['dir
 
 export const Route = createFileRoute('/lojas-monitoradas')({
   staticData: { sitemap: true },
-  validateSearch: (s: Record<string, unknown>): StoreSearch => ({ loja: typeof s['loja'] === 'string' ? s['loja'] : undefined, marca: typeof s['marca'] === 'string' ? s['marca'] : undefined, frete: typeof s['frete'] === 'string' ? s['frete'] : undefined, ordem: s['ordem'] === 'price_asc' || s['ordem'] === 'price_desc' ? s['ordem'] : 'relevance', pagina: Math.max(1, Math.floor(Number(s['pagina']) || 1)) }),
+  validateSearch: (s: Record<string, unknown>): StoreSearch => ({ loja: typeof s['loja'] === 'string' ? s['loja'] : undefined, marca: typeof s['marca'] === 'string' ? s['marca'] : undefined, frete: typeof s['frete'] === 'string' ? s['frete'] : undefined, ordem: s['ordem'] === 'price_asc' || s['ordem'] === 'price_desc' ? s['ordem'] : undefined, pagina: s['pagina']===undefined?undefined:Math.max(1, Math.floor(Number(s['pagina']) || 1)) }),
   loaderDeps: ({ search }) => search,
+  beforeLoad:async({search,context})=>{if(search.loja){const stores=await context.queryClient.ensureQueryData(monitoredStoresQuery());const store=stores.find(s=>s.searchName===search.loja||storeSlug(s.name)===storeSlug(search.loja??''));if(store)throw redirect({to:'/loja/$slug',params:{slug:storeSlug(store.name)},search:{marca:search.marca,ordem:search.ordem==='price_asc'?'menor-preco':search.ordem==='price_desc'?'maior-preco':undefined,pagina:search.pagina},statusCode:301});}},
   loader: async ({ context, deps }) => {
     const stores = await context.queryClient.ensureQueryData(monitoredStoresQuery());
     if (deps.loja && stores.some(s => s.searchName === deps.loja)) await context.queryClient.ensureQueryData(storeOffersQuery(deps));

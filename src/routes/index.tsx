@@ -7,6 +7,7 @@ import { Header } from "@/components/marketplace/Header";
 import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import { SearchResults, type ActiveFilter } from "@/components/marketplace/OfferResults";
 import {categoryByName,categoryHref} from "@/lib/category-pages";
+import {storeSlug} from '@/lib/store-pages';
 import { PopularCategories } from "@/components/marketplace/PopularCategories";
 import { ProductRail } from "@/components/marketplace/ProductRail";
 import { SiteFooter } from "@/components/marketplace/SiteFooter";
@@ -26,7 +27,7 @@ import {
 
 export const Route = createFileRoute("/")({
   staticData: { sitemap: true },
-  beforeLoad: ({search})=>{const category=categoryByName(search.categoria??search.category??search.q??'');if(category)throw redirect({href:categoryHref(category.slug),statusCode:301});if(search.q!==undefined)throw redirect({to:'/busca',search:{q:search.q},statusCode:301});},
+  beforeLoad: ({search})=>{if(search.loja)throw redirect({to:'/loja/$slug',params:{slug:storeSlug(search.loja)},statusCode:301});const category=categoryByName(search.categoria??search.category??search.q??'');if(category)throw redirect({href:categoryHref(category.slug),statusCode:301});if(search.q!==undefined)throw redirect({to:'/busca',search:{q:search.q},statusCode:301});},
   loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(homeBlogPromotionsQuery()),context.queryClient.ensureQueryData(homeShowcasesQuery())]),
   errorComponent: HomeError,
   notFoundComponent: HomeError,
@@ -48,7 +49,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): { q?: string|undefined;categoria?:string|undefined;category?:string|undefined } => ({q:typeof search['q']==='string'?search['q']:undefined,categoria:typeof search['categoria']==='string'?search['categoria']:undefined,category:typeof search['category']==='string'?search['category']:undefined}),
+  validateSearch: (search: Record<string, unknown>): { q?: string|undefined;categoria?:string|undefined;category?:string|undefined;loja?:string|undefined } => ({loja:typeof search['loja']==='string'?search['loja']:undefined,q:typeof search['q']==='string'?search['q']:undefined,categoria:typeof search['categoria']==='string'?search['categoria']:undefined,category:typeof search['category']==='string'?search['category']:undefined}),
   component: Home,
 });
 

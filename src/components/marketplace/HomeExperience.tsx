@@ -9,6 +9,7 @@ import { subscribeToPriceAlerts } from "@/lib/price-alert-signup.functions";
 import { priceAlertSignupSchema } from "@/lib/price-alert-signup";
 
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
+import {storeSlug} from '@/lib/store-pages';
 
 export function TrustBanner() {
   return (
@@ -42,12 +43,10 @@ export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ na
           <CarouselItem key={store.name} aria-label={`${index + 1} de ${active.length}: ${store.name}`} className="basis-[108px] pl-2">
           <Button
             variant="ghost"
-            type="button"
-            onClick={() => onSelect?.(store.searchName ?? store.name)}
-            title={store.description || store.name}
-            aria-label={`Ver ofertas de ${store.name}`}
+            asChild
             className="group flex h-auto w-full flex-col justify-start gap-1.5 whitespace-normal rounded-none p-1 text-center hover:bg-transparent"
           >
+            <Link to="/loja/$slug" params={{slug:storeSlug(store.name)}} title={store.description || store.name} aria-label={`Ver ofertas de ${store.name}`}>
             <span className="flex size-[88px] shrink-0 items-center justify-center rounded-full border border-border bg-card transition-colors duration-200 group-hover:border-primary/40 motion-reduce:transition-none">
               <StoreLogo store={store.name} logoUrl={store.logoUrl} registryOnly={Boolean(store.registered)} className="h-11 w-[60px] rounded-sm text-[11px]" />
             </span>
@@ -57,6 +56,7 @@ export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ na
                 {`${store.count.toLocaleString("pt-BR")} ${store.count === 1 ? "oferta" : "ofertas"}`}
               </p>
             </div>
+            </Link>
           </Button>
           </CarouselItem>
         ))}

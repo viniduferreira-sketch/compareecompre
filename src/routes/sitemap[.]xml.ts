@@ -9,6 +9,7 @@ import {
 } from "@/lib/sitemap";
 
 import {PRODUCT_CATEGORIES} from '@/lib/category-pages';
+import {storeSlug} from '@/lib/store-pages';
 
 const PRODUCT_ROUTE_ID = "/produto/$id";
 
@@ -22,6 +23,8 @@ export const Route = createFileRoute("/sitemap.xml")({
         const entries: SitemapEntry[] = sitemapStaticPaths(router).map((path) => ({ path }));
 
         for(const category of PRODUCT_CATEGORIES)entries.push({path:`/categoria/${category.slug}`});
+        const {readPublicStoreIdentities}=await import('@/lib/public-store-identities.server');
+        for(const store of Object.values(await readPublicStoreIdentities()))entries.push({path:`/loja/${storeSlug(store.name)}`});
 
         // Product pages are the site's main content: list every indexed offer.
         const productRoute = router.routesById[PRODUCT_ROUTE_ID];

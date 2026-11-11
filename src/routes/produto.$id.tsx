@@ -24,6 +24,7 @@ import {
 } from "recharts";
 
 import { Header } from "@/components/marketplace/Header";
+import {storeSlug} from '@/lib/store-pages';
 import { BlogPromotions } from "@/components/marketplace/BlogPromotions";
 import { SiteFooter } from "@/components/marketplace/SiteFooter";
 import { RelatedAlternatives, RelatedCategory } from "@/components/marketplace/RelatedProducts";
@@ -327,7 +328,7 @@ function ProductPage() {
 
                   <div className="flex shrink-0 flex-col gap-2 text-xs text-muted-foreground sm:items-end sm:text-right">
                     <StoreLogo store={data.store} logoUrl={data.storeLogoUrl} className="h-10 w-28 rounded-md" />
-                    <p>Melhor oferta em: <span className="font-semibold text-foreground">{data.store}</span></p>
+                    <p>Melhor oferta em: <Link to="/loja/$slug" params={{slug:storeSlug(data.store)}} className="font-semibold text-foreground hover:underline">{data.store}</Link></p>
                   </div>
                 </div>
 
