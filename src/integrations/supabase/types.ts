@@ -304,7 +304,12 @@ export type Database = {
           active: boolean
           category_slug: string
           id: string
+          label: string
+          max_price: number | null
+          min_price: number | null
           sort_order: number
+          store_quota: number | null
+          stores: string[]
           subtitle: string
           terms: string[]
           title: string
@@ -314,7 +319,12 @@ export type Database = {
           active?: boolean
           category_slug: string
           id?: string
+          label?: string
+          max_price?: number | null
+          min_price?: number | null
           sort_order?: number
+          store_quota?: number | null
+          stores?: string[]
           subtitle?: string
           terms?: string[]
           title: string
@@ -324,7 +334,12 @@ export type Database = {
           active?: boolean
           category_slug?: string
           id?: string
+          label?: string
+          max_price?: number | null
+          min_price?: number | null
           sort_order?: number
+          store_quota?: number | null
+          stores?: string[]
           subtitle?: string
           terms?: string[]
           title?: string

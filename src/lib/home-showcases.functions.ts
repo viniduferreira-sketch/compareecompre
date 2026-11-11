@@ -13,13 +13,13 @@ export const publicShowcases = createServerFn({method:'GET'}).handler(async (): 
   const key=process.env['SUPABASE_PUBLISHABLE_KEY']; const url=process.env['SUPABASE_URL'];
   if (!key || !url) throw new Error('Vitrines indisponíveis.');
   const db=createClient<Database>(url,key,{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:(input,init)=>{const headers=new Headers(init?.headers);if(key.startsWith('sb_') && headers.get('Authorization')===`Bearer ${key}`)headers.delete('Authorization');headers.set('apikey',key);return fetch(input,{...init,headers});}}});
-  const result=await db.from('home_showcases').select('id,title,subtitle,category_slug,terms,sort_order,active').eq('active',true).order('sort_order').order('id').limit(30);
+  const result=await db.from('home_showcases').select('id,title,subtitle,category_slug,terms,sort_order,active,label,stores,min_price,max_price,store_quota').eq('active',true).order('sort_order').order('id').limit(30);
   if(result.error)throw new Error('Não foi possível carregar as vitrines.');
   return result.data ?? [];
 });
 export const adminShowcases = createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).handler(async ({context}): Promise<Showcase[]> => {
   await requireAdmin(context);
-  const result=await context.supabase.from('home_showcases').select('id,title,subtitle,category_slug,terms,sort_order,active').order('sort_order').order('id');
+  const result=await context.supabase.from('home_showcases').select('id,title,subtitle,category_slug,terms,sort_order,active,label,stores,min_price,max_price,store_quota').order('sort_order').order('id');
   if(result.error)throw new Error('Não foi possível ler as vitrines.'); return result.data ?? [];
 });
 export const saveShowcase = createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(showcaseSchema).handler(async ({context,data}) => {

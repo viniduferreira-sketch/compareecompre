@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Ajustes das vitrines temáticas (sem importações)
+- [x] Reuso de ProductRail, setas e Ver todos no topo, loja abaixo do preço e remoção de cartões com foto ausente/quebrada também nas três vitrines existentes; mesma verificação antes/depois confirmou zero placeholders.
+- [x] Definições Games, Casa, R$ 20–100 e Nike/Adidas; termos OU, deduplicação por imagem/título e quatro por loja esportiva intercalados. Games tem somente três candidatos (dois headsets e um suporte) e continua oculta; não há teclados/mouses visíveis classificados em Games.
+- [x] Edição administrativa expandida; 16 testes, SSR, persistência/restauração e 390 px sem overflow. Casa 4, Achados 8, Nike/Adidas 8; sem importações. A busca não tem preço na URL: Ver todos de Achados abre busca geral por popularidade.
+
 ## Vitrines temáticas da home (sem importações)
 - [x] Cadastro das quatro vitrines, leitura pública de ativas e edição administrativa confirmada em /admin/vitrines.
 - [x] Uma multi-query com chave pública, seleção popular com até oito produtos e três por loja; primeiro carrossel SSR, demais montados por proximidade sem repetir consultas.

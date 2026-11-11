@@ -169,6 +169,13 @@
       "when": 1794375667743,
       "tag": "0023_seed_initial_home_showcases",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794376310075,
+      "tag": "0024_extend_home_showcase_filters",
+      "breakpoints": true
     }
   ]
 }

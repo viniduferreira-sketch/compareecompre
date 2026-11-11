@@ -7,7 +7,7 @@ import type { Offer } from "@/lib/search-offers.functions";
 export const formatBRL = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
+export function OfferCard({ offer, rank,showStore=false,onImageUnavailable }: { offer: Offer; rank?: number;showStore?:boolean;onImageUnavailable?:()=>void }) {
   return (
     <Link
       to="/produto/$id"
@@ -20,6 +20,7 @@ export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
           src={offer.imageUrl}
           alt={offer.title}
           loading="lazy"
+          {...(onImageUnavailable ? {onUnavailable:onImageUnavailable} : {})}
           className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
           placeholderClassName="rounded-none bg-card"
         />
@@ -55,6 +56,7 @@ export function OfferCard({ offer, rank }: { offer: Offer; rank?: number }) {
           <p className="select-none text-xs text-transparent">—</p>
         )}
         <p className="font-display text-xl font-bold text-foreground">{formatBRL(offer.price)}</p>
+        {showStore && <p className="mt-1 truncate text-xs text-muted-foreground">{offer.store.replace(/^kabum(?: br)?$/i,'KaBuM').replace(/ br$/i,'')}</p>}
       </div>
     </Link>
   );

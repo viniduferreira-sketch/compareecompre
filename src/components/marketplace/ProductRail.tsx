@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef } from "react";
+import { useRef,useState } from "react";
+import { validProductImage } from '@/lib/rail-products';
 
 import { OfferCard } from "@/components/marketplace/OfferCard";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,8 @@ export function ProductRail({
   ranked = false,
   eyebrow,
   debugError,
+  viewAllHref,
+  showcase=false,
 }: {
   debugError?: string | undefined;
   title: string;
@@ -22,24 +25,30 @@ export function ProductRail({
   isLoading: boolean;
   ranked?: boolean;
   eyebrow?: string;
+  viewAllHref?:string;
+  showcase?:boolean;
 }) {
   const railRef = useRef<HTMLDivElement>(null);
+  const [failed,setFailed]=useState<string[]>([]);
+  const visible=offers.filter(offer=>validProductImage(offer.imageUrl)&&!failed.includes(offer.id));
+  if(showcase && visible.length<4)return null;
   const scroll = (direction: -1 | 1) => {
     railRef.current?.scrollBy({
       left: direction * Math.min(860, railRef.current.clientWidth * 0.82),
-      behavior: "smooth",
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
     });
   };
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-5 flex items-end justify-between gap-4">
-        <div>
+    <section aria-label={title} className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 flex-1 basis-64">
           {eyebrow ? <p className="mb-1 text-xs font-bold uppercase text-primary">{eyebrow}</p> : null}
           <h2 className="font-display text-2xl font-extrabold text-foreground md:text-3xl">{title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
-        <div className="hidden shrink-0 gap-2 sm:flex">
+        <div className="flex shrink-0 items-center gap-2">
+          {viewAllHref && <Button asChild variant="link" className="px-2"><a href={viewAllHref}>Ver todos</a></Button>}
           <Button variant="outline" size="icon" onClick={() => scroll(-1)} aria-label={`Voltar em ${title}`}>
             <ChevronLeft />
           </Button>
@@ -57,14 +66,14 @@ export function ProductRail({
           ? Array.from({ length: 5 }).map((_, index) => (
               <Skeleton key={index} className="h-[290px] w-[160px] shrink-0 rounded-lg sm:w-[192px]" />
             ))
-          : offers.map((offer, index) => (
-              <div key={offer.id} className="w-[160px] shrink-0 snap-start sm:w-[192px]">
-                <OfferCard offer={offer} {...(ranked ? { rank: index + 1 } : {})} />
+          : visible.map((offer, index) => (
+              <div key={offer.id} className={showcase?"w-[calc((100%-24px)/2.5)] shrink-0 snap-start sm:w-[calc((100%-36px)/4)]":"w-[160px] shrink-0 snap-start sm:w-[192px]"}>
+                <OfferCard offer={offer} showStore onImageUnavailable={()=>setFailed(current=>current.includes(offer.id)?current:[...current,offer.id])} {...(ranked ? { rank: index + 1 } : {})} />
               </div>
             ))}
       </div>
 
-      {!isLoading && offers.length === 0 ? (
+      {!isLoading && visible.length === 0 ? (
         <p className="border-y border-border py-10 text-center text-sm text-muted-foreground">
           {debugError ?? "As ofertas desta seleção estão sendo atualizadas."}
         </p>

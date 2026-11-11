@@ -71,7 +71,7 @@ function Home() {
       ? current.filter((item) => !(item.id === filter.id && item.value === filter.value))
       : [...current, filter]);
   };
-  const isSearching = term.length > 0 || activeFilters.length > 0;
+  const isSearching = term.length > 0 || activeFilters.length > 0 || q === '';
 
   const startSearch = (nextTerm: string) => {
     // Category tabs filter strictly by the category field instead of free-text matching.

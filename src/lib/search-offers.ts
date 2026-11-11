@@ -4,6 +4,7 @@ import { selectVisibleOffers } from "./offer-freshness";
 import { interleaveByStore } from "./storefront-mix";
 import { storefrontIdentity, type StorefrontRecord } from "./storefront-record";
 import { getPublicStores } from "./partner-stores.functions";
+import { validProductImage } from './rail-products';
 import type { Offer, OfferFilter, OfferSort, SearchOffersResult, CategoryCover } from "./search-offers.functions";
 export type { Offer, OfferFilter, OfferSort } from "./search-offers.functions";
 
@@ -195,7 +196,7 @@ export async function getHomeOffers(): Promise<{
       ]);
       const seed = Math.floor(Date.now() / 3600000);
       const mapHits = (hits: AlgoliaOffer[]) => hits.flatMap((hit) => {
-        if (!Number.isFinite(hit.price) || hit.price <= 0) return [];
+        if (!Number.isFinite(hit.price) || hit.price <= 0 || !validProductImage(hit.imageUrl)) return [];
         return [{
           id: hit.objectID,
           title: hit.title,
