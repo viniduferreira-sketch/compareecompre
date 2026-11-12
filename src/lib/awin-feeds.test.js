@@ -49,11 +49,35 @@ describe('feeds privados Awin',()=>{
   state.feeds.push({id:'b',nome:'B',url,ativo:true});expect(await readImportFeeds(url)).toEqual([{id:'b',nome:'B',url}]);
  });
 
- it('aceita apenas HTTPS no domínio exato sem credenciais nem redirecionamento',async()=>{
+ it('aceita apenas HTTPS no domínio exato e modo manual compatível com edge',async()=>{
   expect(validateFeedUrl(url)).toBe(url);
   for(const bad of ['http://productdata.awin.com/x','https://productdata.awin.com.evil.test/x','https://evil.test/x','https://user:pass@productdata.awin.com/x']) expect(()=>validateFeedUrl(bad)).toThrow();
   const fetcher=vi.fn(()=>Promise.resolve(new Response(csv)));vi.stubGlobal('fetch',fetcher);await openFeed(url);
-  expect(fetcher.mock.calls[0][1].redirect).toBe('error');
+  expect(fetcher.mock.calls[0][1].redirect).toBe('manual');
+ });
+ it('segue até três redirecionamentos permitidos com um único timeout',async()=>{
+  const fetcher=vi.fn().mockResolvedValueOnce(new Response(null,{status:301,headers:{Location:'/step1'}})).mockResolvedValueOnce(new Response(null,{status:302,headers:{Location:'https://productdata.awin.com/step2'}})).mockResolvedValueOnce(new Response(null,{status:307,headers:{Location:'/step3'}})).mockResolvedValueOnce(new Response(csv));
+  vi.stubGlobal('fetch',fetcher);
+  expect((await inspectFeed(url)).valid).toBe(true);expect(fetcher).toHaveBeenCalledTimes(4);
+  expect(fetcher.mock.calls.map(([target])=>target)).toEqual([url,'https://productdata.awin.com/step1','https://productdata.awin.com/step2','https://productdata.awin.com/step3']);
+  expect(new Set(fetcher.mock.calls.map(([,options])=>options.signal)).size).toBe(1);
+ });
+ it.each(['http://productdata.awin.com/x','https://evil.test/x','https://productdata.awin.com.evil.test/x','https://user:pass@productdata.awin.com/x','https://productdata.awin.com:444/x'])('bloqueia destino não autorizado %s antes do fetch',async(location)=>{
+  const fetcher=vi.fn(()=>Promise.resolve(new Response(null,{status:302,headers:{Location:location}})));vi.stubGlobal('fetch',fetcher);
+  const result=await inspectFeed(url);expect(result.valid).toBe(false);expect(result.error).toContain('destino não permitido');expect(result.error).not.toContain(location);expect(fetcher).toHaveBeenCalledTimes(1);expect(result.diagnostics.httpStatus).toBe(302);
+ });
+ it('para após três redirecionamentos sem realizar quinta requisição',async()=>{
+  const fetcher=vi.fn(()=>Promise.resolve(new Response(null,{status:302,headers:{Location:'/loop'}})));vi.stubGlobal('fetch',fetcher);
+  const result=await inspectFeed(url);expect(result.error).toContain('Limite de 3 redirecionamentos');expect(fetcher).toHaveBeenCalledTimes(4);
+ });
+ it('informa redirecionamento sem Location',async()=>{
+  vi.stubGlobal('fetch',()=>Promise.resolve(new Response(null,{status:302})));
+  const result=await inspectFeed(url);expect(result.error).toContain('Location ausente');expect(result.diagnostics.httpStatus).toBe(302);
+ });
+ it('importação completa usa a mesma proteção manual de redirecionamento',async()=>{
+  const fetcher=vi.fn().mockResolvedValueOnce(new Response(null,{status:308,headers:{Location:'/feed'}})).mockResolvedValueOnce(new Response(csv));vi.stubGlobal('fetch',fetcher);
+  const rows=[];for await(const row of parseCsv(await openFeed(url))) rows.push(row);
+  expect(rows).toHaveLength(1);expect(fetcher.mock.calls.every(([,options])=>options.redirect==='manual')).toBe(true);
  });
  it('retorna somente quatro dígitos da chave, sem caminho ou parâmetros privados',()=>{
   const masked=maskFeedUrl(url+'?secret=hidden');expect(masked).toContain('••••1234');expect(masked).not.toContain('test-key');expect(masked).not.toContain('hidden');

@@ -1,6 +1,7 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
 ## Teste parcial do feed Awin
+- [x] Redirect manual no leitor compartilhado (teste, simulação e workflow): até três destinos HTTPS no host exato productdata.awin.com, um timeout para a cadeia, bloqueios sem revelar Location; 27 testes passaram (10 regressões falhavam antes) e botão autenticado retornou HTTP 200/182 linhas/92 colunas. Sem importações; versão publicada depende de publicar.
 - [x] Corrigir leitura gzip em streaming, corte de 300 KB e tempo de 60 segundos; exibir diagnóstico seguro, sem URLs/chaves.
 - [x] 18 testes passaram; regressão de magic bytes divididos reproduzida antes/corrigida depois; botão autenticado no feed atual: HTTP 200, gzip, 307.200 bytes CSV, 182 linhas, 92 colunas, 0,3 s, sem importações.
 - [ ] Validar especificamente Lego e Stanley: feed não consta no cadastro acessível nesta sessão (apenas Feed Adidas e Feed atual); exige disponibilizar esse feed na sessão.

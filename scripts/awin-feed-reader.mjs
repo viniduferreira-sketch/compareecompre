@@ -2,6 +2,7 @@
 export const FEED_TEST_MAX_BYTES = 300 * 1024;
 export const FEED_TEST_MAX_ROWS = 200;
 export const FEED_TEST_TIMEOUT_MS = 60000;
+const FEED_MAX_REDIRECTS = 3;
 export function validateFeedUrl(value) {
   try {
     const u = new URL(value);
@@ -54,9 +55,26 @@ function bounded(stream, limit, diagnostics) {
   });
 }
 export async function openFeed(url, { limited = false, diagnostics } = {}) {
-  const safeUrl = validateFeedUrl(url);
-  const response = await fetch(safeUrl, { redirect: 'error', signal: AbortSignal.timeout(limited ? FEED_TEST_TIMEOUT_MS : 120000) });
-  if (diagnostics) { diagnostics.httpStatus = response.status; }
+  let safeUrl = validateFeedUrl(url);
+  // One signal bounds the entire redirect chain and subsequent body reading.
+  const signal = AbortSignal.timeout(limited ? FEED_TEST_TIMEOUT_MS : 120000);
+  let response;
+  for (let redirects = 0; ; redirects++) {
+    response = await fetch(safeUrl, { redirect: 'manual', signal });
+    if (diagnostics) diagnostics.httpStatus = response.status;
+    if (response.status < 300 || response.status >= 400) break;
+    void response.body?.cancel().catch(() => {});
+    if (redirects >= FEED_MAX_REDIRECTS) throw new Error('Limite de 3 redirecionamentos do feed excedido.');
+    const location = response.headers.get('Location');
+    if (!location) throw new Error(`HTTP ${response.status}: Location ausente no redirecionamento.`);
+    try {
+      // Resolve relative locations, then enforce the same exact HTTPS host allowlist.
+      safeUrl = validateFeedUrl(new URL(location, safeUrl).href);
+    } catch {
+      // Never include Location: feed URLs can carry credentials.
+      throw new Error(`HTTP ${response.status}: destino não permitido no redirecionamento.`);
+    }
+  }
   if (!response.ok || !response.body) { void response.body?.cancel().catch(() => {}); throw new Error(`HTTP ${response.status}: ${response.body ? 'download recusado' : 'resposta sem conteúdo'}.`); }
   const reader = response.body.getReader();
   const prefix = []; let length = 0;
