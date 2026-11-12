@@ -33,20 +33,16 @@ export const testSavedAwinFeed = createServerFn({method:'POST'}).middleware([req
   const db = await admin(context); const feed = await db.from('awin_feeds').select('url').eq('id',data).single();
   if (feed.error || !feed.data) throw new Error('Feed não encontrado.');
   const {inspectFeed} = await import('./awin-feeds.server');
-  try {
-    const result = await inspectFeed(feed.data.url);
-    const saved = await db.from('awin_feeds').update({ultimo_teste_em:new Date().toISOString(),ultimo_teste_status:result.valid?'ok':'colunas ausentes',anunciantes:result.merchants.map(m=>m.name)}).eq('id',data);
-    if (saved.error) throw new Error('Não foi possível registrar o teste.');
-    return result;
-  } catch {
-    await db.from('awin_feeds').update({ultimo_teste_em:new Date().toISOString(),ultimo_teste_status:'falha no teste'}).eq('id',data);
-    throw new Error('Falha no teste: confira o acesso ao feed e seu formato.');
-  }
+  const result = await inspectFeed(feed.data.url);
+  const d = result.diagnostics;
+  const status = result.valid ? 'ok' : `${result.error ?? 'Colunas ou anunciantes ausentes'} · HTTP ${d.httpStatus ?? 'sem resposta'} · ${d.elapsedMs} ms · ${d.bytesRead} bytes · ${d.header.length} colunas`;
+  const saved = await db.from('awin_feeds').update({ultimo_teste_em:new Date().toISOString(),ultimo_teste_status:status,...(result.valid?{anunciantes:result.merchants.map(m=>m.name)}:{})}).eq('id',data);
+  return {...result,recordingError:saved.error?'O resultado não pôde ser registrado.':null};
 });
 export const saveAwinFeed = createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(urlInput).handler(async ({data,context}) => {
   const db = await admin(context); const {inspectFeed,validateFeedUrl} = await import('./awin-feeds.server');
   const url = validateFeedUrl(data.url); const test = await inspectFeed(url);
-  if (!test.valid) throw new Error('Feed sem anunciantes ou colunas obrigatórias. Não foi salvo.');
+  if (!test.valid) throw new Error(test.error ?? 'Feed sem anunciantes ou colunas obrigatórias. Não foi salvo.');
   const saved = await db.rpc('save_awin_feed',{...(data.id ? {_id:data.id} : {}),_nome:data.nome || test.merchants.map(m=>m.name).join(', ').slice(0,200),_url:url,_merchants:test.merchants,_secret:false});
   if (saved.error) throw new Error('Não foi possível salvar o feed e seus anunciantes.');
   return {id:saved.data,anunciantes:test.merchants.map(m=>m.name)};
@@ -64,7 +60,7 @@ export const bringAwinSecret = createServerFn({method:'POST'}).middleware([requi
   const secret = process.env['AWIN_FEED_URL']; if (!secret) throw new Error('Feed atual não configurado.');
   const {inspectFeed,validateFeedUrl} = await import('./awin-feeds.server');
   const url=validateFeedUrl(secret); const test=await inspectFeed(url);
-  if (!test.valid) throw new Error('O feed atual não passou no teste.');
+  if (!test.valid) throw new Error(test.error ?? 'O feed atual não passou no teste.');
   const result=await db.rpc('save_awin_feed',{_nome:'Feed atual',_url:url,_merchants:test.merchants,_secret:true});
   if (result.error) throw new Error('Não foi possível trazer o feed atual.');
   return {ok:true};

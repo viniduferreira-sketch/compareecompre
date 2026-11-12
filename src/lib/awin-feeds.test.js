@@ -11,6 +11,38 @@ const url='https://productdata.awin.com/datafeed/download/apikey/test-key-1234';
 const csv='merchant_id,merchant_name,product_name,search_price,aw_deep_link,aw_product_id,merchant_category\n77,Loja Nova,Notebook,99,https://awin1.com/x,12,Informática\n';
 afterEach(()=>vi.unstubAllGlobals());
 describe('feeds privados Awin',()=>{
+ it('reconhece gzip mesmo quando o primeiro chunk tem só um byte',async()=>{
+  const bytes=gzipSync(csv);
+  vi.stubGlobal('fetch',()=>Promise.resolve(new Response(new ReadableStream({start(c){c.enqueue(bytes.subarray(0,1));c.enqueue(bytes.subarray(1));c.close();}}))));
+  const result=await inspectFeed(url);expect(result.valid).toBe(true);expect(result.rows).toBe(1);
+ });
+ it('lê amostra gzip de 86 colunas e descarta registro cortado em 300 KB',async()=>{
+  const header=csv.split('\n')[0]+','+Array.from({length:79},(_,i)=>`extra_${i}`).join(',');
+  const row=csv.split('\n')[1]+','+Array.from({length:79},()=> 'x'.repeat(40)).join(',')+'\n';
+  const text=header+'\n'+row.repeat(804);
+  vi.stubGlobal('fetch',()=>Promise.resolve(new Response(gzipSync(text))));
+  const result=await inspectFeed(url);
+  expect(result.valid).toBe(true);expect(result.diagnostics.header).toHaveLength(86);
+  expect(result.diagnostics.bytesRead).toBe(307200);expect(result.diagnostics.truncated).toBe(true);
+  expect(result.rows).toBe(Math.floor((307200-Buffer.byteLength(header+'\n'))/Buffer.byteLength(row)));
+ });
+ it('retorna status HTTP real, sem ler corpo de erro nem revelar credenciais',async()=>{
+  vi.stubGlobal('fetch',()=>Promise.resolve(new Response(url,{status:403})));
+  const result=await inspectFeed(url);expect(result.valid).toBe(false);expect(result.diagnostics.httpStatus).toBe(403);
+  expect(result.diagnostics.bytesRead).toBe(0);expect(result.error).toContain('HTTP 403');expect(result.error).not.toContain('test-key');
+ });
+ it('preserva cabeçalho mesmo sem linhas completas',async()=>{
+  vi.stubGlobal('fetch',()=>Promise.resolve(new Response(csv.split('\n')[0]+'\n77,"cortado')));
+  const result=await inspectFeed(url);expect(result.rows).toBe(0);expect(result.diagnostics.header).toHaveLength(7);expect(result.missing).toEqual([]);
+ });
+ it('informa falha de descompressão com bytes recebidos',async()=>{
+  vi.stubGlobal('fetch',()=>Promise.resolve(new Response(new Uint8Array([31,139,0,1,2]))));
+  const result=await inspectFeed(url);expect(result.valid).toBe(false);expect(result.error).toBeTruthy();expect(result.diagnostics.gzip).toBe(true);expect(result.diagnostics.downloadedBytes).toBe(5);
+ });
+ it('retorna motivo de timeout em vez de mensagem genérica',async()=>{
+  vi.stubGlobal('fetch',()=>Promise.reject(new DOMException('timed out','TimeoutError')));
+  const result=await inspectFeed(url);expect(result.error).toBe('Tempo limite de 60 segundos excedido.');expect(result.valid).toBe(false);
+ });
  it('usa segredo só quando tabela vazia, nunca quando todos os feeds estão pausados',async()=>{
   state.feeds=[];expect(await readImportFeeds(url)).toEqual([{id:null,nome:'Feed atual',url}]);
   state.feeds=[{id:'a',nome:'A',url,ativo:false}];expect(await readImportFeeds(url)).toEqual([]);
@@ -30,8 +62,8 @@ describe('feeds privados Awin',()=>{
   vi.stubGlobal('fetch',()=>Promise.resolve(new Response(csv.split('\n')[0]+'\n'+csv.split('\n')[1].concat('\n').repeat(500))));
   const result=await inspectFeed(url);expect(result.rows).toBe(200);expect(result.examples).toHaveLength(3);expect(result.merchants).toEqual([{id:'77',name:'Loja Nova'}]);expect(result.missing).toEqual([]);
  });
- it('aplica limite de 300 KB e tempo de 20s',async()=>{
-  expect(FEED_TEST_MAX_BYTES).toBe(307200);expect(FEED_TEST_MAX_ROWS).toBe(200);expect(FEED_TEST_TIMEOUT_MS).toBe(20000);
+ it('aplica limite de 300 KB e tempo de 60s',async()=>{
+  expect(FEED_TEST_MAX_BYTES).toBe(307200);expect(FEED_TEST_MAX_ROWS).toBe(200);expect(FEED_TEST_TIMEOUT_MS).toBe(60000);
   vi.stubGlobal('fetch',()=>Promise.resolve(new Response('x'.repeat(500000))));
   const stream=await openFeed(url,{limited:true});const reader=stream.getReader();let text='';for(;;){const {value,done}=await reader.read();if(done)break;text+=value;}expect(text.length).toBe(307200);
  });
@@ -48,8 +80,7 @@ describe('feeds privados Awin',()=>{
   vi.stubGlobal('fetch',()=>Promise.resolve(new Response('merchant_name\nLoja Nova\n')));const result=await inspectFeed(url);expect(result.valid).toBe(false);expect(result.missing).toContain('search_price');
  });
  it('erro de conexão não retorna a URL com chave',async()=>{
-  vi.stubGlobal('fetch',()=>Promise.reject(new Error(url)));await expect(inspectFeed(url)).rejects.toThrow('Não foi possível testar');
-  try{await inspectFeed(url);}catch(e){expect(e.message).not.toContain('1234');}
+  vi.stubGlobal('fetch',()=>Promise.reject(new Error(url)));const result=await inspectFeed(url);expect(result.valid).toBe(false);expect(result.error).not.toContain('1234');expect(result.error).toContain('[link protegido]');expect(result.diagnostics.httpStatus).toBeNull();
  });
  it('regra padrão de loja nova libera todas e exclui gift card/cartão presente, limite 20000',()=>{
   const rule={merchant:'Loja Nova',category_terms:['*'],excluded_category_terms:['gift card','cartão presente'],max_products:20000};

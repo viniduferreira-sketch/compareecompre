@@ -3,5 +3,6 @@ export const FEED_TEST_MAX_ROWS: number;
 export const FEED_TEST_TIMEOUT_MS: number;
 export function validateFeedUrl(value: string): string;
 export function maskFeedUrl(value: string): string;
-export function parseCsv(stream: ReadableStream<string>, options?: { partial?: boolean }): AsyncGenerator<Record<string,string>>;
-export function openFeed(url: string, options?: { limited?: boolean }): Promise<ReadableStream<string>>;
+export interface FeedDiagnostics { httpStatus: number | null; bytesRead: number; downloadedBytes: number; gzip: boolean; truncated: boolean }
+export function parseCsv(stream: ReadableStream<string>, options?: { partial?: boolean; onHeader?: (columns: string[]) => void }): AsyncGenerator<Record<string,string>>;
+export function openFeed(url: string, options?: { limited?: boolean; diagnostics?: FeedDiagnostics }): Promise<ReadableStream<string>>;

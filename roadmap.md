@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Teste parcial do feed Awin
+- [x] Corrigir leitura gzip em streaming, corte de 300 KB e tempo de 60 segundos; exibir diagnóstico seguro, sem URLs/chaves.
+- [x] 18 testes passaram; regressão de magic bytes divididos reproduzida antes/corrigida depois; botão autenticado no feed atual: HTTP 200, gzip, 307.200 bytes CSV, 182 linhas, 92 colunas, 0,3 s, sem importações.
+- [ ] Validar especificamente Lego e Stanley: feed não consta no cadastro acessível nesta sessão (apenas Feed Adidas e Feed atual); exige disponibilizar esse feed na sessão.
+
 ## Cartões de produtos nos artigos do Blog
 - [x] Interpretar {{produtos}} e {{produto}} no Markdown/editor e na prévia administrativa, sem alterar o restante do Blog.
 - [x] Consultar apenas o catálogo público perto da tela, com filtros, popularidade, deduplicação, limite por loja e blocos insuficientes ocultos.
