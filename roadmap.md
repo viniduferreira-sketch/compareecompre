@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Google Search Console — domínio próprio
+- [x] Conta vinculada consultada: nenhuma propriedade verificada; token META solicitado e acrescido ao HTML inicial preservando etiqueta anterior; sitemap existente válido com 48.270 URLs do domínio.
+- [x] Publicação solicitada; checagem única após 65 segundos recebeu HTTP 403, impedindo confirmar a etiqueta publicada.
+- [ ] Confirmar etiqueta em https://compareecompre.com/, verificar propriedade, adicioná-la, relistar propriedades e enviar sitemap; bloqueado pelo HTTP 403 na checagem publicada. Finding gsc:gsc permanece não resolvido.
+
 ## Teste parcial do feed Awin
 - [x] Redirect manual no leitor compartilhado (teste, simulação e workflow): até três destinos HTTPS no host exato productdata.awin.com, um timeout para a cadeia, bloqueios sem revelar Location; 27 testes passaram (10 regressões falhavam antes) e botão autenticado retornou HTTP 200/182 linhas/92 colunas. Sem importações; versão publicada depende de publicar.
 - [x] Corrigir leitura gzip em streaming, corte de 300 KB e tempo de 60 segundos; exibir diagnóstico seguro, sem URLs/chaves.
