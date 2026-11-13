@@ -3,6 +3,8 @@ import type { Database } from "@/integrations/supabase/types";
 import type { AwinProduct } from "./awin-catalog";
 import type { ProductDetail } from "./product-detail.functions";
 import { isOfferExpired } from "./offer-freshness";
+import { productIndexability } from "./product-indexability";
+import type { PartnerQA } from "./partner-qa.server";
 
 export async function getAwinProductDetail(id: string): Promise<ProductDetail | null> {
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
@@ -17,9 +19,10 @@ export async function getAwinProductDetail(id: string): Promise<ProductDetail | 
       return fetch(input, { ...init, headers });
     } },
   });
-  const { data, error } = await db.from("partner_catalog").select("record").eq("object_id", id).eq("source", id.startsWith("lomadee-") ? "lomadee" : "awin").maybeSingle();
+  const { data, error } = await db.from("partner_catalog").select("record,last_synced_at").eq("object_id", id).eq("source", id.startsWith("lomadee-") ? "lomadee" : "awin").maybeSingle();
   if (error || !data) return null;
   const p = data.record as unknown as AwinProduct & Record<string, unknown>;
+  const policy = productIndexability({ ...p, last_synced_at: p.last_synced_at ?? data.last_synced_at });
   if (p["price_review_status"] === "pending") return null;
   const num = (v: unknown) => (typeof v === "number" ? v : typeof v === "string" ? Number(v.replace(",", ".")) : NaN);
   const ratingValue = num(p["rating"] ?? p["average_rating"] ?? p["reviews_rating"]);
@@ -29,12 +32,15 @@ export async function getAwinProductDetail(id: string): Promise<ProductDetail | 
   const eanRaw = p["ean"] ?? p["gtin"] ?? p["product_GTIN"];
   const ean = typeof eanRaw === "string" && /^\d{8,14}$/.test(eanRaw) ? eanRaw : null;
   return {
+    seoIndexable: policy.indexable, stale: policy.stale, priceHistory: policy.history,
+    status: policy.unavailable ? "unavailable" : p.status,
+    categoryName: p.categoryName,
     id: p.objectID, source: id.startsWith("lomadee-") ? "lomadee" : "awin", store: p.store, title: p.title,
     images: p.images.length ? p.images : p.imageUrl ? [p.imageUrl] : [],
-    price: isOfferExpired(p) ? null : p.price,
+    price: policy.unavailable || isOfferExpired(p) ? null : p.price,
     originalPrice: p.originalPrice, discountPercent: p.discountPercent,
     freeShipping: p.freeShipping, affiliateUrl: p.affiliateUrl,
     sellerCount: 1, category: p.category, description: p.description,
-    attributes: p.attributes, pros: [], cons: [], qa: [], last_synced_at: p.last_synced_at, rating, ean, storeLogoUrl: [p["storeLogoUrl"], p["merchant_logo"], p["store_logo"]].find((v): v is string => typeof v === "string" && v.startsWith("https://")) ?? null,
+    attributes: p.attributes, pros: [], cons: [], qa: Array.isArray(p["qa"]) ? p["qa"] as PartnerQA[] : [], last_synced_at: p.last_synced_at ?? data.last_synced_at, rating, ean, storeLogoUrl: [p["storeLogoUrl"], p["merchant_logo"], p["store_logo"]].find((v): v is string => typeof v === "string" && v.startsWith("https://")) ?? null,
   };
 }

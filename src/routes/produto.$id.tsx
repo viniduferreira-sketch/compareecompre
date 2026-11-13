@@ -79,7 +79,7 @@ export const Route = createFileRoute("/produto/$id")({
                   "@type": "Offer",
                   priceCurrency: "BRL",
                   price: validPrice.toFixed(2),
-                  availability: "https://schema.org/InStock",
+                  availability: product.status === "unavailable" ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
                   url: product.affiliateUrl,
                   seller: {
                     "@type": "Organization",
@@ -110,6 +110,7 @@ export const Route = createFileRoute("/produto/$id")({
       meta: [
         { title },
         { name: "description", content: description },
+        { name: "robots", content: product?.seoIndexable ? "index, follow" : "noindex, follow" },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "product" },
@@ -143,19 +144,6 @@ const PERIODS = [
   { label: "1 ano", days: 365 },
 ];
 
-function buildHistory(price: number, days: number) {
-  const points = Math.min(days, 40);
-  const step = days / points;
-  return Array.from({ length: points + 1 }, (_, index) => {
-    const seed = Math.sin((index + 1) * (days / 7)) * Math.cos(index * 1.7);
-    const variation = 1 + seed * 0.06 + (points - index) * 0.0015;
-    return {
-      date: index === points ? "Hoje" : `${Math.round((points - index) * step)}d`,
-      price: Math.round(price * variation),
-    };
-  });
-}
-
 function prettyCategory(domain: string | null) {
   if (!domain) return "Produtos";
   const raw = domain.split("-").slice(1).join(" ").toLowerCase().replace(/_/g, " ");
@@ -178,8 +166,9 @@ function ProductPage() {
   const [period, setPeriod] = useState(PERIODS[0]?.days ?? 40);
 
   const history = useMemo(
-    () => buildHistory(data?.price ?? 1000, period),
-    [data?.price, period],
+    () => (data?.priceHistory ?? []).filter(point => Date.parse(point.date) >= Date.now() - period * 86400000)
+      .map(point => ({ ...point, date: new Date(point.date).toLocaleDateString("pt-BR", { timeZone: "UTC" }) })),
+    [data?.priceHistory, period],
   );
 
   const attribute = (needle: string) =>
@@ -201,10 +190,11 @@ function ProductPage() {
             </Link>
           </p>
         ) : data.status === "unavailable" ? (
+          <>
           <div className="rounded-2xl border border-border bg-card p-12 text-center">
             <h1 className="font-display text-lg font-bold text-graphite">Este produto não está mais disponível</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              A oferta de "{data.title}" foi encerrada ou está sem estoque na loja parceira.
+              {data.stale ? `Não confirmamos a atualização de "${data.title}" há mais de sete dias.` : `A oferta de "${data.title}" foi encerrada ou está sem estoque na loja parceira.`}
             </p>
             <Button asChild className="mt-5 bg-brand text-brand-foreground hover:bg-brand/90">
               <Link to="/" search={{ q: data.categoryName ?? data.title.split(" ").slice(0, 3).join(" ") }}>
@@ -212,6 +202,8 @@ function ProductPage() {
               </Link>
             </Button>
           </div>
+          <RelatedCategory key={`unavailable-${data.id}`} id={data.id} />
+          </>
         ) : (
           <>
             <nav aria-label="Trilha de navegação" className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
@@ -359,7 +351,7 @@ function ProductPage() {
               <TabsList className="flex w-full justify-start gap-1 overflow-x-auto rounded-lg bg-muted/60 p-1 text-xs">
                 <TabsTrigger value="specs">Ficha técnica</TabsTrigger>
                 {(data.pros.length > 0 || data.cons.length > 0) && <TabsTrigger value="pros">Prós e Contras</TabsTrigger>}
-                {data.source === "mercadolivre" && <TabsTrigger value="history">Histórico de preços</TabsTrigger>}
+                {data.priceHistory.length >= 2 && <TabsTrigger value="history">Histórico de preços</TabsTrigger>}
               </TabsList>
 
               <TabsContent value="pros" className="mt-3">
@@ -468,7 +460,7 @@ function ProductPage() {
                   </div>
 
                   <p className="mt-3 text-xs text-muted-foreground">
-                    Variação estimada com base no melhor preço encontrado entre as lojas monitoradas.
+                    Preços registrados em datas anteriores para esta oferta.
                   </p>
                 </div>
               </TabsContent>

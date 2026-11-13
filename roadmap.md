@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Indexação automática de produtos (sem feeds ou exclusões)
+- [x] Compartilhar regra de conteúdo real, disponibilidade e sete dias entre HTML inicial e sitemap; preservar páginas não relacionadas e busca interna. Data de sincronização já existente, sem campo novo.
+- [x] Histórico existente era estimado, não evidência real; gráfico substituído por registros reais quando disponíveis. Vinte testes passaram; HTML inicial de três produtos e sitemap HTTP 200 confirmados: 108 indexáveis e 49.397 fora entre 49.505 registros, às 04:15 UTC de 13/11. Blog, categorias e institucionais preservados, nenhum feed/registro alterado; efeito publicado depende de publicação.
+
 ## Títulos e descrições específicos por página
 - [x] Atualizar títulos/descrições e Open Graph da home, padrão raiz, busca por termo, produto, ofertas, lojas monitoradas, sobre nós e blog sem promessas de menor preço; conteúdo e regras de busca preservados.
 - [x] HTML inicial validado em dez URLs, descrições diferentes por busca e canonical único apontando para a própria página; navegação pública e 28 testes passaram, build OK. Correções SEO registradas; versão ao vivo depende da próxima publicação.

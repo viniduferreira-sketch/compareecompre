@@ -10,6 +10,7 @@ import {
 
 import {PRODUCT_CATEGORIES} from '@/lib/category-pages';
 import {storeSlug} from '@/lib/store-pages';
+import { PRODUCT_SEO_ATTRIBUTES, productIndexability } from '@/lib/product-indexability';
 
 const PRODUCT_ROUTE_ID = "/produto/$id";
 
@@ -26,18 +27,20 @@ export const Route = createFileRoute("/sitemap.xml")({
         const {readPublicStoreIdentities}=await import('@/lib/public-store-identities.server');
         for(const store of Object.values(await readPublicStoreIdentities()))entries.push({path:`/loja/${storeSlug(store.name)}`});
 
-        // Product pages are the site's main content: list every indexed offer.
+        // Same persisted evidence and availability policy as product SSR metadata.
         const productRoute = router.routesById[PRODUCT_ROUTE_ID];
         if (isSitemapRouteIncluded(productRoute)) {
           const { getAlgoliaIndexingConfig } = await import("@/lib/algolia-indexing.server");
           const { client, indexName } = getAlgoliaIndexingConfig();
           let cursor: string | undefined;
+          const indexingNow = Date.now();
           do {
-            const response = await client.browse<{ objectID: string }>({
+            const response = await client.browse<{ objectID: string } & Record<string, unknown>>({
               indexName,
-              browseParams: { attributesToRetrieve: ["objectID"], hitsPerPage: 1000, cursor },
+              browseParams: { attributesToRetrieve: PRODUCT_SEO_ATTRIBUTES, hitsPerPage: 1000, cursor },
             });
             for (const hit of response.hits) {
+              if (!productIndexability(hit, indexingNow).indexable) continue;
               const location = router.buildLocation({
                 to: "/produto/$id",
                 params: { id: hit.objectID },

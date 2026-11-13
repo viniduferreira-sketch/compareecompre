@@ -3,10 +3,14 @@ import { z } from "zod";
 
 import { getMeliToken, withAffiliate } from "@/lib/search-offers.functions";
 import type { PartnerQA } from "@/lib/partner-qa.server";
+import { productIndexability } from "./product-indexability";
 
 export type ProductAttribute = { name: string; value: string };
 
 export type ProductDetail = {
+  seoIndexable: boolean;
+  stale: boolean;
+  priceHistory: Array<{ date: string; price: number }>;
   source: string;
   store: string;
   storeLogoUrl?: string | null;
@@ -46,6 +50,7 @@ function isPartnerQA(value: unknown): value is PartnerQA {
 }
 
 type IndexedRecord = {
+  record?: Record<string, unknown>;
   qa: PartnerQA[];
   status?: string | undefined;
   categoryName?: string | null;
@@ -59,7 +64,7 @@ async function getIndexedRecord(productId: string): Promise<IndexedRecord> {
   try {
     const { getAlgoliaIndexingConfig } = await import("@/lib/algolia-indexing.server");
     const { client, indexName } = getAlgoliaIndexingConfig();
-    const record = await client.getObject<{
+    const record = await client.getObject<Record<string, unknown> & {
       qa?: unknown;
       status?: string;
       categoryName?: string | null;
@@ -70,9 +75,9 @@ async function getIndexedRecord(productId: string): Promise<IndexedRecord> {
     }>({
       indexName,
       objectID: productId,
-      attributesToRetrieve: ["qa", "status", "categoryName", "official_store_id", "seller_nickname", "seller_level", "price_review_status"],
     });
     return {
+      record,
       qa: Array.isArray(record.qa)
         ? record.qa.filter(isPartnerQA).sort((left, right) => Date.parse(right.data) - Date.parse(left.data))
         : [],
@@ -111,15 +116,33 @@ export const getProductDetail = createServerFn({ method: "POST" })
       const { getAwinProductDetail } = await import("@/lib/awin-product.server");
       return getAwinProductDetail(data.id);
     }
+    const indexed = await getIndexedRecord(data.id);
+    if (indexed.priceReviewStatus === "pending") return null;
+    const record = indexed.record ?? {};
+    const policy = productIndexability(record);
+    const fallback: ProductDetail | null = typeof record["title"] === "string" ? {
+      id: data.id, title: record["title"], source: "mercadolivre", store: "Mercado Livre",
+      seoIndexable: policy.indexable, stale: policy.stale, priceHistory: policy.history,
+      status: policy.unavailable ? "unavailable" : indexed.status,
+      ...(typeof record["last_synced_at"] === "string" ? { last_synced_at: record["last_synced_at"] } : {}),
+      categoryName: indexed.categoryName ?? null, category: typeof record["category"] === "string" ? record["category"] : null,
+      images: Array.isArray(record["images"]) ? record["images"].filter((v): v is string => typeof v === "string") : typeof record["imageUrl"] === "string" ? [record["imageUrl"]] : [],
+      price: policy.unavailable ? null : typeof record["price"] === "number" ? record["price"] : null,
+      originalPrice: null, discountPercent: null, freeShipping: false,
+      affiliateUrl: typeof record["affiliateUrl"] === "string" ? record["affiliateUrl"] : "",
+      sellerCount: 0, description: typeof record["description"] === "string" ? record["description"] : "",
+      attributes: [], pros: [], cons: [], qa: indexed.qa,
+    } : null;
+    if (policy.unavailable) return fallback;
     const token = await getMeliToken();
-    if (!token) return null;
+    if (!token) return fallback;
 
     const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
 
     const productRes = await fetch(`https://api.mercadolibre.com/products/${data.id}`, { headers });
     if (!productRes.ok) {
       console.error("Mercado Livre product detail failed", productRes.status);
-      return null;
+      return fallback;
     }
     const product = (await productRes.json()) as MeliProduct;
 
@@ -160,8 +183,6 @@ export const getProductDetail = createServerFn({ method: "POST" })
       .map((picture) => picture.secure_url ?? picture.url)
       .filter((url): url is string => Boolean(url))
       .slice(0, 8);
-    const indexed = await getIndexedRecord(product.id);
-    if (indexed.priceReviewStatus === "pending") return null;
     const qa = indexed.qa;
 
     const attributeValue = (needle: string) =>
@@ -183,6 +204,10 @@ export const getProductDetail = createServerFn({ method: "POST" })
     ];
 
     return {
+      seoIndexable: policy.indexable,
+      stale: policy.stale,
+      priceHistory: policy.history,
+      ...(fallback?.last_synced_at ? { last_synced_at: fallback.last_synced_at } : {}),
       source: "mercadolivre",
       store: "Mercado Livre",
       status: indexed.status,
