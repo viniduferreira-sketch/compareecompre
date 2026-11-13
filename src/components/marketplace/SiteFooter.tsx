@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { CreditCard, LockKeyhole, ShieldCheck } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 import { BrandLogo } from "./BrandLogo";
 import { Button } from '@/components/ui/button';
 import { openCookiePreferences } from '@/lib/cookie-consent';
@@ -16,9 +16,6 @@ export function SiteFooter() {
             Buscamos nas melhores lojas da internet para você encontrar o menor preço com rapidez e confiança.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-footer-border px-2.5 py-1.5 text-xs font-semibold text-footer-foreground">
-              <ShieldCheck className="size-4 text-savings" /> Site seguro
-            </span>
             <span className="inline-flex items-center gap-1.5 rounded-md border border-footer-border px-2.5 py-1.5 text-xs font-semibold text-footer-foreground">
               <LockKeyhole className="size-4 text-savings" /> Conexão protegida
             </span>
@@ -52,14 +49,6 @@ export function SiteFooter() {
             <li><Link to="/politica-de-privacidade" className={linkClass}>Política de Privacidade</Link></li>
             <li><Button variant="link" onClick={openCookiePreferences} className={`${linkClass} h-auto justify-start p-0 font-normal`}>Preferências de cookies</Button></li>
           </ul>
-          <div className="mt-6">
-            <p className="flex items-center gap-2 text-xs font-semibold text-footer-foreground"><CreditCard className="size-4 text-footer-accent" /> Pagamento na loja escolhida</p>
-            <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold text-footer-muted">
-              <span className="rounded border border-footer-border px-2 py-1">Pix</span>
-              <span className="rounded border border-footer-border px-2 py-1">Cartões</span>
-              <span className="rounded border border-footer-border px-2 py-1">Boleto</span>
-            </div>
-          </div>
         </div>
       </div>
 
