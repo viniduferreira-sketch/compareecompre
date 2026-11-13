@@ -6,6 +6,10 @@ describe("comparador", () => {
   it("rejeita modelo diferente", () => expect(isSameProduct({ title: "Smartphone Galaxy A15 128GB" }, { title: "Smartphone Galaxy A25 128GB" })).toBe(false));
   it("não aceita títulos parecidos sem identificadores", () => expect(isSameProduct({ title: "Smartphone Galaxy A15 128GB Preto" }, { title: "Galaxy A15 128GB Smartphone Preto Samsung" })).toBe(false));
   it("quebra descrição em <br>", () => expect(descriptionParagraphs("Um.<br>Dois.")).toEqual(["Um.", "Dois."]));
+  it('preserva o início e medidas decimais do monitor MSI', () => {
+    const text = 'Monitor Gamer MSI MAG 242C, 23.6", Curvo. Tela de 23.6 polegadas.';
+    expect(descriptionParagraphs(text).join(' ')).toBe(text);
+  });
 });
 import { groupComparedOffers } from "./search-offers";
 const hit = (objectID, store, price, title = "SSD Kingston A400 480GB SATA") => ({ objectID, store, price, title, gtin: title.includes("240GB") ? "12345679" : "12345678", affiliateUrl: "https://x/" + objectID, source: "awin" });

@@ -47,13 +47,14 @@ import { CompareOffers, FormattedDescription, RatingStars, SpecsTable } from "@/
 import { getProductDetail } from "@/lib/product-detail.functions";
 import { recordOutboundClick } from "@/lib/outbound-clicks";
 import { hasRealPriceHistory } from '@/lib/product-indexability';
+import { partnerAttributes } from '@/lib/product-content';
 
 export const Route = createFileRoute("/produto/$id")({
   staticData: { sitemap: true },
   loader: async ({ context, params }) => {
     const product = await getProductDetail({ data: { id: params.id } });
     await Promise.all([
-      context.queryClient.ensureQueryData(productBlogPromotionsQuery(product?.categoryName ?? null)),
+      context.queryClient.ensureQueryData(productBlogPromotionsQuery(product?.categoryName ?? null, product?.title ?? '')),
       context.queryClient.ensureQueryData(buyingGuideQuery(product?.title ?? '')),
     ]);
     return product;
@@ -164,7 +165,7 @@ function formatQADate(value: string) {
 
 function ProductPage() {
   const data = Route.useLoaderData();
-  const { data: blogPosts } = useSuspenseQuery(productBlogPromotionsQuery(data?.categoryName ?? null));
+  const { data: blogPosts } = useSuspenseQuery(productBlogPromotionsQuery(data?.categoryName ?? null, data?.title ?? ''));
   const navigate = Route.useNavigate();
   const [activeImage, setActiveImage] = useState(0);
   const [favorite, setFavorite] = useState(false);
@@ -380,24 +381,10 @@ function ProductPage() {
                   <div className="overflow-x-auto">
                     <h2 className="mb-3 font-display text-lg font-semibold text-graphite">Informações básicas</h2>
                     <SpecsTable
-                      rows={[
-                        ["Marca", attribute("marca")] as const,
-                        ["Modelo", attribute("modelo")] as const,
-                        ["Cor", attribute("cor")] as const,
-                        ["Linha", attribute("linha")] as const,
-                        ["Ano de lançamento", attribute("ano")] as const,
-                        ...data.attributes
-                          .filter((item) => !/marca|ano|linha|modelo|cor/i.test(item.name))
-                          .slice(0, 8)
-                          .map((item) => [item.name, item.value] as const),
-                      ].filter(([, value]) => value !== "—")}
+                      rows={partnerAttributes({ attributes: data.attributes, ean: data.ean }, data.source).map(item => [item.name, item.value] as const)}
                     />
                   </div>
 
-                  {data.description && <div>
-                    <h2 className="mb-3 font-display text-lg font-semibold text-graphite">Descrição</h2>
-                    <FormattedDescription text={data.description} />
-                  </div>}
                 </div>
               </TabsContent>
 
@@ -461,6 +448,15 @@ function ProductPage() {
                 </div>
               </TabsContent>
             </Tabs>
+            {data.description && <section className="mt-8 border-y border-border py-5" aria-labelledby="store-description-heading">
+              <h2 id="store-description-heading" className="font-display text-lg font-semibold">Descrição da loja ({data.store === 'Kabum BR' ? 'KaBuM' : data.store})</h2>
+              <Accordion type="single" collapsible>
+                <AccordionItem value="store-description" className="border-0">
+                  <AccordionTrigger className="justify-start gap-2 text-primary">Ler mais</AccordionTrigger>
+                  <AccordionContent><FormattedDescription text={data.description} /></AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </section>}
 
             {data.qa.length > 0 ? (
               <section className="mt-8">

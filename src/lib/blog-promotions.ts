@@ -51,21 +51,19 @@ export function selectProductBlogArticles<T extends BlogPromotionCandidate>({
   categoryPosts,
   guidePosts,
   recentPosts,
+  excludeSlug,
 }: {
   categoryPosts: T[];
   guidePosts: T[];
   recentPosts: T[];
+  excludeSlug?: string;
 }): T[] {
   const selected: T[] = [];
   const add = (post: T | undefined) => {
-    if (post && !selected.some((item) => item.id === post.id)) selected.push(post);
+    if (post && post.slug !== excludeSlug && !selected.some((item) => item.id === post.id)) selected.push(post);
   };
 
   add(categoryPosts[0]);
   for (const slug of GENERAL_BLOG_GUIDES) add(guidePosts.find((post) => post.slug === slug));
-  for (const post of [...categoryPosts.slice(1), ...recentPosts]) {
-    if (selected.length >= 3) break;
-    add(post);
-  }
   return selected.slice(0, 3);
 }

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { recordOutboundClick } from "@/lib/outbound-clicks";
 import { Link } from '@tanstack/react-router';
 import {storeSlug} from '@/lib/store-pages';
+import { partnerDescription } from '@/lib/product-content';
 
 const SOURCE_LABEL: Record<string, string> = { mercadolivre: "Mercado Livre", awin: "Awin", lomadee: "Lomadee" };
 
@@ -93,17 +94,12 @@ export function SpecsTable({ rows }: { rows: Array<readonly [string, string]> })
 
 /** Split partner descriptions on \n, <br> and <p>; long single blocks are split every ~3 sentences. */
 export function descriptionParagraphs(raw: string): string[] {
-  const text = raw
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>\s*/gi, "\n\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&");
+  const text = partnerDescription(raw);
   const blocks = text.split(/\n+/).map((p) => p.trim()).filter(Boolean);
   if (blocks.length > 1) return blocks;
-  const sentences = (blocks[0] ?? "").match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) ?? [];
+  const sentences = (blocks[0] ?? "").split(/(?<=[.!?])\s+/);
   const out: string[] = [];
-  for (let i = 0; i < sentences.length; i += 3) out.push(sentences.slice(i, i + 3).join("").trim());
+  for (let i = 0; i < sentences.length; i += 3) out.push(sentences.slice(i, i + 3).join(" ").trim());
   return out.filter(Boolean);
 }
 

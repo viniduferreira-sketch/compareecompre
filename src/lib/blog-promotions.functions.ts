@@ -14,8 +14,8 @@ export const getHomeBlogPromotions = createServerFn({ method: "GET" }).handler(a
 });
 
 export const getProductBlogPromotions = createServerFn({ method: "GET" })
-  .inputValidator((data: { categoryName: string | null }) =>
-    z.object({ categoryName: z.string().trim().max(100).nullable() }).parse(data),
+  .inputValidator((data: { categoryName: string | null; title?: string }) =>
+    z.object({ categoryName: z.string().trim().max(100).nullable(), title: z.string().max(2000).optional() }).parse(data),
   )
   .handler(async ({ data }) => {
     setResponseHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
@@ -25,6 +25,7 @@ export const getProductBlogPromotions = createServerFn({ method: "GET" })
         process.env["SUPABASE_URL"]!,
         process.env["SUPABASE_PUBLISHABLE_KEY"]!,
         data.categoryName,
+        data.title,
       );
     } catch (error) {
       console.error("Product blog promotions unavailable", error);

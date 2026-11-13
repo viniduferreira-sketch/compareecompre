@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Texto e dados dos parceiros na página de produto
+- [x] Entidades decodificadas e tags removidas. Descrição persistida do MSI já começava completa com 23.6; divisão incorreta no ponto decimal cortava o início. Corrigida sem alterar/inventar texto.
+- [x] Somente guia do tipo e dois gerais, excluindo guia já ligado; ficha sem limite de oito campos, campos persistidos complementados e futuros feeds preservam modelo alternativo/garantia/EAN. Descrição recolhida com Ler mais. Monitor real confirmou marca/EAN, acentos e início completo; modelo/cor/dimensões/garantia não constam nos campos persistidos e não foram inferidos do título. 77 testes Vitest + 6 Bun passaram, build OK, celular sem overflow; aviso de hidratação inicial preexistente exigiu aguardar antes da interação. Sem importações.
+
 ## Guias e ficha comparativa de similares
 - [x] Guia publicado “Como escolher” correspondente ao tipo de produto, no HTML inicial; oculto quando não existe, sem confundir acessórios/computadores com peças citadas no título.
 - [x] Tabela com dois ou três modelos diferentes da mesma família/categoria, preço 70–130%, somente atributos reais e exclusão por GTIN/modelo; oculta sem evidência. 29 testes passaram; SSD real abriu guia publicado, celular sem overflow e tabela corretamente oculta (feed atual traz só marca, sem modelo/ficha). Renderização da tabela preenchida não verificada com dados reais por essa ausência. Sem importações; build OK.

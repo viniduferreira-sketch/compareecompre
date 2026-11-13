@@ -1,5 +1,6 @@
 import type { Database } from "@/integrations/supabase/types";
 import { blogPublicClient } from "./blog-public.server";
+import { buyingTopic } from './product-buying';
 import {
   GENERAL_BLOG_GUIDES,
   blogCategorySlugForProduct,
@@ -60,17 +61,17 @@ export async function listHomeBlogPromotions(url: string, key: string) {
   return mapArticles(posts.data ?? [], categories, now.getTime());
 }
 
-export async function listProductBlogPromotions(url: string, key: string, categoryName: string | null) {
+export async function listProductBlogPromotions(url: string, key: string, categoryName: string | null, title = '') {
   const db = blogPublicClient(url, key);
   const now = new Date();
   const categories = await allCategories(db);
-  const categorySlug = blogCategorySlugForProduct(categoryName);
-  const category = categories.find((item) => item.slug === categorySlug);
+  const topic = buyingTopic(title);
+  const guideSlug = topic ? `como-escolher-${topic[0]}` : null;
   const emptyCategory: { data: PromotionRow[]; error: null } = { data: [], error: null };
   const [categoryPosts, guidePosts, recentPosts] = await Promise.all([
-    category ? publicPosts(db, now.toISOString()).eq("categoria_id", category.id).limit(4) : Promise.resolve(emptyCategory),
+    guideSlug ? publicPosts(db, now.toISOString()).eq('slug', guideSlug).limit(1) : Promise.resolve(emptyCategory),
     publicPosts(db, now.toISOString()).in("slug", [...GENERAL_BLOG_GUIDES]).limit(2),
-    publicPosts(db, now.toISOString()).limit(6),
+    Promise.resolve(emptyCategory),
   ]);
   if (categoryPosts.error || guidePosts.error || recentPosts.error) {
     throw new Error("Não foi possível carregar as recomendações do blog.");
@@ -79,6 +80,7 @@ export async function listProductBlogPromotions(url: string, key: string, catego
     categoryPosts: categoryPosts.data ?? [],
     guidePosts: guidePosts.data ?? [],
     recentPosts: recentPosts.data ?? [],
+    ...(guideSlug ? { excludeSlug: guideSlug } : {}),
   }) as PromotionRow[];
   return mapArticles(selected, categories, now.getTime());
 }

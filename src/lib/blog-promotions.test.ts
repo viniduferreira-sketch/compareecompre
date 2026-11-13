@@ -46,7 +46,7 @@ describe("Blog promotions", () => {
     expect(selected.map((item) => item.id)).toEqual(["category", "discount", "trust"]);
   });
 
-  it("deduplicates guides and fills missing positions with recent articles", () => {
+  it("deduplicates guides and never fills missing positions with unrelated recent articles", () => {
     const discount = post("discount", GENERAL_BLOG_GUIDES[0]);
     const recent = post("recent");
     const selected = selectProductBlogArticles({
@@ -54,6 +54,10 @@ describe("Blog promotions", () => {
       guidePosts: [discount],
       recentPosts: [discount, recent],
     });
-    expect(selected.map((item) => item.id)).toEqual(["discount", "recent"]);
+    expect(selected.map((item) => item.id)).toEqual(["discount"]);
+  });
+  it('excludes the category guide already linked under Antes de comprar', () => {
+    const guide = post('ssd', 'como-escolher-ssd');
+    expect(selectProductBlogArticles({ categoryPosts:[guide], guidePosts:[post('discount',GENERAL_BLOG_GUIDES[0]),post('trust',GENERAL_BLOG_GUIDES[1])],recentPosts:[],excludeSlug:guide.slug }).map(p => p.id)).toEqual(['discount','trust']);
   });
 });

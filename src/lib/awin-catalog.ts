@@ -3,6 +3,7 @@ import { toSiteCategory } from "./storefront-mix";
 import { normalizeGtin, normalizeModel } from "./product-identifiers";
 import { ADULT_CONTENT_REASON, MERCHANT_NOT_ALLOWED_REASON, getAdultContentMatch } from "./content-policy";
 import { isAwinMerchantAllowed } from "./awin-allowlist";
+import { partnerDescription, partnerAttributes } from './product-content';
 
 export const awinRowSchema = z.record(z.string().max(30000));
 export type AwinRow = z.infer<typeof awinRowSchema>;
@@ -82,9 +83,8 @@ export function normalizeAwinProduct(row: AwinRow, syncedAt: string, allowedMerc
     brand: text(row["brand_name"], 200) || null,
     gtin: normalizeGtin(row["ean"]) ?? normalizeGtin(row["product_GTIN"]),
     model: normalizeModel(row["product_model"]) ?? normalizeModel(row["model_number"]),
-    description: text(row["description"] || row["product_short_description"]),
-    attributes: [["Marca", row["brand_name"]], ["Modelo", row["product_model"]], ["Cor", row["colour"]], ["Dimensões", row["dimensions"]], ["Especificações", row["specifications"]]]
-      .flatMap(([name, value]) => value && name ? [{ name, value: text(value), source: "awin" }] : []),
+    description: partnerDescription(row["description"] || row["product_short_description"]),
+    attributes: partnerAttributes(row, 'awin'),
     freeShipping: amount(row["delivery_cost"]) === 0,
     shippingCost: amount(row["delivery_cost"]),
     inStock: !unavailable,
