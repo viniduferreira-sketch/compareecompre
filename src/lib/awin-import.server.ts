@@ -11,6 +11,7 @@ import { withAlgoliaConnectionRetry } from "./algolia-connection";
 import { enrichPopularity } from "./popularity.server";
 import { applyStoreDisplay, storeMatches, type StoreControl } from "./partner-stores";
 import { applyPriceReviewToRecords } from "./price-review.server";
+import { awinSyncScope, assertAwinFeedRows } from './awin-sync-scope';
 
 export const AWIN_REPOSITORY = "viniduferreira-sketch/compareecompre";
 export const AWIN_AUDIENCE = "compareecompre-awin-import";
@@ -93,24 +94,36 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
     return { dryRun: true as const, batch: input.batch, ...batchCounts(input.rows.length, indexed, duplicates), discardReasons: reasons, acceptedByMerchant };
   }
   if (input.action === "start") {
-    await ensureIdentifierFacets();
     // Clear only abandoned jobs, not catalog records. Workflow concurrency prevents simultaneous downloads.
-    await db.from("catalog_imports").update({ status: "failed", error: "Execução interrompida; solicite novamente." }).in("status", ["queued", "running"]).lt("updated_at", new Date(Date.now() - 3 * 3600_000).toISOString());
+    await db.from("catalog_imports").update({ status: "failed", error: "Execução interrompida; solicite novamente." }).eq('source', 'awin').in("status", ["queued", "running"]).lt("updated_at", new Date(Date.now() - 3 * 3600_000).toISOString());
     const { readImportFeeds } = await import("./awin-feeds.server");
-    const feeds = await readImportFeeds(process.env["AWIN_FEED_URL"]);
-    const existing = await db.from("catalog_imports").select("id,status").eq("github_run_id", runId).maybeSingle();
+    const existing = await db.from("catalog_imports").select("id,status,sync_cursor").eq('source', 'awin').eq("github_run_id", runId).maybeSingle();
     if (existing.error) throw new Error("Não foi possível ler a importação.");
-    if (existing.data) return { importId: existing.data.id, feeds };
+    if (existing.data) {
+      if (existing.data.status !== 'running') throw new Error('Importação encerrada.');
+      const scope = awinSyncScope(existing.data.sync_cursor);
+      return { importId: existing.data.id, feeds: await readImportFeeds(process.env['AWIN_FEED_URL'], scope?.feedId) };
+    }
     const result = input.importId
-      ? await db.from("catalog_imports").update({ status: "running", github_run_id: runId, updated_at: new Date().toISOString() }).eq("id", input.importId).eq("status", "queued").select("id").single()
-      : await db.from("catalog_imports").insert({ status: "running", github_run_id: runId }).select("id").single();
+      ? await db.from("catalog_imports").update({ status: "running", github_run_id: runId, updated_at: new Date().toISOString() }).eq('source', 'awin').eq("id", input.importId).eq("status", "queued").select("id,sync_cursor").single()
+      : await db.from("catalog_imports").insert({ source: 'awin', status: "running", github_run_id: runId }).select("id,sync_cursor").single();
     if (result.error || !result.data) throw new Error("Importação já em andamento ou solicitação inválida.");
-    return { importId: result.data.id, feeds };
+    try {
+      const scope = awinSyncScope(result.data.sync_cursor);
+      const feeds = await readImportFeeds(process.env['AWIN_FEED_URL'], scope?.feedId);
+      await ensureIdentifierFacets();
+      return { importId: result.data.id, feeds };
+    } catch (error) {
+      await db.from('catalog_imports').update({ status: 'failed', finished_at: new Date().toISOString(), error: 'Não foi possível iniciar a leitura do feed selecionado.' }).eq('id', result.data.id).eq('source', 'awin');
+      throw error;
+    }
   }
-  const { data: job, error } = await db.from("catalog_imports").select("id,status,created_at").eq("id", input.importId).eq("github_run_id", runId).single();
+  const { data: job, error } = await db.from("catalog_imports").select("id,status,created_at,sync_cursor").eq('source', 'awin').eq("id", input.importId).eq("github_run_id", runId).single();
   if (error || !job) throw new Error("Importação não autorizada.");
+  const scope = awinSyncScope(job.sync_cursor);
   if (input.action === "feedResult") {
     if (job.status !== "running") throw new Error("Importação encerrada.");
+    if (scope && scope.feedId !== input.feedId) throw new Error('Resultado de outro feed não autorizado.');
     const erro = input.success ? null : "Falha no download ou processamento deste feed.";
     const saved = await db.from("awin_feed_import_results").upsert({import_id:job.id,feed_id:input.feedId,linhas:input.linhas,status:input.success?"completed":"failed",erro});
     if (saved.error) throw new Error("Não foi possível registrar o resultado do feed.");
@@ -135,6 +148,7 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
     return { success, indexed };
   }
   if (job.status !== "running") throw new Error("Importação encerrada.");
+  assertAwinFeedRows(scope, input.rows);
   const previous = await db.from("catalog_import_batches").select("indexed,skipped,discard_reasons").eq("import_id", job.id).eq("batch", input.batch).maybeSingle();
   if (previous.error) throw new Error("Não foi possível conferir o lote.");
   if (previous.data) return previous.data;

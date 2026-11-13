@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
+import { awinFeedOutcome } from './awin-sync-scope';
 async function admin(context: {userId:string;supabase:SupabaseClient<Database>}) {
   setResponseHeader('Cache-Control','no-store');
   const role = await context.supabase.from('user_roles').select('role').eq('user_id',context.userId).eq('role','admin').maybeSingle();
@@ -23,7 +24,27 @@ export const getAwinFeeds = createServerFn({method:'POST'}).middleware([requireS
   const marker = await db.from('awin_feed_settings').select('secret_migrated').eq('singleton',true).maybeSingle();
   if(marker.error) throw new Error('Não foi possível conferir o feed atual.');
   const {maskFeedUrl} = await import('./awin-feeds.server');
-  return {feeds:(result.data ?? []).map(({url,...feed})=>({...feed,url_mascarada:maskFeedUrl(url)})),canBringSecret: !marker.data?.secret_migrated && Boolean(process.env['AWIN_FEED_URL'])};
+  const active = await db.from('catalog_imports').select('id,sync_cursor,status,created_at').eq('source','awin').in('status',['queued','running']).maybeSingle();
+  if (active.error) throw new Error('Não foi possível conferir o andamento das sincronizações.');
+  const feeds = await Promise.all((result.data ?? []).map(async ({url,...feed}) => {
+    const [history, individual] = await Promise.all([
+      db.from('awin_feed_import_results').select('created_at,status,erro,linhas,catalog_imports(status,error,created_at)').eq('feed_id',feed.id).order('created_at',{ascending:false}).limit(1).maybeSingle(),
+      db.from('catalog_imports').select('status,error,created_at,finished_at').eq('source','awin').contains('sync_cursor',{feedId:feed.id}).order('created_at',{ascending:false}).limit(1).maybeSingle(),
+    ]);
+    if (history.error || individual.error) throw new Error('Não foi possível ler o histórico do feed.');
+    const h = history.data;
+    const i = individual.data;
+    const isLatestIndividual = Boolean(i && (!h || i.created_at > (h.catalog_imports?.created_at ?? h.created_at)));
+    const outcome = isLatestIndividual ? awinFeedOutcome(null,i) : awinFeedOutcome(h,h?.catalog_imports ?? null);
+    const latestAt = isLatestIndividual ? i?.finished_at ?? i?.created_at : h?.created_at;
+    return {...feed,url_mascarada:maskFeedUrl(url),lastSync: outcome ? {...outcome, date:latestAt ?? null} : null};
+  }));
+  return {feeds, syncInProgress:Boolean(active.data), canBringSecret: !marker.data?.secret_migrated && Boolean(process.env['AWIN_FEED_URL'])};
+});
+export const syncAwinFeed = createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(z.string().uuid()).handler(async ({data,context}) => {
+  await admin(context);
+  const { dispatchAwinImport } = await import('./awin-dispatch.server');
+  return dispatchAwinImport(data);
 });
 export const testAwinFeed = createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(urlInput).handler(async ({data,context}) => {
   await admin(context); const {inspectFeed,validateFeedUrl} = await import('./awin-feeds.server');

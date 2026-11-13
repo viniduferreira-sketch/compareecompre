@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Sincronização individual de feeds Awin
+- [x] Botão confirmado em cada feed, usando a mesma rotina e reserva exclusiva da sincronização geral; seleção persistida antes do disparo, sem ler outros feeds ou alterar outras lojas. Nenhuma alteração no workflow ou horários.
+- [x] Data, resultado e andamento no próprio feed, com atualização a cada 15 segundos; falha de outro feed não muda o resultado dos concluídos. Mensagem quando há execução ativa; pausa automática preservada mesmo em execução manual.
+- [x] Testes de isolamento, concorrência, histórico e painel autenticado; cinco botões, confirmação/cancelamento e celular sem overflow verificados. Nenhuma importação real disparada durante a validação; execução completa no GitHub depende de publicar. Aviso de hidratação no primeiro acesso causado por anúncio Google preexistente, fora desta tarefa.
+
 ## Comparação exata entre lojas
 - [x] Chave gerada na sincronização por GTIN normalizado ou marca/modelo com atributos estruturados completos para variantes suportadas; identificadores Awin/ML já eram preservados. Chave independente do distinct por loja.
 - [x] Projeção pública mínima com RLS, gatilho Awin/Lomadee e persistência ML na sincronização/revalidação, inclusive indisponibilidade. Cache de cinco minutos no servidor e navegador; zero buscas Algolia para comparação. Catálogo parceiro existente reaproveitado sem importar; ML passa a preencher na próxima sincronização publicada.

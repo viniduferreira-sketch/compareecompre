@@ -33,8 +33,13 @@ export async function inspectFeed(url: string) {
   const missing = required.filter(c => !columns.includes(c));
   return { merchants: [...merchants].map(([id,name]) => ({id,name})), examples, present: required.filter(c => columns.includes(c)), missing, rows, valid: !error && rows > 0 && !missing.length && merchants.size > 0, error, diagnostics:{...diagnostics,elapsedMs:Date.now()-started,timeoutMs:FEED_TEST_TIMEOUT_MS,header:columns.map(scrub)} };
 }
-export async function readImportFeeds(secret: string | undefined) {
+export async function readImportFeeds(secret: string | undefined, feedId?: string) {
   const { supabaseAdmin: db } = await import('@/integrations/supabase/client.server');
+  if (feedId) {
+    const selected = await db.from('awin_feeds').select('id,nome,url').eq('id', feedId).single();
+    if (selected.error || !selected.data) throw new Error('Feed selecionado não encontrado. Nenhum outro feed foi lido.');
+    return [{ id: selected.data.id, nome: selected.data.nome, url: validateFeedUrl(selected.data.url) }];
+  }
   const result = await db.from('awin_feeds').select('id,nome,url,ativo').order('created_at');
   if (result.error) throw new Error('Não foi possível ler os feeds cadastrados.');
   if (!result.data?.length) {
