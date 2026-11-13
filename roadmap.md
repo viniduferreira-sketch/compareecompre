@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Guias de compra nas lojas
+- [x] Até quatro artigos publicados das duas categorias mais representadas no catálogo completo da loja, via mapeamento editorial existente, mais os dois gerais; leitura pública em cache e sem inferir categoria para brinquedos.
+- [x] Bloco após paginação só na primeira página inclusive filtrada; Adidas/Nike mostram dois específicos + dois gerais, Lego/Funko só dois gerais. Links abertos, página 2 sem bloco, celular sem overflow e HTML inicial confirmados; 21 testes, build OK, sem importações.
+
 ## Filtros por tipo e público nas lojas
 - [x] Classificador compartilhado preserva categorias reais Awin/Lomadee, usa palavras explícitas do título para registros antigos e grava tipo/público nas futuras sincronizações; facetas adicionadas ao principal e duas réplicas sem alterar ranking. Sem importação ou backfill.
 - [x] Filtros tipo/público na URL em todas as lojas; Marca oculta com uma marca e mantida na KaBuM. Adidas atual só tem Infantil/Unissex identificáveis nos títulos; Masculino/Feminino aparecem quando houver evidência nos campos preservados pelo próximo feed.
