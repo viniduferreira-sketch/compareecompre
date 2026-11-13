@@ -1,0 +1,2 @@
+- Store real price changes in the append-only price-history table with serialized product/store writes; partner catalog synchronization uses a trigger and verified Mercado Livre writes use the restricted RPC, so retries and stable prices cannot multiply observations.
+- Read the same public real-history projection for product SSR and sitemap eligibility; do not embed ever-growing history in Algolia or backfill invented prices.

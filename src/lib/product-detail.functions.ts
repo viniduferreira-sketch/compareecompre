@@ -118,7 +118,9 @@ export const getProductDetail = createServerFn({ method: "POST" })
     }
     const indexed = await getIndexedRecord(data.id);
     if (indexed.priceReviewStatus === "pending") return null;
-    const record = indexed.record ?? {};
+    const { readRealPriceHistory } = await import('./price-history.server');
+    const history = await readRealPriceHistory(data.id);
+    const record: Record<string, unknown> = { ...indexed.record, price_history: history.get(data.id) ?? [] };
     const policy = productIndexability(record);
     const fallback: ProductDetail | null = typeof record["title"] === "string" ? {
       id: data.id, title: record["title"], source: "mercadolivre", store: "Mercado Livre",

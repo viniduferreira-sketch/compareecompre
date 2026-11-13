@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { productIndexability } from './product-indexability';
+import { hasRealPriceHistory, productIndexability } from './product-indexability';
 const now = Date.parse('2026-11-13T04:12:00Z');
 const qa = [{source:'mercado_livre', pergunta:'Tem garantia?', data:'2026-11-01'}];
 describe('product indexing policy', () => {
+  it('shows history only on two different real observation dates', () => {
+    expect(hasRealPriceHistory([{date:'2026-11-13T01:00:00Z',price:50},{date:'2026-11-13T02:00:00Z',price:40}])).toBe(false);
+    expect(hasRealPriceHistory([{date:'2026-11-13',price:50},{date:'2026-11-14',price:40}])).toBe(true);
+  });
   it('excludes content-free products, not generated descriptions or rating totals', () => {
     expect(productIndexability({description:'Descrição', reviews:100},now).indexable).toBe(false);
   });

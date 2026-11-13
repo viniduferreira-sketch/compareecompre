@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Histórico real de preços
+- [x] Gráfico condicionado a dois registros reais em datas diferentes; removido selo fixo Menor preço. Comparação de ofertas atuais e descontos fornecidos pelo parceiro preservados.
+- [x] Histórico real por produto/loja com primeiro preço observado e mudanças, datas do servidor, gravações serializadas e sem retroagir. Awin/Lomadee via sincronização do catálogo; ML via sincronização/revalidação verificada. HTML e sitemap leem a mesma fonte real. Armazenamento 23% usado/150 MB, sem alerta atual.
+- [x] 28 testes, incluindo persistência real, preço repetido, concorrência e lojas distintas; registros de teste removidos. Página real HTTP 200 sem histórico/selo inventado, perguntas/prós preservados; build OK. Rotinas agendadas preexistentes já registraram 1.261 observações reais (1.100 Awin, 161 Lomadee) durante o trabalho; nenhuma importação acionada pelo agente. ML precisa da publicação para iniciar a gravação.
+
 ## Indexação automática de produtos (sem feeds ou exclusões)
 - [x] Compartilhar regra de conteúdo real, disponibilidade e sete dias entre HTML inicial e sitemap; preservar páginas não relacionadas e busca interna. Data de sincronização já existente, sem campo novo.
 - [x] Histórico existente era estimado, não evidência real; gráfico substituído por registros reais quando disponíveis. Vinte testes passaram; HTML inicial de três produtos e sitemap HTTP 200 confirmados: 108 indexáveis e 49.397 fora entre 49.505 registros, às 04:15 UTC de 13/11. Blog, categorias e institucionais preservados, nenhum feed/registro alterado; efeito publicado depende de publicação.

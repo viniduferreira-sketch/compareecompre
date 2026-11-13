@@ -5,6 +5,7 @@ import type { ProductDetail } from "./product-detail.functions";
 import { isOfferExpired } from "./offer-freshness";
 import { productIndexability } from "./product-indexability";
 import type { PartnerQA } from "./partner-qa.server";
+import { readRealPriceHistory } from './price-history.server';
 
 export async function getAwinProductDetail(id: string): Promise<ProductDetail | null> {
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
@@ -22,7 +23,8 @@ export async function getAwinProductDetail(id: string): Promise<ProductDetail | 
   const { data, error } = await db.from("partner_catalog").select("record,last_synced_at").eq("object_id", id).eq("source", id.startsWith("lomadee-") ? "lomadee" : "awin").maybeSingle();
   if (error || !data) return null;
   const p = data.record as unknown as AwinProduct & Record<string, unknown>;
-  const policy = productIndexability({ ...p, last_synced_at: p.last_synced_at ?? data.last_synced_at });
+  const history = await readRealPriceHistory(id);
+  const policy = productIndexability({ ...p, price_history: history.get(id) ?? [], last_synced_at: p.last_synced_at ?? data.last_synced_at });
   if (p["price_review_status"] === "pending") return null;
   const num = (v: unknown) => (typeof v === "number" ? v : typeof v === "string" ? Number(v.replace(",", ".")) : NaN);
   const ratingValue = num(p["rating"] ?? p["average_rating"] ?? p["reviews_rating"]);

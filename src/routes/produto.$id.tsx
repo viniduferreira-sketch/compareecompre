@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 import { CompareOffers, FormattedDescription, RatingStars, SpecsTable } from "@/components/marketplace/ProductDetailSections";
 import { getProductDetail } from "@/lib/product-detail.functions";
 import { recordOutboundClick } from "@/lib/outbound-clicks";
+import { hasRealPriceHistory } from '@/lib/product-indexability';
 
 export const Route = createFileRoute("/produto/$id")({
   staticData: { sitemap: true },
@@ -290,9 +291,6 @@ function ProductPage() {
 
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="inline-block rounded-md border border-deal-strong/50 bg-deal-soft px-2 py-0.5 text-[10px] font-semibold text-deal-strong">
-                    Menor preço
-                  </span>
                   {data.discountPercent && data.discountPercent > 0 ? (
                     <span className="inline-block rounded-md bg-brand px-2 py-0.5 text-[10px] font-semibold text-brand-foreground">
                       {data.discountPercent}% OFF
@@ -351,7 +349,7 @@ function ProductPage() {
               <TabsList className="flex w-full justify-start gap-1 overflow-x-auto rounded-lg bg-muted/60 p-1 text-xs">
                 <TabsTrigger value="specs">Ficha técnica</TabsTrigger>
                 {(data.pros.length > 0 || data.cons.length > 0) && <TabsTrigger value="pros">Prós e Contras</TabsTrigger>}
-                {data.priceHistory.length >= 2 && <TabsTrigger value="history">Histórico de preços</TabsTrigger>}
+                {hasRealPriceHistory(data.priceHistory) && <TabsTrigger value="history">Histórico de preços</TabsTrigger>}
               </TabsList>
 
               <TabsContent value="pros" className="mt-3">

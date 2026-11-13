@@ -11,8 +11,13 @@ export function realPriceHistory(record: RecordData) {
     const date = typeof point["date"] === "string" ? point["date"] : "";
     const price = point["price"];
     return date && Number.isFinite(Date.parse(date)) && typeof price === "number" && price > 0
-      ? [{ date, price }] : [];
+      ? [{ date, price, ...(typeof point["store"] === "string" ? { store: point["store"] } : {}) }] : [];
   }).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+}
+
+export function hasRealPriceHistory(points: Array<{ date: string; price: number }>) {
+  return new Set(points.filter(point => point.price > 0 && Number.isFinite(Date.parse(point.date)))
+    .map(point => new Date(point.date).toISOString().slice(0, 10))).size >= 2;
 }
 
 export function productIndexability(record: RecordData, now = Date.now()) {
@@ -20,7 +25,7 @@ export function productIndexability(record: RecordData, now = Date.now()) {
   const stale = Number.isFinite(updated) && now - updated > PRODUCT_INDEXING_MAX_AGE_MS;
   const unavailable = record["status"] === "unavailable" || record["inStock"] === false || stale;
   const history = realPriceHistory(record);
-  const hasHistory = new Set(history.map(point => point.date.slice(0, 10))).size >= 2;
+  const hasHistory = hasRealPriceHistory(history);
   const hasQuestions = rows(record["qa"]).some(item => text(item["source"]) && text(item["pergunta"]) && text(item["data"]));
   const hasReviews = rows(record["reviews"]).some(item => text(item["source"]) && text(item["text"]));
   const hidden = record["site_hidden"] === true || record["quality_status"] === "rejected" || record["price_review_status"] === "pending";

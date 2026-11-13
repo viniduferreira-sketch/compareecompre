@@ -287,6 +287,8 @@ export async function revalidateMercadoLivreOffers(options: { dryRun?: boolean; 
       });
       // Partial updates on the primary index propagate to the price replicas automatically.
       await client.partialUpdateObjects({ indexName, objects: rankedUpdates, createIfNotExists: false, waitForTasks: true });
+      const { recordMercadoLivrePrices } = await import('./price-history.server');
+      await recordMercadoLivrePrices(complete);
     }
 
     result.message = dryRun

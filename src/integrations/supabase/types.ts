@@ -802,6 +802,33 @@ export type Database = {
         }
         Relationships: []
       }
+      product_price_history: {
+        Row: {
+          id: number
+          object_id: string
+          observed_at: string
+          price: number
+          source: string
+          store: string
+        }
+        Insert: {
+          id?: never
+          object_id: string
+          observed_at?: string
+          price: number
+          source: string
+          store: string
+        }
+        Update: {
+          id?: never
+          object_id?: string
+          observed_at?: string
+          price?: number
+          source?: string
+          store?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string | null
@@ -920,6 +947,15 @@ export type Database = {
         }[]
       }
       record_outbound_click: { Args: { payload: Json }; Returns: boolean }
+      record_real_product_price: {
+        Args: {
+          _object_id: string
+          _price: number
+          _source: string
+          _store: string
+        }
+        Returns: boolean
+      }
       release_offer_sync_category: {
         Args: { _category: string; _execution_id: string }
         Returns: undefined

@@ -30,6 +30,8 @@ export const Route = createFileRoute("/sitemap.xml")({
         // Same persisted evidence and availability policy as product SSR metadata.
         const productRoute = router.routesById[PRODUCT_ROUTE_ID];
         if (isSitemapRouteIncluded(productRoute)) {
+          const { readRealPriceHistory } = await import('@/lib/price-history.server');
+          const priceHistory = await readRealPriceHistory();
           const { getAlgoliaIndexingConfig } = await import("@/lib/algolia-indexing.server");
           const { client, indexName } = getAlgoliaIndexingConfig();
           let cursor: string | undefined;
@@ -40,7 +42,7 @@ export const Route = createFileRoute("/sitemap.xml")({
               browseParams: { attributesToRetrieve: PRODUCT_SEO_ATTRIBUTES, hitsPerPage: 1000, cursor },
             });
             for (const hit of response.hits) {
-              if (!productIndexability(hit, indexingNow).indexable) continue;
+              if (!productIndexability({ ...hit, price_history: priceHistory.get(hit.objectID) ?? [] }, indexingNow).indexable) continue;
               const location = router.buildLocation({
                 to: "/produto/$id",
                 params: { id: hit.objectID },

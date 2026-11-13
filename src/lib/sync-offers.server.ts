@@ -283,6 +283,8 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
   // Upsert only: existing records are never deleted or replaced during synchronization.
   const enriched = applyStoreDisplay(await applyPriceReviewToRecords(await enrichPopularity(records)), controls.data ?? []);
   await client.saveObjects({ indexName, objects: enriched, batchSize: 500, waitForTasks: true });
+  const { recordMercadoLivrePrices } = await import('./price-history.server');
+  await recordMercadoLivrePrices(enriched);
   await Promise.all([
     client.setSettings({
       indexName: `${indexName}_price_asc`,
