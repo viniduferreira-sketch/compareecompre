@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Guias e ficha comparativa de similares
+- [x] Guia publicado “Como escolher” correspondente ao tipo de produto, no HTML inicial; oculto quando não existe, sem confundir acessórios/computadores com peças citadas no título.
+- [x] Tabela com dois ou três modelos diferentes da mesma família/categoria, preço 70–130%, somente atributos reais e exclusão por GTIN/modelo; oculta sem evidência. 29 testes passaram; SSD real abriu guia publicado, celular sem overflow e tabela corretamente oculta (feed atual traz só marca, sem modelo/ficha). Renderização da tabela preenchida não verificada com dados reais por essa ausência. Sem importações; build OK.
+
 ## Sincronização individual de feeds Awin
 - [x] Botão confirmado em cada feed, usando a mesma rotina e reserva exclusiva da sincronização geral; seleção persistida antes do disparo, sem ler outros feeds ou alterar outras lojas. Nenhuma alteração no workflow ou horários.
 - [x] Data, resultado e andamento no próprio feed, com atualização a cada 15 segundos; falha de outro feed não muda o resultado dos concluídos. Mensagem quando há execução ativa; pausa automática preservada mesmo em execução manual.

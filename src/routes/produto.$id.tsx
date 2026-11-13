@@ -26,6 +26,8 @@ import {
 import { Header } from "@/components/marketplace/Header";
 import {storeSlug} from '@/lib/store-pages';
 import { BlogPromotions } from "@/components/marketplace/BlogPromotions";
+import { ProductBuying } from '@/components/marketplace/ProductBuying';
+import { buyingGuideQuery } from '@/lib/product-buying.queries';
 import { SiteFooter } from "@/components/marketplace/SiteFooter";
 import { RelatedAlternatives, RelatedCategory } from "@/components/marketplace/RelatedProducts";
 import { productBlogPromotionsQuery } from "@/lib/blog-promotions.queries";
@@ -50,7 +52,10 @@ export const Route = createFileRoute("/produto/$id")({
   staticData: { sitemap: true },
   loader: async ({ context, params }) => {
     const product = await getProductDetail({ data: { id: params.id } });
-    await context.queryClient.ensureQueryData(productBlogPromotionsQuery(product?.categoryName ?? null));
+    await Promise.all([
+      context.queryClient.ensureQueryData(productBlogPromotionsQuery(product?.categoryName ?? null)),
+      context.queryClient.ensureQueryData(buyingGuideQuery(product?.title ?? '')),
+    ]);
     return product;
   },
   head: ({ loaderData, params }) => {
@@ -336,6 +341,7 @@ function ProductPage() {
 
             {data.last_synced_at && <p className="mt-3 text-xs text-muted-foreground">Preço atualizado em {new Date(data.last_synced_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}</p>}
             <RelatedAlternatives key={`alternatives-${data.id}`} id={data.id} />
+            <ProductBuying id={data.id} title={data.title} />
             <BlogPromotions posts={blogPosts} variant="product" />
             <Tabs defaultValue="specs" className="mt-8">
               <TabsList className="flex w-full justify-start gap-1 overflow-x-auto rounded-lg bg-muted/60 p-1 text-xs">

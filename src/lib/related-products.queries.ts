@@ -21,12 +21,12 @@ export const relatedCurrentQuery = (id: string) => queryOptions({
   },
 });
 
-async function candidates(current: RelatedHit, min = 0, max = Infinity) {
+export async function candidates(current: RelatedHit, min = 0, max = Infinity, query = '') {
   const category = current.categoryName ?? current.category;
   if (!category) return [];
   const { client } = config();
   const [stores, response] = await Promise.all([getPublicStores(), client.searchForHits<RelatedHit>({ requests: [{
-    indexName, query: '', hitsPerPage: 200, distinct: 1,
+    indexName, query, hitsPerPage: 200, distinct: 1,
     facetFilters: [`${current.categoryName ? 'categoryName' : 'category'}:${category}`],
     filters: `${RELATED_VISIBILITY} AND price >= ${min}${Number.isFinite(max) ? ` AND price <= ${max}` : ''}`,
   }] })]);
