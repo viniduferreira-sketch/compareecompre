@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Guias de compra abaixo da abertura das categorias
+- [x] Mapeamento solicitado das sete categorias; até quatro artigos recentes da categoria mais dois gerais publicados, bloco vazio oculto e sem duplicação no rodapé da lista. Mantida exibição editorial na primeira página.
+- [x] Oito testes e navegador validaram sete categorias, links dos dois gerais, posição após abertura e celular sem overflow; build OK. Nenhum artigo/importação alterado.
+
 ## Texto e dados dos parceiros na página de produto
 - [x] Entidades decodificadas e tags removidas. Descrição persistida do MSI já começava completa com 23.6; divisão incorreta no ponto decimal cortava o início. Corrigida sem alterar/inventar texto.
 - [x] Somente guia do tipo e dois gerais, excluindo guia já ligado; ficha sem limite de oito campos, campos persistidos complementados e futuros feeds preservam modelo alternativo/garantia/EAN. Descrição recolhida com Ler mais. Monitor real confirmou marca/EAN, acentos e início completo; modelo/cor/dimensões/garantia não constam nos campos persistidos e não foram inferidos do título. 77 testes Vitest + 6 Bun passaram, build OK, celular sem overflow; aviso de hidratação inicial preexistente exigiu aguardar antes da interação. Sem importações.

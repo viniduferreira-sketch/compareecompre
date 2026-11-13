@@ -1,5 +1,15 @@
 import { expect, it } from 'vitest';
-import { categoryFaqHead, selectCategoryGuides, showCategoryContent } from './category-content';
+import { categoryFaqHead, selectCategoryGuides, showCategoryContent, selectBuyingGuides, CATEGORY_BLOG_SLUGS } from './category-content';
+import { GENERAL_BLOG_GUIDES } from './blog-promotions';
+it('maps each requested category to the exact editorial categories', () => {
+  expect(CATEGORY_BLOG_SLUGS).toEqual({ casa:['casa-e-cozinha'], eletronicos:['eletronicos','informatica','audio'], moda:['moda-e-esporte'], esportes:['moda-e-esporte'],beleza:['beleza-e-saude'],celulares:['celulares'],games:['games'] });
+});
+it('caps category articles at four and includes both general guides separately', () => {
+  expect(selectBuyingGuides(['a','b','c','d','e'].map(s=>post(s)),GENERAL_BLOG_GUIDES.map(s=>post(s)),now).map(p=>p.slug)).toEqual(['a','b','c','d',...GENERAL_BLOG_GUIDES]);
+});
+it('hides empty guide collections and excludes private or future articles', () => {
+  expect(selectBuyingGuides([post('draft','rascunho'),post('future','publicado','2027-01-01')],[],now)).toEqual([]);
+});
 it('shows editorial content on page one, including filtered page one, never page two or three', () => {
   expect(showCategoryContent()).toBe(true); expect(showCategoryContent(1)).toBe(true);
   expect(showCategoryContent(2)).toBe(false); expect(showCategoryContent(3)).toBe(false);
