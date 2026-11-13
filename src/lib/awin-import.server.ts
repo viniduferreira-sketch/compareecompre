@@ -34,6 +34,7 @@ export const importRequestSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("testBatch"), batch: z.number().int().min(0), rows: z.array(awinRowSchema).min(1).max(100) }),
   z.object({ action: z.literal("feedResult"), importId: z.string().uuid(), feedId: z.string().uuid(), linhas: z.number().int().min(0), success: z.boolean() }),
   z.object({ action: z.literal("finish"), importId: z.string().uuid(), success: z.boolean(), error: z.string().max(500).optional() }),
+  z.object({ action: z.literal('workflowEnd'), importId:z.string().uuid().optional(), conclusion:z.enum(['success','failure','cancelled']) }),
 ]);
 
 type AwinBatchConfiguration = {
@@ -86,6 +87,21 @@ function batchCounts(rowCount: number, indexed: number, duplicates: number) {
 
 export async function handleAwinImport(runId: string, input: z.infer<typeof importRequestSchema>) {
   const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+  if(input.action==='workflowEnd'){
+    // Caller identity was verified against this exact workflow and run ID.
+    const status=input.conclusion==='cancelled'?'cancelled':'failed';
+    let lookup=db.from('catalog_imports').select('id,status,github_run_id').eq('source','awin');
+    lookup=input.importId?lookup.eq('id',input.importId):lookup.eq('github_run_id',runId);
+    const found=await lookup.maybeSingle();
+    if(found.error)throw new Error('Não foi possível conferir o encerramento.');
+    const job=found.data;
+    if(!job)return {ok:true};
+    if(job.github_run_id&&job.github_run_id!==runId)throw new Error('Execução não autorizada.');
+    if(input.conclusion==='success'||!['queued','running'].includes(job.status))return {ok:true};
+    const saved=await db.from('catalog_imports').update({status,finished_at:new Date().toISOString(),error:status==='cancelled'?'Execução cancelada no GitHub.':'Execução falhou no GitHub.'}).eq('id',job.id).eq('source','awin').in('status',['queued','running']);
+    if(saved.error)throw new Error('Não foi possível registrar o encerramento.');
+    return {ok:true};
+  }
   if (input.action === "testBatch") {
     const configuration = await readAwinBatchConfiguration(db);
     const { reasons, duplicates, byMerchant } = evaluateAwinBatch(input.rows, configuration);
@@ -95,7 +111,8 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
   }
   if (input.action === "start") {
     // Clear only abandoned jobs, not catalog records. Workflow concurrency prevents simultaneous downloads.
-    await db.from("catalog_imports").update({ status: "failed", error: "Execução interrompida; solicite novamente." }).eq('source', 'awin').in("status", ["queued", "running"]).lt("updated_at", new Date(Date.now() - 3 * 3600_000).toISOString());
+    const expired=await db.rpc('expire_idle_awin_jobs');
+    if(expired.error)throw new Error('Não foi possível conferir execuções expiradas.');
     const { readImportFeeds } = await import("./awin-feeds.server");
     const existing = await db.from("catalog_imports").select("id,status,sync_cursor").eq('source', 'awin').eq("github_run_id", runId).maybeSingle();
     if (existing.error) throw new Error("Não foi possível ler a importação.");
@@ -132,6 +149,7 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
     return {ok:true};
   }
   if (input.action === "finish") {
+    if(job.status!=='running')return {success:job.status==='completed',indexed:0};
     let indexed = 0;
     for (let offset = 0; ; offset += 1000) {
       const batches = await db.from("catalog_import_batches").select("indexed").eq("import_id", job.id).order("batch").range(offset, offset + 999);
@@ -143,7 +161,7 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
     if (feedResults.error) throw new Error("Não foi possível conferir os feeds.");
     const failedFeeds = (feedResults.data ?? []).filter(f=>f.status==="failed").length;
     const success = input.success && indexed > 0 && !failedFeeds;
-    const result = await db.from("catalog_imports").update({ status: success ? "completed" : "failed", finished_at: new Date().toISOString(), updated_at: new Date().toISOString(), error: success ? null : "Importação incompleta ou sem produtos válidos. Consulte a execução no GitHub." }).eq("id", job.id);
+    const result = await db.from("catalog_imports").update({ status: success ? "completed" : "failed", finished_at: new Date().toISOString(), updated_at: new Date().toISOString(), error: success ? null : "Importação incompleta ou sem produtos válidos. Consulte a execução no GitHub." }).eq("id", job.id).eq('status','running');
     if (result.error) throw new Error("Não foi possível finalizar a importação.");
     return { success, indexed };
   }

@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Cancelamento e expiração Awin
+- [x] Execução indicada marcada Cancelada e relida no histórico autenticado, sem alterar produtos.
+- [x] Passo final always() com identidade do workflow registra cancelled/failed; leitura administrativa e novos disparos reconciliam GitHub e expiram inatividade superior a 60 minutos sem tarefa recorrente. GitHub retornou HTTP 404 para a execução histórica; reconciliação real desse run não confirmada. Encerramento no GitHub depende da publicação e próxima execução; nenhum workflow iniciado para teste.
+- [x] Cancelar confirmado para execuções Awin queued/running; teste temporário cancelado via UI e removido, trava exclui estados terminais e finish tardio não os sobrescreve. Testes e build OK; sem importações. Expiração é persistida ao consultar o painel ou tentar iniciar outra execução.
+
 ## Guias de compra nas lojas
 - [x] Até quatro artigos publicados das duas categorias mais representadas no catálogo completo da loja, via mapeamento editorial existente, mais os dois gerais; leitura pública em cache e sem inferir categoria para brinquedos.
 - [x] Bloco após paginação só na primeira página inclusive filtrada; Adidas/Nike mostram dois específicos + dois gerais, Lego/Funko só dois gerais. Links abertos, página 2 sem bloco, celular sem overflow e HTML inicial confirmados; 21 testes, build OK, sem importações.

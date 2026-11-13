@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { mergeDiscardReasons } from "./import-discards";
+import { z } from 'zod';
 
 export const getImportStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -10,6 +11,8 @@ export const getImportStatus = createServerFn({ method: "POST" })
     setResponseHeader("Cache-Control", "no-store");
     const role = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
     if (role.error || !role.data) throw new Error("Acesso restrito ao administrador.");
+    const {reconcileAwinJobs}=await import('./awin-jobs.server');
+    await reconcileAwinJobs();
     const results = await Promise.all(ADMIN_HISTORY_SOURCES.map((source) => context.supabase.from("catalog_imports").select("id,source,status,created_at,updated_at,finished_at,error,github_run_id,catalog_import_batches(indexed,skipped,discard_reasons)").eq("source", source).order("created_at", { ascending: false }).limit(ADMIN_HISTORY_LIMIT)));
     if (results.some((result) => result.error)) throw new Error("Não foi possível consultar as importações.");
     return recentImportsPerSource(results.flatMap((result) => result.data ?? [])).map(({ catalog_import_batches, ...job }) => ({
@@ -20,6 +23,14 @@ export const getImportStatus = createServerFn({ method: "POST" })
       reasonsRecorded: catalog_import_batches.length > 0 && catalog_import_batches.every((b) => b.discard_reasons !== null),
     }));
   });
+
+export const cancelAwinImport = createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(z.string().uuid()).handler(async({data,context})=>{
+  setResponseHeader('Cache-Control','no-store');
+  const role=await context.supabase.from('user_roles').select('role').eq('user_id',context.userId).eq('role','admin').maybeSingle();
+  if(role.error||!role.data)throw new Error('Acesso restrito ao administrador.');
+  const {cancelAwinJob}=await import('./awin-jobs.server');
+  return cancelAwinJob(data);
+});
 
 export const startLomadeeSync = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

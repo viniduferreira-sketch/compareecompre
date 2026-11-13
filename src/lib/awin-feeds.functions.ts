@@ -19,6 +19,8 @@ function urlInput(input: unknown) {
 }
 export const getAwinFeeds = createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).handler(async ({context}) => {
   const db = await admin(context);
+  const {reconcileAwinJobs}=await import('./awin-jobs.server');
+  await reconcileAwinJobs();
   const result = await db.from('awin_feeds').select('*').order('created_at');
   if (result.error) throw new Error('Não foi possível listar os feeds.');
   const marker = await db.from('awin_feed_settings').select('secret_migrated').eq('singleton',true).maybeSingle();

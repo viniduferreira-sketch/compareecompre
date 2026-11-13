@@ -28,3 +28,11 @@ jobs:
         env:
           AWIN_IMPORT_ENDPOINT: https://compareecompre.com/api/public/awin/import
           AWIN_IMPORT_ID: ${{ inputs.import_id }}
+      - name: Record final execution status
+        if: ${{ always() }}
+        timeout-minutes: 1
+        run: node scripts/finish-awin.mjs
+        env:
+          AWIN_IMPORT_ENDPOINT: https://compareecompre.com/api/public/awin/import
+          AWIN_IMPORT_ID: ${{ inputs.import_id }}
+          AWIN_JOB_STATUS: ${{ job.status }}

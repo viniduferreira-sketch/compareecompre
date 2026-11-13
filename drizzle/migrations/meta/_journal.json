@@ -204,6 +204,13 @@
       "when": 1794544418653,
       "tag": "0028_exact_offer_comparison",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794548936035,
+      "tag": "0029_awin_cancelled_expired_jobs",
+      "breakpoints": true
     }
   ]
 }

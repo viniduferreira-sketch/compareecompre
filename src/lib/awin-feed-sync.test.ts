@@ -4,9 +4,9 @@ import { awinSyncScope, assertAwinFeedRows, awinFeedOutcome } from './awin-sync-
 const state = vi.hoisted(() => ({
   calls: [] as Array<{table:string;operation:string;value?:unknown}>,
   active: null as null | {id:string}, duplicate: false, missing: false,
-  existing: false, scope: {feedId:'feed-nike',merchants:['Nike BR']},
+  existing: false, jobStatus:'running', scope: {feedId:'feed-nike',merchants:['Nike BR']},
 }));
-vi.mock('@/integrations/supabase/client.server', () => ({supabaseAdmin:{from:(table:string) => {
+vi.mock('@/integrations/supabase/client.server', () => ({supabaseAdmin:{rpc:async(name:string)=>{state.calls.push({table:'rpc',operation:name});return {data:0,error:null};},from:(table:string) => {
   let filterId:string|undefined; let inserting = false;
   const chain = {
     select:(value:string)=>{state.calls.push({table,operation:'select',value});return chain;},
@@ -17,8 +17,8 @@ vi.mock('@/integrations/supabase/client.server', () => ({supabaseAdmin:{from:(ta
     update:(value:unknown)=>{state.calls.push({table,operation:'update',value});return chain;},
     single:async()=> table==='awin_feeds'
       ? {data:state.missing?null:{id:filterId,nome:'Nike',anunciantes:['Nike BR'],url:'https://productdata.awin.com/nike'},error:null}
-      : {data:state.duplicate?null:{id:'job',status:'running',sync_cursor:state.scope},error:inserting&&state.duplicate?{code:'23505'}:null},
-    maybeSingle:async()=>({data:state.existing?{id:'job',status:'running',sync_cursor:state.scope}:state.active,error:null}),
+      : {data:state.duplicate?null:{id:'job',status:state.jobStatus,sync_cursor:state.scope},error:inserting&&state.duplicate?{code:'23505'}:null},
+    maybeSingle:async()=>({data:state.existing?{id:'job',status:state.jobStatus,sync_cursor:state.scope}:state.active,error:null}),
     then:(resolve:(v:unknown)=>unknown)=>resolve({error:null}),
   };return chain;
 }}}));
@@ -28,13 +28,25 @@ import { handleAwinImport } from './awin-import.server';
 import { readImportFeeds } from './awin-feeds.server';
 
 beforeEach(()=>{
-  state.calls=[];state.active=null;state.duplicate=false;state.missing=false;state.existing=false;
+  state.calls=[];state.active=null;state.duplicate=false;state.missing=false;state.existing=false;state.jobStatus='running';
   vi.stubEnv('GITHUB_API_KEY','test-key');vi.stubEnv('LOVABLE_API_KEY','test-lovable');vi.stubEnv('AWIN_FEED_URL','https://productdata.awin.com/all');
   vi.stubGlobal('fetch',vi.fn(async()=>new Response(null,{status:204})));
 });
 afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();});
 
 describe('sincronização individual Awin',()=>{
+  it('late finish cannot overwrite a cancelled or expired execution',async()=>{
+    for(const status of ['cancelled','expired']){state.jobStatus=status;state.calls=[];await handleAwinImport('123',{action:'finish',importId:'job',success:false});expect(state.calls.some(c=>c.operation==='update')).toBe(false);}
+  });
+  it('workflow final cancellation records cancelled without touching products',async()=>{
+    state.existing=true;await handleAwinImport('123',{action:'workflowEnd',importId:'job',conclusion:'cancelled'});
+    expect(state.calls.find(c=>c.operation==='update')?.value).toMatchObject({status:'cancelled'});
+    expect(state.calls.some(c=>c.table==='partner_catalog')).toBe(false);
+  });
+  it('workflow final failure records failed',async()=>{
+    state.existing=true;await handleAwinImport('123',{action:'workflowEnd',importId:'job',conclusion:'failure'});
+    expect(state.calls.find(c=>c.operation==='update')?.value).toMatchObject({status:'failed'});
+  });
   it('reserva a seleção antes do disparo e usa o workflow existente somente com import_id',async()=>{
     expect(await dispatchAwinImport('feed-nike')).toEqual({id:'job'});
     expect(state.calls.find(c=>c.operation==='insert')?.value).toEqual({source:'awin',status:'queued',sync_cursor:{feedId:'feed-nike',merchants:['Nike BR']}});

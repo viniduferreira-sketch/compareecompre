@@ -6,9 +6,8 @@ export async function dispatchAwinImport(feedId?: string) {
   const lovableKey = process.env['LOVABLE_API_KEY'];
   if (!key || !lovableKey || (!feedId && !process.env['AWIN_FEED_URL'])) throw new Error('A integração ainda não está configurada.');
   const { supabaseAdmin: db } = await import('@/integrations/supabase/client.server');
-  const stale = await db.from('catalog_imports').update({ status: 'failed', error: 'Execução interrompida; solicite novamente.' })
-    .eq('source', 'awin').in('status', ['queued', 'running']).lt('updated_at', new Date(Date.now() - 3 * 3600_000).toISOString());
-  if (stale.error) throw new Error('Não foi possível conferir as sincronizações anteriores.');
+  const {reconcileAwinJobs}=await import('./awin-jobs.server');
+  await reconcileAwinJobs();
   const active = await db.from('catalog_imports').select('id').eq('source', 'awin').in('status', ['queued', 'running']).maybeSingle();
   if (active.error) throw new Error('Não foi possível conferir o andamento.');
   if (active.data) throw new Error('Já existe uma sincronização Awin em andamento. Aguarde sua conclusão.');
