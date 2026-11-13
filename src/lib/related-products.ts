@@ -5,6 +5,9 @@ export type RelatedHit = StorefrontRecord & {
   objectID: string; title: string; price: number; imageUrl?: string | null;
   originalPrice?: number | null; discountPercent?: number | null; freeShipping?: boolean;
   categoryName?: string | null; category?: string | null; group_key?: string | null;
+  productType?: string | null; audience?: string[] | null;
+  merchant_category?: string | null; category_name?: string | null; product_type?: string | null;
+  category_path?: string | null; merchant_category_path?: string | null;
   brand?: string | null; popularity_score?: number; status?: string; quality_status?: string;
   site_hidden?: boolean; price_review_status?: string; last_synced_at?: string;
 };

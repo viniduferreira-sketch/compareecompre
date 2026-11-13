@@ -1,4 +1,4 @@
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { useState } from "react";
@@ -8,6 +8,8 @@ import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import { SearchResults, type ActiveFilter } from "@/components/marketplace/OfferResults";
 import {categoryByName,categoryHref} from "@/lib/category-pages";
 import {storeSlug} from '@/lib/store-pages';
+import { catalogSourceQuery } from '@/lib/catalog-pages.queries';
+import { storeProductCounts } from '@/lib/store-product-counts';
 import { PopularCategories } from "@/components/marketplace/PopularCategories";
 import { ProductRail } from "@/components/marketplace/ProductRail";
 import { SiteFooter } from "@/components/marketplace/SiteFooter";
@@ -59,6 +61,7 @@ const PAGE_SIZE = 40;
 function HomeError(){return <main className="mx-auto max-w-3xl px-5 py-24 text-center"><h1 className="font-display text-2xl font-bold">Não foi possível carregar a página</h1><a href="/" className="mt-5 inline-block font-semibold text-primary underline">Tentar novamente</a></main>;}
 
 function Home() {
+  const queryClient = useQueryClient();
   const run = searchOffers;
   const loadHome = getHomeOffers;
   const { data: blogPosts } = useSuspenseQuery(homeBlogPromotionsQuery());
@@ -94,7 +97,11 @@ function Home() {
   });
   const homeOffers = useQuery({
     queryKey: ["offers", "home"],
-    queryFn: () => loadHome(),
+    queryFn: async () => {
+      const [home, products] = await Promise.all([loadHome(), queryClient.ensureQueryData(catalogSourceQuery())]);
+      const counts = storeProductCounts(products);
+      return { ...home, stores: home.stores.map(store => ({ ...store, count: counts.get(store.searchName ?? store.name) ?? 0 })) };
+    },
     enabled: !isSearching,
     staleTime: 15 * 60 * 1000,
   });

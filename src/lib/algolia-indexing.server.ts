@@ -1,7 +1,7 @@
 import { algoliasearch } from "algoliasearch";
 import { ALGOLIA_SERVER_TIMEOUTS, withAlgoliaConnectionRetry } from "./algolia-connection";
 
-export const CATALOG_FACETS = ["searchable(store)", "searchable(categoryName)", "searchable(brand)", "freeShipping", "filterOnly(status)", "filterOnly(quality_status)", "filterOnly(gtin)", "filterOnly(model)", "filterOnly(site_hidden)", "filterOnly(price_review_status)"];
+export const CATALOG_FACETS = ["searchable(store)", "searchable(categoryName)", "searchable(brand)", "searchable(productType)", "searchable(audience)", "freeShipping", "filterOnly(status)", "filterOnly(quality_status)", "filterOnly(gtin)", "filterOnly(model)", "filterOnly(site_hidden)", "filterOnly(price_review_status)"];
 
 /** Merge, never replace existing facet settings or recreate any index. */
 export async function ensureIdentifierFacets() {

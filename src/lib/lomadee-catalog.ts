@@ -1,6 +1,7 @@
 import { toSiteCategory } from "./storefront-mix";
 import { normalizeGtin } from "./product-identifiers";
 import { ADULT_CONTENT_REASON, getAdultContentMatch } from "./content-policy";
+import { classifyStoreProduct } from './store-product-filters';
 
 // Pure normalization for Lomadee affiliate products (GET /affiliate/products).
 // Missing data stays empty; nothing is invented to fill gaps.
@@ -99,6 +100,8 @@ export function normalizeLomadeeProduct(
     originalPrice,
     discountPercent: originalPrice ? Math.round(((originalPrice - best.price) / originalPrice) * 100) : null,
     category: rawCategories[0] ?? null,
+    category_path: rawCategories.join(' > ') || null,
+    ...classifyStoreProduct({ title, category_path: rawCategories.join(' > ') }),
     categoryName,
     brand: brandName,
     gtin: (product.metadata ?? []).filter((entry) => entry.key?.toLowerCase() === "ean").map((entry) => normalizeGtin(entry.value)).find(Boolean) ?? null,

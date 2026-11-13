@@ -11,7 +11,7 @@ async function readCatalog(q: string, deals: boolean) {
   if (!app || !key) throw new Error('A busca não está configurada.');
   const client = liteClient(app, key);
   const read = async (min: number, max: number, depth = 0): Promise<RelatedHit[]> => {
-    const { results } = await client.searchForHits<RelatedHit>({ requests: [{ indexName: INDEX, query: q.slice(0, 120), distinct: 1, hitsPerPage: 1000, attributesToRetrieve:['objectID','title','price','originalPrice','discountPercent','imageUrl','store','merchant_name','source','categoryName','brand','popularity_score','group_key','last_synced_at','affiliateUrl','aw_deep_link','storeLogoUrl','freeShipping'], filters: `${RELATED_VISIBILITY} AND price >= ${min} AND price < ${max}${deals ? ' AND discountPercent >= 10' : ''}` }] });
+    const { results } = await client.searchForHits<RelatedHit>({ requests: [{ indexName: INDEX, query: q.slice(0, 120), distinct: 1, hitsPerPage: 1000, attributesToRetrieve:['objectID','title','price','originalPrice','discountPercent','imageUrl','store','merchant_name','source','categoryName','category','brand','productType','audience','merchant_category','category_name','product_type','category_path','merchant_category_path','popularity_score','group_key','last_synced_at','affiliateUrl','aw_deep_link','storeLogoUrl','freeShipping'], filters: `${RELATED_VISIBILITY} AND price >= ${min} AND price < ${max}${deals ? ' AND discountPercent >= 10' : ''}` }] });
     const result = results[0];
     if (!result) throw new Error('Não foi possível carregar as ofertas.');
     if ((result.nbHits ?? 0) > result.hits.length) {

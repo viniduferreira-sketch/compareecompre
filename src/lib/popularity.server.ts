@@ -2,6 +2,7 @@ import { getAlgoliaIndexingConfig } from "./algolia-indexing.server";
 import { calculatePopularity, productGroupId, POPULARITY_INDEX_SETTINGS, type PopularityRecord } from "./popularity";
 import { storeMatches } from "./partner-stores";
 import { comparisonKey, comparisonVariant } from './product-comparison';
+import { classifyStoreProduct } from './store-product-filters';
 
 export async function readPopularityClicks() {
   const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
@@ -16,6 +17,7 @@ export async function enrichPopularity<T extends PopularityRecord>(records: T[])
   const [clicks, stores] = await Promise.all([readPopularityClicks(), db.from("partner_stores").select("network,external_id,merchant_name,import_enabled,display_enabled,group_variants")]);
   if (stores.error) throw new Error("Não foi possível ler o agrupamento das lojas.");
   return records.map((record) => ({ ...record,
+    ...classifyStoreProduct(record),
     comparison_variant: record.comparison_variant ?? comparisonVariant(Array.isArray(record.attributes) ? record.attributes : []),
     comparison_key: comparisonKey({ ...record, comparison_variant: record.comparison_variant ?? comparisonVariant(Array.isArray(record.attributes) ? record.attributes : []) }),
     popularity_score: calculatePopularity(record, clicks.counts.get(record.objectID) ?? 0, clicks.total),

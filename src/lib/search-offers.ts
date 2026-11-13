@@ -166,7 +166,7 @@ export async function getHomeOffers(): Promise<{
       const publicStores = await getPublicStores();
       const storesResponse = await client.searchSingleIndex<AlgoliaOffer>({
         indexName,
-        searchParams: { query: "", hitsPerPage: 0, facets: ["store"], maxValuesPerFacet: 1000, filters: activeFilter },
+        searchParams: { query: "", hitsPerPage: 0, distinct: 1, facetingAfterDistinct: true, facets: ["store"], maxValuesPerFacet: 1000, filters: activeFilter },
       });
       const storeNames = Object.keys(storesResponse?.facets?.["store"] ?? {}).filter((name) => name && name !== "null");
       const storeGroups = storeNames.length > 0 ? storeNames.map((name) => [[`store:${name}`]]) : [[]];

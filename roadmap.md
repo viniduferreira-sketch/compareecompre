@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Filtros por tipo e público nas lojas
+- [x] Classificador compartilhado preserva categorias reais Awin/Lomadee, usa palavras explícitas do título para registros antigos e grava tipo/público nas futuras sincronizações; facetas adicionadas ao principal e duas réplicas sem alterar ranking. Sem importação ou backfill.
+- [x] Filtros tipo/público na URL em todas as lojas; Marca oculta com uma marca e mantida na KaBuM. Adidas atual só tem Infantil/Unissex identificáveis nos títulos; Masculino/Feminino aparecem quando houver evidência nos campos preservados pelo próximo feed.
+- [x] Home reutiliza catálogo público em cache para mesma contagem deduplicada da loja: Adidas 3.055, Nike 2.912 na validação. 27 testes Vitest + 6 Bun, filtros tênis/unissex e celular sem overflow; build OK. Nenhuma importação acionada.
+
 ## Guias de compra abaixo da abertura das categorias
 - [x] Mapeamento solicitado das sete categorias; até quatro artigos recentes da categoria mais dois gerais publicados, bloco vazio oculto e sem duplicação no rodapé da lista. Mantida exibição editorial na primeira página.
 - [x] Oito testes e navegador validaram sete categorias, links dos dois gerais, posição após abertura e celular sem overflow; build OK. Nenhum artigo/importação alterado.

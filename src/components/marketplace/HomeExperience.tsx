@@ -53,7 +53,7 @@ export function MonitoredStores({ stores = [], onSelect }: { stores?: Array<{ na
             <div className="w-full">
               <h3 className="w-full truncate text-xs font-medium leading-4 text-foreground">{store.name}</h3>
               <p className="text-[9px] leading-3 text-muted-foreground">
-                {`${store.count.toLocaleString("pt-BR")} ${store.count === 1 ? "oferta" : "ofertas"}`}
+                {`${store.count.toLocaleString("pt-BR")} ${store.count === 1 ? "produto" : "produtos"}`}
               </p>
             </div>
             </Link>

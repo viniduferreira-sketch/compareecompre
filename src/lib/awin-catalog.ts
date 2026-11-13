@@ -4,6 +4,7 @@ import { normalizeGtin, normalizeModel } from "./product-identifiers";
 import { ADULT_CONTENT_REASON, MERCHANT_NOT_ALLOWED_REASON, getAdultContentMatch } from "./content-policy";
 import { isAwinMerchantAllowed } from "./awin-allowlist";
 import { partnerDescription, partnerAttributes } from './product-content';
+import { classifyStoreProduct } from './store-product-filters';
 
 export const awinRowSchema = z.record(z.string().max(30000));
 export type AwinRow = z.infer<typeof awinRowSchema>;
@@ -72,6 +73,12 @@ export function normalizeAwinProduct(row: AwinRow, syncedAt: string, allowedMerc
     colour: text(row["colour"], 100) || null,
     size: text(row["Fashion:size"], 100) || null,
     title, store, price, affiliateUrl,
+    merchant_category: text(row['merchant_category'], 1000) || null,
+    category_name: text(row['category_name'], 1000) || null,
+    product_type: text(row['product_type'], 500) || null,
+    category_path: text(row['category_path'] || row['category_name_path'], 1000) || null,
+    merchant_category_path: text(row['merchant_category_path'], 1000) || null,
+    ...classifyStoreProduct({ ...row, title }),
     imageUrl: httpUrl(row["merchant_image_url"]) ?? httpUrl(row["aw_image_url"]),
     images: [row["merchant_image_url"], row["large_image"], row["alternate_image"], row["alternate_image_two"]]
       .flatMap((value) => { const url = httpUrl(value); return url ? [url] : []; }),
