@@ -5,6 +5,7 @@ import { ADULT_CONTENT_REASON, MERCHANT_NOT_ALLOWED_REASON, getAdultContentMatch
 import { isAwinMerchantAllowed } from "./awin-allowlist";
 import { partnerDescription, partnerAttributes } from './product-content';
 import { classifyStoreProduct } from './store-product-filters';
+import { awinImages } from '../../scripts/awin-images.mjs';
 
 export const awinRowSchema = z.record(z.string().max(30000));
 export type AwinRow = z.infer<typeof awinRowSchema>;
@@ -66,6 +67,7 @@ export function normalizeAwinProduct(row: AwinRow, syncedAt: string, allowedMerc
     || (Boolean(row["valid_to"]) && Date.parse(row["valid_to"] ?? "") < Date.parse(syncedAt));
   const old = amount(row["product_price_old"]) ?? amount(row["rrp_price"]);
   const originalPrice = old && old > price ? old : null;
+  const images = awinImages(row);
   return {
     objectID: `awin-${merchantId}-${externalId}`,
     externalId, merchantId, source: "awin" as const,
@@ -79,9 +81,8 @@ export function normalizeAwinProduct(row: AwinRow, syncedAt: string, allowedMerc
     category_path: text(row['category_path'] || row['category_name_path'], 1000) || null,
     merchant_category_path: text(row['merchant_category_path'], 1000) || null,
     ...classifyStoreProduct({ ...row, title }),
-    imageUrl: httpUrl(row["merchant_image_url"]) ?? httpUrl(row["aw_image_url"]),
-    images: [row["merchant_image_url"], row["large_image"], row["alternate_image"], row["alternate_image_two"]]
-      .flatMap((value) => { const url = httpUrl(value); return url ? [url] : []; }),
+    imageUrl: images[0] ?? null,
+    images,
     originalPrice,
     discountPercent: originalPrice ? Math.round((originalPrice - price) / originalPrice * 100) : null,
     category: text(row["category_name"] || row["merchant_category"], 300) || null,

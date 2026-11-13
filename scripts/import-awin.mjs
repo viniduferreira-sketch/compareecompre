@@ -1,5 +1,6 @@
 import { openFeed, parseCsv } from './awin-feed-reader.mjs';
 import { processFeedSequence } from './awin-feed-sequence.mjs';
+import { awinImages } from './awin-images.mjs';
 
 const endpoint = process.env.AWIN_IMPORT_ENDPOINT;
 if (!endpoint || new URL(endpoint).protocol !== 'https:') throw new Error('Configure AWIN_IMPORT_ENDPOINT with the published import endpoint.');
@@ -34,7 +35,7 @@ try {
       for await (const row of parseCsv(await openFeed(url))) { count(); all.push(row); }
       const gtin = v => /^\d{8,14}$/.test(String(v ?? '').replace(/\D/g,'')) && /[1-9]/.test(String(v ?? ''));
       const off = v => ['0','false','no','n','out of stock','out_of_stock','unavailable'].includes(String(v ?? '').trim().toLowerCase());
-      const score = r => (gtin(r.ean)||gtin(r.product_GTIN)?4:0)+(!off(r.in_stock)&&!off(r.stock_status)?2:0)+(/^https?:\/\//.test(r.merchant_image_url||r.aw_image_url||'')?1:0);
+      const score = r => (gtin(r.ean)||gtin(r.product_GTIN)?4:0)+(!off(r.in_stock)&&!off(r.stock_status)?2:0)+(awinImages(r).length?1:0);
       return all.map((row,i)=>({row,i,s:score(row)})).sort((a,b)=>b.s-a.s||a.i-b.i).map(x=>x.row);
     },
     batch: (batch,rows) => send({action:'batch',importId,batch,rows}),

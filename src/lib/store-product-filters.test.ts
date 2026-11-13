@@ -1,6 +1,9 @@
 import { expect, it } from 'vitest';
 import { classifyStoreProduct } from './store-product-filters';
 import { normalizeAwinProduct } from './awin-catalog';
+it.each([['Copo Térmico de Cerveja Stanley','Copo Térmico'],['Garrafa Térmica Classic Stanley','Garrafa Térmica'],['Growler Térmico Classic','Growler'],['Caneca Térmica Stanley','Caneca Térmica'],['Cuia Térmica Matte','Cuia Térmica']])('derives %s from its explicit title prefix',(title,expected)=>{
+ expect(classifyStoreProduct({title}).productType).toBe(expected);
+});
 it('prefers the specific partner category over title words',()=>{
  expect(classifyStoreProduct({merchant_category:'Moda > Acessórios > Meias',title:'Meias para tênis',category_name:'Mens'})).toEqual({productType:'Acessórios',audience:['Masculino']});
 });

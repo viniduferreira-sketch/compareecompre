@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Fotos e tipos de produto Stanley
+- [x] Resolver compartilhado prioriza aw_image_url, merchant_image_url, large_image, alternate_image, aw_thumb_url e merchant_thumb_url; normalização, galeria e prioridade do workflow usam as mesmas alternativas. Feed real tem 122 linhas: aw_image_url/merchant_image_url/alternate_image/aw_thumb_url preenchidas em todas, large_image/merchant_thumb_url vazias; 120 alternate_image_two. Todas as 122 fotos merchant_image_url respondem 410; aw_image_url e aw_thumb_url devolvem placeholder genérico 70x70, não foto real.
+- [x] Tipos explícitos Copo Térmico, Garrafa Térmica, Growler, Caneca Térmica e Cuia Térmica derivados dos títulos quando falta categoria, disponíveis imediatamente nas lojas e persistidos na próxima sincronização. Filtro Copo Térmico retorna só copos, 31 resultados; celular sem overflow. 33 Vitest + 6 Bun passaram, build OK; nenhuma importação ou alteração de registros existentes.
+- [ ] Fotos reais Stanley dependem de a origem corrigir os endereços removidos ou fornecer novas URLs oficiais no feed; não inventar/substituir imagens de produtos.
+
 ## Cancelamento e expiração Awin
 - [x] Execução indicada marcada Cancelada e relida no histórico autenticado, sem alterar produtos.
 - [x] Passo final always() com identidade do workflow registra cancelled/failed; leitura administrativa e novos disparos reconciliam GitHub e expiram inatividade superior a 60 minutos sem tarefa recorrente. GitHub retornou HTTP 404 para a execução histórica; reconciliação real desse run não confirmada. Encerramento no GitHub depende da publicação e próxima execução; nenhum workflow iniciado para teste.

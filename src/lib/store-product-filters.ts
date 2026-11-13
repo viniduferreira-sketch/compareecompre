@@ -7,6 +7,11 @@ export type ProductFilterInput = {
 };
 const normalized = (value: string) => decodeHTML(value).replace(/<[^>]*>/g, ' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const TYPES: readonly [string, RegExp][] = [
+  ['Copo Térmico', /\bcopos? termicos?\b/],
+  ['Garrafa Térmica', /\bgarrafas? termicas?\b/],
+  ['Growler', /\bgrowlers?\b/],
+  ['Caneca Térmica', /\bcanecas? termicas?\b/],
+  ['Cuia Térmica', /\bcuias? termicas?\b/],
   ['Tênis', /\b(tenis|sneakers?|running shoes|trainers)\b/],
   ['Camisetas', /\b(camisetas?|t-shirts?|tees?)\b/],
   ['Calças', /\b(calcas?|pants|trousers|leggings?|tights)\b/],
@@ -36,6 +41,9 @@ function typeFrom(value: string) {
   if (/^(?:suporte|cabo|capa|adaptador|carregador|pelicula|meias?|mochila|bolsa|bone)\b/.test(n.trim())) return 'Acessórios';
   if (/^memoria ram\b/.test(n.trim())) return 'Memórias RAM';
   if (/^(?:computador|desktop|imac|pc gamer)\b/.test(n.trim())) return 'Computadores';
+  // Explicit title prefixes identify drinkware without matching devices/accessories later in the title.
+  const drinkware = TYPES.slice(0, 5).find(([, pattern]) => new RegExp('^' + pattern.source.replace(/^\\b/, '')).test(n.trim()));
+  if (drinkware) return drinkware[0];
   // A path's final segment is more specific than its parent category.
   const segments = n.split(/\s*[>|/]\s*/).reverse();
   for (const segment of segments) {

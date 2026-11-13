@@ -4,3 +4,4 @@
 - Buying guides resolve published topic slugs; similar tables require different structured brand/model evidence, a fixed price band and real partner attributes, so missing specifications never become invented comparisons.
 - Decode partner HTML entities before stripping tags and use whitespace sentence boundaries to preserve decimal measurements; render every nonempty supplied attribute and keep store descriptions collapsed, without inferring missing feed fields.
 - Category guide reads use the explicit editorial-category registry and published-date filters, selecting four category posts plus both public general guides in the existing SSR editorial query to avoid separate client fetching.
+- Awin normalization and workflow priority share the ordered six-column image resolver, preserving alternatives; store types use explicit title prefixes when real feed taxonomy is absent.

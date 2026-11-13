@@ -3,6 +3,7 @@
 import { normalizePolicyText } from "./content-policy";
 import { normalizeAwinMerchantName } from "./awin-allowlist";
 import { normalizeGtin } from "./product-identifiers";
+import { awinImages } from '../../scripts/awin-images.mjs';
 
 export const CATEGORY_NOT_ALLOWED_REASON = "categoria não permitida";
 export const NO_MERCHANT_RULE_REASON = "loja sem regra de categoria";
@@ -75,6 +76,6 @@ export function awinRowPriority(row: RowLike): number {
   const status = (row["stock_status"] ?? "").trim().toLowerCase();
   const inStock = !["0", "false", "no", "n", "out of stock", "out_of_stock"].includes(stock)
     && !["out of stock", "out_of_stock", "unavailable"].includes(status);
-  const image = /^https?:\/\//.test(row["merchant_image_url"] ?? "") || /^https?:\/\//.test(row["aw_image_url"] ?? "");
+  const image = awinImages(row).length > 0;
   return (gtin ? 4 : 0) + (inStock ? 2 : 0) + (image ? 1 : 0);
 }
