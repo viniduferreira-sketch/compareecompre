@@ -6,6 +6,7 @@ import { isOfferExpired } from "./offer-freshness";
 import { productIndexability } from "./product-indexability";
 import type { PartnerQA } from "./partner-qa.server";
 import { readRealPriceHistory } from './price-history.server';
+import { partnerDescription } from './product-content';
 
 export async function getAwinProductDetail(id: string): Promise<ProductDetail | null> {
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
@@ -42,7 +43,7 @@ export async function getAwinProductDetail(id: string): Promise<ProductDetail | 
     price: policy.unavailable || isOfferExpired(p) ? null : p.price,
     originalPrice: p.originalPrice, discountPercent: p.discountPercent,
     freeShipping: p.freeShipping, affiliateUrl: p.affiliateUrl,
-    sellerCount: 1, category: p.category, description: p.description,
+    sellerCount: 1, category: p.category, description: partnerDescription(p.description),
     attributes: p.attributes, pros: [], cons: [], qa: Array.isArray(p["qa"]) ? p["qa"] as PartnerQA[] : [], last_synced_at: p.last_synced_at ?? data.last_synced_at, rating, ean, storeLogoUrl: [p["storeLogoUrl"], p["merchant_logo"], p["store_logo"]].find((v): v is string => typeof v === "string" && v.startsWith("https://")) ?? null,
   };
 }

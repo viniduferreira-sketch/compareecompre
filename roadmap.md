@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Remover suposições das páginas de produto
+- [x] Removidos prós/contras genéricos, descrição substituta ML, parcelamento calculado em 10× e promessa diária; descrição aparece apenas com texto parceiro e histórico só com evidência real. Ficha técnica e perguntas preservadas.
+- [x] Onze testes e página real HTTP 200 confirmaram ausência das suposições e presença de perguntas/ficha; build OK. Gravação de preços confirmada para Awin/Lomadee pelo catálogo e ML por sincronização/revalidação, este último após publicação. Nenhuma importação acionada.
+
 ## Histórico real de preços
 - [x] Gráfico condicionado a dois registros reais em datas diferentes; removido selo fixo Menor preço. Comparação de ofertas atuais e descontos fornecidos pelo parceiro preservados.
 - [x] Histórico real por produto/loja com primeiro preço observado e mudanças, datas do servidor, gravações serializadas e sem retroagir. Awin/Lomadee via sincronização do catálogo; ML via sincronização/revalidação verificada. HTML e sitemap leem a mesma fonte real. Armazenamento 23% usado/150 MB, sem alerta atual.

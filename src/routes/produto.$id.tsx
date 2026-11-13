@@ -71,7 +71,7 @@ export const Route = createFileRoute("/produto/$id")({
           "@context": "https://schema.org",
           "@type": "Product",
           name: product.title,
-          description: product.description,
+          ...(product.description ? { description: product.description } : {}),
           sku: product.id,
           ...(product.images.length > 0 ? { image: product.images } : {}),
           ...(validPrice
@@ -308,11 +308,6 @@ function ProductPage() {
                     <p className="font-display text-2xl font-bold text-foreground">
                       {data.price ? formatBRL(data.price) : "Indisponível"}
                     </p>
-                    {data.price ? (
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        ou 10x de {formatBRL(data.price / 10)} sem juros
-                      </p>
-                    ) : null}
                     {data.freeShipping ? (
                       <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-savings">
                         <Truck className="size-3.5" /> Frete grátis
@@ -332,11 +327,8 @@ function ProductPage() {
                   </a>
                 </Button>
 
-                <p className="mt-2 text-center text-[11px] text-muted-foreground">
-                  {data.sellerCount > 0
-                    ? `${data.sellerCount} vendedor(es) anunciando este produto`
-                    : "Preço acompanhado diariamente"}
-                </p>
+                {data.sellerCount > 0 && <p className="mt-2 text-center text-[11px] text-muted-foreground">{data.sellerCount} vendedor(es) anunciando este produto</p>}
+                {hasRealPriceHistory(data.priceHistory) && <p className="mt-2 text-center text-[11px] text-muted-foreground">Histórico com preços registrados para esta oferta.</p>}
               </div>
             </section>
 
@@ -396,10 +388,10 @@ function ProductPage() {
                     />
                   </div>
 
-                  <div>
+                  {data.description && <div>
                     <h2 className="mb-3 font-display text-lg font-semibold text-graphite">Descrição</h2>
                     <FormattedDescription text={data.description} />
-                  </div>
+                  </div>}
                 </div>
               </TabsContent>
 

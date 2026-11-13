@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getMeliToken, withAffiliate } from "@/lib/search-offers.functions";
 import type { PartnerQA } from "@/lib/partner-qa.server";
 import { productIndexability } from "./product-indexability";
+import { partnerDescription } from './product-content';
 
 export type ProductAttribute = { name: string; value: string };
 
@@ -132,7 +133,7 @@ export const getProductDetail = createServerFn({ method: "POST" })
       price: policy.unavailable ? null : typeof record["price"] === "number" ? record["price"] : null,
       originalPrice: null, discountPercent: null, freeShipping: false,
       affiliateUrl: typeof record["affiliateUrl"] === "string" ? record["affiliateUrl"] : "",
-      sellerCount: 0, description: typeof record["description"] === "string" ? record["description"] : "",
+      sellerCount: 0, description: '',
       attributes: [], pros: [], cons: [], qa: indexed.qa,
     } : null;
     if (policy.unavailable) return fallback;
@@ -187,24 +188,6 @@ export const getProductDetail = createServerFn({ method: "POST" })
       .slice(0, 8);
     const qa = indexed.qa;
 
-    const attributeValue = (needle: string) =>
-      attributes.find((attribute) => attribute.name.toLowerCase().includes(needle))?.value ?? null;
-
-    const brand = attributeValue("marca");
-    const pros = [
-      brand ? `Produto da marca ${brand}, com boa reputação no Mercado Livre.` : "Produto com boa reputação entre os compradores.",
-      sellerCount > 1
-        ? `${sellerCount} vendedores anunciam este produto, o que ajuda a manter o preço competitivo.`
-        : "Preço acompanhado diariamente pelo Compare e Compre.",
-      freeShipping ? "Frete grátis disponível na oferta atual." : "Envio rápido pelo Mercado Envios.",
-      "Compra protegida e garantia oferecida pela loja parceira.",
-    ];
-    const cons = [
-      "O preço pode mudar sem aviso na loja parceira.",
-      "Disponibilidade limitada ao estoque do vendedor.",
-      sellerCount <= 1 ? "Poucas ofertas concorrentes para comparar no momento." : "Condições de parcelamento variam conforme o vendedor.",
-    ];
-
     return {
       seoIndexable: policy.indexable,
       stale: policy.stale,
@@ -228,12 +211,10 @@ export const getProductDetail = createServerFn({ method: "POST" })
       affiliateUrl: withAffiliate(`https://www.mercadolivre.com.br/p/${product.id}`),
       sellerCount,
       category: product.domain_id ?? null,
-      description:
-        product.short_description?.content?.trim() ||
-        `Confira as informações e o melhor preço encontrado para ${product.name} entre as lojas parceiras do Compare e Compre.`,
+      description: partnerDescription(product.short_description?.content),
       attributes,
-      pros,
-      cons,
+      pros: [],
+      cons: [],
        qa,
     };
   });
