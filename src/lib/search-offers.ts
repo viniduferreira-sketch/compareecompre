@@ -261,55 +261,5 @@ export async function getHomeOffers(): Promise<{
     }
   }
 
-export type ComparedOffer = { id: string; store: string; storeLogoUrl?: string | null; price: number; affiliateUrl: string; source?: string | undefined; last_synced_at?: string | undefined };
-
-const STOP = new Set(["de", "da", "do", "com", "para", "e", "em", "a", "o", "the", "and", "with"]);
-const tokens = (value: string) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z0-9]+/).filter((t) => t.length > 1 && !STOP.has(t));
-
-/** Same-product match: shared EAN/GTIN, or most of the distinctive title tokens (incl. any model numbers) shared. */
-export function isSameProduct(base: { title: string; ean?: string | null }, other: { title: string; ean?: string | null }) {
-  if (base.ean && other.ean) return base.ean === other.ean;
-  const a = new Set(tokens(base.title).slice(0, 8));
-  const b = new Set(tokens(other.title));
-  if (a.size < 2) return false;
-  const models = [...a].filter((t) => /\d/.test(t));
-  if (models.some((m) => !b.has(m))) return false;
-  const shared = [...a].filter((t) => b.has(t)).length;
-  return shared / a.size >= 0.75;
-}
-
-export async function compareOffers(product: { id: string; title: string; ean?: string | null }): Promise<ComparedOffer[]> {
-  try {
-    const { client, indexName } = getAlgoliaConfig();
-    const response = await client.searchSingleIndex<AlgoliaOffer & { ean?: string | null; gtin?: string | null }>({
-      indexName,
-      searchParams: {
-        query: tokens(product.title).slice(0, 6).join(" "),
-        hitsPerPage: 30,
-        filters: PUBLIC_OFFER_FILTER,
-        removeWordsIfNoResults: "allOptional",
-        attributesToRetrieve: ["objectID", "title", "store", "price", "affiliateUrl", "source", "status", "last_synced_at", "ean", "gtin", "merchant_name", "loja", "storeLogoUrl", "merchant_logo", "store_logo", "aw_deep_link"],
-      },
-    });
-    return groupComparedOffers(product, response.hits);
-  } catch (error) {
-    console.error("Price comparison failed", error);
-    return [];
-  }
-}
-
-type CompareHit = AlgoliaOffer & { ean?: string | null; gtin?: string | null };
-/** Keeps matching offers from each store and the cheapest per store, cheapest first. */
-export function groupComparedOffers(product: { id: string; title: string; ean?: string | null }, hits: CompareHit[]): ComparedOffer[] {
-  const best = new Map<string, ComparedOffer>();
-  for (const hit of selectVisibleOffers(hits.map((h) => ({ ...h, id: h.objectID })))) {
-    if (!Number.isFinite(hit.price) || hit.price <= 0) continue;
-    if (hit.objectID !== product.id && !isSameProduct(product, { title: hit.title, ean: hit.ean ?? hit.gtin ?? null })) continue;
-    const identity = storefrontIdentity(hit);
-    if (!identity.affiliateUrl) continue;
-    const offer: ComparedOffer = { id: hit.objectID, ...identity, price: hit.price, source: hit.source, last_synced_at: hit.last_synced_at };
-    const current = best.get(identity.store);
-    if (!current || offer.price < current.price) best.set(identity.store, offer);
-  }
-  return [...best.values()].sort((l, r) => l.price - r.price);
-}
+// Compatibility exports use exact structured identifiers, never title tokens.
+export { isSameProduct, groupComparedOffers, type ComparedOffer } from './product-comparison';

@@ -23,6 +23,8 @@ export async function readRealPriceHistory(id?: string) {
 
 /** Invoked only after verified ML synchronization, never on page views or simulations. */
 export async function recordMercadoLivrePrices(records: Array<Record<string, unknown>>) {
+  const { persistMercadoLivreComparison } = await import('./product-comparison.server');
+  await persistMercadoLivreComparison(records);
   const { supabaseAdmin: db } = await import('@/integrations/supabase/client.server');
   for (let i = 0; i < records.length; i += 10) {
     await Promise.all(records.slice(i, i + 10).map(async record => {

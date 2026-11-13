@@ -7,6 +7,7 @@ import { enrichPopularity } from "./popularity.server";
 import { POPULARITY_INDEX_SETTINGS } from "./popularity";
 import { applyStoreDisplay } from "./partner-stores";
 import { applyPriceReviewToRecords } from "./price-review.server";
+import { comparisonVariant } from './product-comparison';
 
 const AFFILIATE_PARAMS = "matt_tool=15523479&matt_word=compareecompre";
 const DEFAULT_INDEX_NAME = "produtos_mercado_livre";
@@ -77,6 +78,7 @@ type AlgoliaOffer = {
   brand: string | null;
   gtin: string | null;
   model: string | null;
+  comparison_variant: Record<string, string>;
   sellerCount: number;
   qa: PartnerQA[];
   source: "mercadolivre";
@@ -201,6 +203,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
         categoryName,
         brand,
         ...identifiers,
+        comparison_variant: comparisonVariant(product.attributes),
         sellerCount: items.length,
          qa,
         source: "mercadolivre",

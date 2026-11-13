@@ -3,7 +3,9 @@ import { ExternalLink, Star } from "lucide-react";
 
 import { formatBRL } from "@/components/marketplace/OfferCard";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
-import { compareOffers, type ComparedOffer } from "@/lib/search-offers";
+import { getComparedOffers } from '@/lib/product-comparison.functions';
+import { COMPARISON_CACHE_MS } from '@/lib/product-comparison';
+import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
 import { recordOutboundClick } from "@/lib/outbound-clicks";
 import { Link } from '@tanstack/react-router';
@@ -34,63 +36,42 @@ export function RatingStars({ rating }: { rating: { value: number; count: number
   );
 }
 
-export function CompareOffers({ product }: { product: { id: string; title: string; ean?: string | null; store: string; storeLogoUrl?: string | null | undefined; price: number | null; affiliateUrl: string; source: string; category?: string | null; last_synced_at?: string } }) {
-  const { data, isPending } = useQuery({
-    queryKey: ["compare-offers", product.id],
-    queryFn: () => compareOffers(product),
-    staleTime: 5 * 60_000,
+export function CompareOffers({ product }: { product: { id: string; title: string; comparisonKey?: string | null; category?: string | null } }) {
+  const key = product.comparisonKey;
+  const { data: offers = [], isPending } = useQuery({
+    queryKey: ['compare-offers-exact', key],
+    queryFn: () => key ? getComparedOffers({ data: { key } }) : Promise.resolve([]),
+    enabled: Boolean(key),
+    staleTime: COMPARISON_CACHE_MS,
+    refetchOnWindowFocus: false,
   });
-  const offers: ComparedOffer[] = [...(data ?? [])];
-  if (product.price && !offers.some((o) => o.store === product.store)) {
-    offers.push({ id: product.id, store: product.store, storeLogoUrl: product.storeLogoUrl ?? null, price: product.price, affiliateUrl: product.affiliateUrl, source: product.source, ...(product.last_synced_at ? { last_synced_at: product.last_synced_at } : {}) });
-  }
-  offers.sort((l, r) => l.price - r.price);
-
+  if (!key || isPending || offers.length < 2) return null;
   return (
-    <section className="mt-6 rounded-xl border border-border bg-card p-4 sm:p-5" aria-labelledby="comparar-ofertas">
-      <h2 id="comparar-ofertas" className="font-display text-base font-semibold text-graphite">Comparar ofertas</h2>
-      <p className="mt-0.5 text-xs text-muted-foreground">Mesmo produto em lojas parceiras, do menor para o maior preço.</p>
-      {isPending ? (
-        <p className="mt-4 text-xs text-muted-foreground">Buscando preços em outras lojas…</p>
-      ) : (
-        <ul className="mt-4 space-y-2">
-          {offers.map((offer, index) => (
-            <li
-              key={offer.id}
-              className={cn(
-                "flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2.5 sm:flex-nowrap",
-                index === 0 ? "border-deal-strong/40 bg-deal-soft/60" : "border-border",
-              )}
-            >
-              <StoreLogo store={offer.store} logoUrl={offer.storeLogoUrl ?? undefined} className="h-9 w-24 shrink-0 rounded-md" />
-              <div className="min-w-0 flex-1">
-                <Link to="/loja/$slug" params={{slug:storeSlug(offer.store)}} className="block truncate text-sm font-medium text-graphite hover:underline">{offer.store}</Link>
-                {offer.last_synced_at ? (
-                  <p className="text-[11px] text-muted-foreground">
-                    Verificado em {new Date(offer.last_synced_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}
-                  </p>
-                ) : null}
-              </div>
-              {index === 0 && offers.length > 1 ? (
-                <span className="rounded-md border border-deal-strong/50 bg-deal-soft px-2 py-0.5 text-[11px] font-semibold text-deal-strong">Menor preço</span>
-              ) : null}
-              <p className="font-display text-base font-bold text-graphite">{formatBRL(offer.price)}</p>
-              <a
-                href={offer.affiliateUrl}
-                onClick={() => recordOutboundClick({ ...offer, title: product.title, category: product.category }, "compare_store")}
-                target="_blank"
-                rel="noopener noreferrer sponsored"
-                className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand px-4 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                Ir à loja <ExternalLink className="size-3.5" />
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
-      {!isPending && offers.length <= 1 ? (
-        <p className="mt-3 text-xs text-muted-foreground">Por enquanto só encontramos este produto nesta loja. Novas lojas aparecem aqui automaticamente.</p>
-      ) : null}
+    <section className="mt-6" aria-labelledby="comparar-ofertas">
+      <h2 id="comparar-ofertas" className="font-display text-lg font-semibold text-graphite">Ofertas do mesmo produto</h2>
+      <div className="mt-3 overflow-x-auto">
+        <table className="w-full min-w-[520px] text-sm text-graphite">
+          <thead><tr className="border-b border-border text-left text-muted-foreground">
+            <th scope="col" className="px-3 py-3">Loja / vendedor</th>
+            <th scope="col" className="px-3 py-3">Preço</th>
+            <th scope="col" className="px-3 py-3">Frete</th>
+            <th scope="col" className="px-3 py-3"><span className="sr-only">Link da oferta</span></th>
+          </tr></thead>
+          <tbody>{offers.map((offer, index) => (
+            <tr key={offer.id} className={cn('border-b border-border', index === 0 && 'bg-deal-soft/60')}>
+              <td className="px-3 py-3">
+                <StoreLogo store={offer.store} logoUrl={offer.storeLogoUrl ?? undefined} className="mb-1 h-8 w-24" />
+                <Link to="/loja/$slug" params={{ slug: storeSlug(offer.store) }} className="font-medium hover:underline">{offer.store}</Link>
+                {offer.sellerName && <p className="text-xs text-muted-foreground">{offer.sellerName}</p>}
+                {offer.last_synced_at && <p className="mt-1 text-[11px] text-muted-foreground">Verificado em {new Date(offer.last_synced_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}</p>}
+              </td>
+              <td className="whitespace-nowrap px-3 py-3 font-semibold">{formatBRL(offer.price)}</td>
+              <td className="px-3 py-3">{offer.freeShipping || offer.shippingCost === 0 ? 'Grátis' : offer.shippingCost != null ? formatBRL(offer.shippingCost) : 'Consultar na loja'}</td>
+              <td className="px-3 py-3"><Button size="sm" asChild><a href={offer.affiliateUrl} onClick={() => recordOutboundClick({ ...offer, title: product.title, category: product.category }, 'compare_store')} target="_blank" rel="noopener noreferrer sponsored">Ir à loja <ExternalLink className="size-3.5" /></a></Button></td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
     </section>
   );
 }

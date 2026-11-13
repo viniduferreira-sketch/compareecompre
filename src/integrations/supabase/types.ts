@@ -802,6 +802,39 @@ export type Database = {
         }
         Relationships: []
       }
+      product_comparison_offers: {
+        Row: {
+          comparison_key: string | null
+          object_id: string
+          price: number
+          record: Json
+          source: string
+          store: string
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          comparison_key?: string | null
+          object_id: string
+          price: number
+          record: Json
+          source: string
+          store: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          comparison_key?: string | null
+          object_id?: string
+          price?: number
+          record?: Json
+          source?: string
+          store?: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
       product_price_history: {
         Row: {
           id: number
@@ -901,6 +934,10 @@ export type Database = {
     }
     Functions: {
       admin_dashboard_metrics: { Args: never; Returns: Json }
+      capture_comparison_offer: {
+        Args: { _id: string; _record: Json; _source: string }
+        Returns: undefined
+      }
       claim_awin_merchant_slots: {
         Args: {
           _batch: number

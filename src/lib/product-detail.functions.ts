@@ -5,6 +5,7 @@ import { getMeliToken, withAffiliate } from "@/lib/search-offers.functions";
 import type { PartnerQA } from "@/lib/partner-qa.server";
 import { productIndexability } from "./product-indexability";
 import { partnerDescription } from './product-content';
+import { comparisonKey } from './product-comparison';
 
 export type ProductAttribute = { name: string; value: string };
 
@@ -39,6 +40,8 @@ export type ProductDetail = {
   /** Real partner rating only; null hides the stars (never mocked). */
   rating?: { value: number; count: number; source: string } | null;
   ean?: string | null;
+  comparisonKey?: string | null;
+  shippingCost?: number | null;
 };
 
 function isPartnerQA(value: unknown): value is PartnerQA {
@@ -134,6 +137,8 @@ export const getProductDetail = createServerFn({ method: "POST" })
       originalPrice: null, discountPercent: null, freeShipping: false,
       affiliateUrl: typeof record["affiliateUrl"] === "string" ? record["affiliateUrl"] : "",
       sellerCount: 0, description: '',
+      comparisonKey: comparisonKey(record),
+      ean: typeof record['gtin'] === 'string' ? record['gtin'] : null,
       attributes: [], pros: [], cons: [], qa: indexed.qa,
     } : null;
     if (policy.unavailable) return fallback;
@@ -194,6 +199,8 @@ export const getProductDetail = createServerFn({ method: "POST" })
       priceHistory: policy.history,
       ...(fallback?.last_synced_at ? { last_synced_at: fallback.last_synced_at } : {}),
       source: "mercadolivre",
+      comparisonKey: fallback?.comparisonKey ?? null,
+      ean: fallback?.ean ?? null,
       store: "Mercado Livre",
       status: indexed.status,
       categoryName: indexed.categoryName ?? null,

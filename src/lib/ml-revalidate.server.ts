@@ -3,6 +3,7 @@ import { mercadoLivreIdentifiers, type CatalogAttribute } from "./product-identi
 import { classifyMeliItemsList, classifyMeliProduct, shouldAbortRevalidation } from "./ml-revalidate";
 import { enrichPopularity } from "./popularity.server";
 import { applyPriceReviewToRecords } from "./price-review.server";
+import { comparisonVariant } from './product-comparison';
 
 const STALE_AFTER_HOURS = 12;
 const MAX_ITEMS_PER_RUN = 200;
@@ -55,6 +56,8 @@ type CandidateOutcome =
       permalink?: string;
       gtin: string | null;
       model: string | null;
+      brand: string | null;
+      comparison_variant: Record<string, string>;
     };
 
 function wait(ms: number) {
@@ -126,6 +129,8 @@ async function checkCandidate(record: StaleRecord, headers: Record<string, strin
     kind: "active",
     record,
     ...mercadoLivreIdentifiers(productBody?.attributes),
+    brand: productBody?.attributes?.find(attr => attr.id === 'BRAND')?.value_name ?? null,
+    comparison_variant: comparisonVariant(productBody?.attributes),
     itemId: cheapest.item_id?.trim() ?? "",
     price,
     originalPrice: cheapest.original_price && cheapest.original_price > price ? cheapest.original_price : null,
@@ -179,7 +184,7 @@ export async function revalidateMercadoLivreOffers(options: { dryRun?: boolean; 
       indexName,
       browseParams: {
         query: "",
-        attributesToRetrieve: ["objectID", "itemId", "last_synced_at", "source", "title", "imageUrl", "store", "category", "categoryName"],
+        attributesToRetrieve: ["objectID", "itemId", "last_synced_at", "source", "title", "imageUrl", "store", "category", "categoryName", "affiliateUrl", "gtin", "brand", "model", "comparison_variant", "site_hidden", "quality_status", "price_review_status", "price", "inStock"],
         hitsPerPage: 1000,
       },
       aggregator: (batch) => {
@@ -236,6 +241,8 @@ export async function revalidateMercadoLivreOffers(options: { dryRun?: boolean; 
         objectID: outcome.record.objectID,
         gtin: outcome.gtin,
         model: outcome.model,
+        brand: outcome.brand,
+        comparison_variant: outcome.comparison_variant,
         ...(outcome.title ? { title: outcome.title } : {}),
         ...(outcome.imageUrl ? { imageUrl: outcome.imageUrl } : {}),
         price: outcome.price,
@@ -275,7 +282,8 @@ export async function revalidateMercadoLivreOffers(options: { dryRun?: boolean; 
       const enriched = await applyPriceReviewToRecords(await enrichPopularity(complete));
       const rankedUpdates = updates.map((update, index) => {
         const reviewed = enriched[index];
-        return { ...update, popularity_score: reviewed?.popularity_score ?? 0, group_key: reviewed?.group_key,
+        return { ...update, comparison_key: reviewed?.comparison_key ?? null, comparison_variant: reviewed?.comparison_variant,
+          popularity_score: reviewed?.popularity_score ?? 0, group_key: reviewed?.group_key,
           ...(reviewed?.price_review_status ? {
             price_review_status: reviewed.price_review_status,
             price_review_reason: reviewed.price_review_reason,
@@ -288,7 +296,7 @@ export async function revalidateMercadoLivreOffers(options: { dryRun?: boolean; 
       // Partial updates on the primary index propagate to the price replicas automatically.
       await client.partialUpdateObjects({ indexName, objects: rankedUpdates, createIfNotExists: false, waitForTasks: true });
       const { recordMercadoLivrePrices } = await import('./price-history.server');
-      await recordMercadoLivrePrices(complete);
+      await recordMercadoLivrePrices(enriched);
     }
 
     result.message = dryRun

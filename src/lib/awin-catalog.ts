@@ -86,6 +86,7 @@ export function normalizeAwinProduct(row: AwinRow, syncedAt: string, allowedMerc
     attributes: [["Marca", row["brand_name"]], ["Modelo", row["product_model"]], ["Cor", row["colour"]], ["Dimensões", row["dimensions"]], ["Especificações", row["specifications"]]]
       .flatMap(([name, value]) => value && name ? [{ name, value: text(value), source: "awin" }] : []),
     freeShipping: amount(row["delivery_cost"]) === 0,
+    shippingCost: amount(row["delivery_cost"]),
     inStock: !unavailable,
     status: unavailable ? "unavailable" as const : "active" as const,
     sellerCount: 1, qa: [], last_synced_at: syncedAt,

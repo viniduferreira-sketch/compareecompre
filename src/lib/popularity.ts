@@ -17,6 +17,7 @@ export const POPULARITY_CONFIG = {
 export type PopularityRecord = {
   objectID: string; title?: string; store?: string; merchantId?: string; merchant_id?: string; organizationId?: string;
   source?: string; gtin?: string | null; imageUrl?: string | null;
+  brand?: string | null; model?: string | null; comparison_variant?: Record<string, string>;
   status?: string; inStock?: boolean; price?: number; originalPrice?: number | null;
   category?: string | null; categoryName?: string | null;
   parent_product_id?: string | null; colour?: string | null; size?: string | null;

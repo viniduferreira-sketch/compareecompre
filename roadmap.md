@@ -1,5 +1,11 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Comparação exata entre lojas
+- [x] Chave gerada na sincronização por GTIN normalizado ou marca/modelo com atributos estruturados completos para variantes suportadas; identificadores Awin/ML já eram preservados. Chave independente do distinct por loja.
+- [x] Projeção pública mínima com RLS, gatilho Awin/Lomadee e persistência ML na sincronização/revalidação, inclusive indisponibilidade. Cache de cinco minutos no servidor e navegador; zero buscas Algolia para comparação. Catálogo parceiro existente reaproveitado sem importar; ML passa a preencher na próxima sincronização publicada.
+- [x] Tabela menor preço por loja, frete somente quando informado, vendedor real e destinos originais. Sem identificação segura ou com uma loja, seção oculta.
+- [x] 51 testes passaram; navegador confirmou mesmo GTIN KaBuM R$ 79,99/PCYES R$ 101,90, links originais, outra página da mesma chave e oferta única sem seção. Tabela rola horizontalmente no celular. Build OK. Aviso externo de hidratação provocado por anúncio Google preexistente; sem anúncios externos o fluxo não apresentou erros. Nenhuma importação acionada.
+
 ## Remover suposições das páginas de produto
 - [x] Removidos prós/contras genéricos, descrição substituta ML, parcelamento calculado em 10× e promessa diária; descrição aparece apenas com texto parceiro e histórico só com evidência real. Ficha técnica e perguntas preservadas.
 - [x] Onze testes e página real HTTP 200 confirmaram ausência das suposições e presença de perguntas/ficha; build OK. Gravação de preços confirmada para Awin/Lomadee pelo catálogo e ML por sincronização/revalidação, este último após publicação. Nenhuma importação acionada.

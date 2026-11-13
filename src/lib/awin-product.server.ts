@@ -7,6 +7,7 @@ import { productIndexability } from "./product-indexability";
 import type { PartnerQA } from "./partner-qa.server";
 import { readRealPriceHistory } from './price-history.server';
 import { partnerDescription } from './product-content';
+import { comparisonKey } from './product-comparison';
 
 export async function getAwinProductDetail(id: string): Promise<ProductDetail | null> {
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
@@ -35,6 +36,8 @@ export async function getAwinProductDetail(id: string): Promise<ProductDetail | 
   const eanRaw = p["ean"] ?? p["gtin"] ?? p["product_GTIN"];
   const ean = typeof eanRaw === "string" && /^\d{8,14}$/.test(eanRaw) ? eanRaw : null;
   return {
+    comparisonKey: comparisonKey(p),
+    shippingCost: typeof p['shippingCost'] === 'number' ? p['shippingCost'] : null,
     seoIndexable: policy.indexable, stale: policy.stale, priceHistory: policy.history,
     status: policy.unavailable ? "unavailable" : p.status,
     categoryName: p.categoryName,
