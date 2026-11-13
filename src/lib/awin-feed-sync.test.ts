@@ -17,7 +17,7 @@ vi.mock('@/integrations/supabase/client.server', () => ({supabaseAdmin:{from:(ta
     update:(value:unknown)=>{state.calls.push({table,operation:'update',value});return chain;},
     single:async()=> table==='awin_feeds'
       ? {data:state.missing?null:{id:filterId,nome:'Nike',anunciantes:['Nike BR'],url:'https://productdata.awin.com/nike'},error:null}
-      : {data:state.duplicate?null:{id:'job',sync_cursor:state.scope},error:inserting&&state.duplicate?{code:'23505'}:null},
+      : {data:state.duplicate?null:{id:'job',status:'running',sync_cursor:state.scope},error:inserting&&state.duplicate?{code:'23505'}:null},
     maybeSingle:async()=>({data:state.existing?{id:'job',status:'running',sync_cursor:state.scope}:state.active,error:null}),
     then:(resolve:(v:unknown)=>unknown)=>resolve({error:null}),
   };return chain;
