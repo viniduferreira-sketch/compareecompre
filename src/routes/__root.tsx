@@ -80,18 +80,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Compare e Compre" },
+      { title: "Compare e Compre | Preços e ofertas no Brasil" },
       {
         name: "description",
-        content: "Compare preços das maiores lojas do Brasil e compre pela melhor oferta.",
+        content: "Compare preços e ofertas de lojas parceiras no Brasil. Confira a loja de origem de cada produto e acesse seu site para concluir a compra.",
       },
       { name: "author", content: "Compare e Compre" },
       { name: "google-site-verification", content: "qTf2cTMkU4LUCRYiH1fddjNLL2PoiQdLVQoXHDViUXM" },
       { name: "lomadee", content: "2324685" },
-      { property: "og:title", content: "Compare e Compre" },
+      { property: "og:title", content: "Compare e Compre | Preços e ofertas no Brasil" },
       {
         property: "og:description",
-        content: "Compare preços das maiores lojas do Brasil e compre pela melhor oferta.",
+        content: "Compare preços e ofertas de lojas parceiras no Brasil. Confira a loja de origem de cada produto e acesse seu site para concluir a compra.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

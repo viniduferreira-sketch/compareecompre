@@ -6,9 +6,9 @@ export const Route = createFileRoute("/sobre-nos")({
   staticData: { sitemap: true },
   head: () => ({ meta: [
     { title: "Sobre Nós | Compare e Compre" },
-    { name: "description", content: "Conheça o Compare e Compre, comparador que busca ofertas nas melhores lojas da internet." },
+    { name: "description", content: "Conheça a história do Compare e Compre, como reunimos ofertas de lojas parceiras e como os links de afiliado ajudam a manter o comparador." },
     { property: "og:title", content: "Sobre Nós | Compare e Compre" },
-    { property: "og:description", content: "Nossa missão é tornar a busca por boas ofertas mais simples, rápida e transparente." },
+    { property: "og:description", content: "Conheça a história do Compare e Compre, como reunimos ofertas de lojas parceiras e como os links de afiliado ajudam a manter o comparador." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
   ] }),

@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Títulos e descrições específicos por página
+- [x] Atualizar títulos/descrições e Open Graph da home, padrão raiz, busca por termo, produto, ofertas, lojas monitoradas, sobre nós e blog sem promessas de menor preço; conteúdo e regras de busca preservados.
+- [x] HTML inicial validado em dez URLs, descrições diferentes por busca e canonical único apontando para a própria página; navegação pública e 28 testes passaram, build OK. Correções SEO registradas; versão ao vivo depende da próxima publicação.
+
 ## Google Search Console — domínio próprio
 - [x] Conta vinculada consultada: nenhuma propriedade verificada; token META solicitado e acrescido ao HTML inicial preservando etiqueta anterior; sitemap existente válido com 48.270 URLs do domínio.
 - [x] Publicação solicitada; checagem única após 65 segundos recebeu HTTP 403, impedindo confirmar a etiqueta publicada.

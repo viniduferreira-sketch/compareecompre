@@ -33,21 +33,23 @@ export const Route = createFileRoute("/")({
   notFoundComponent: HomeError,
   head: () => ({
     meta: [
-      { title: "Compare e Compre | Compare preços online" },
+      { title: "Compare e Compre | Compare preços e ofertas no Brasil" },
       {
         name: "description",
         content:
-          "Compare preços de iPhone, Smart TV, Air Fryer e milhares de produtos entre as maiores lojas do Brasil e compre pela melhor oferta.",
+          "Compare ofertas de eletrônicos, casa, moda e outras categorias em lojas parceiras no Brasil. Escolha um produto e vá à loja de origem para comprar.",
       },
-      { property: "og:title", content: "Compare e Compre | O menor preço nas melhores lojas" },
+      { property: "og:title", content: "Compare e Compre | Compare preços e ofertas no Brasil" },
       {
         property: "og:description",
         content:
-          "Buscamos nas melhores lojas da internet para você encontrar o menor preço com rapidez e segurança.",
+          "Compare ofertas de eletrônicos, casa, moda e outras categorias em lojas parceiras no Brasil. Escolha um produto e vá à loja de origem para comprar.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://compareecompre.com/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://compareecompre.com/" }],
   }),
   validateSearch: (search: Record<string, unknown>): { q?: string|undefined;categoria?:string|undefined;category?:string|undefined;loja?:string|undefined } => ({loja:typeof search['loja']==='string'?search['loja']:undefined,q:typeof search['q']==='string'?search['q']:undefined,categoria:typeof search['categoria']==='string'?search['categoria']:undefined,category:typeof search['category']==='string'?search['category']:undefined}),
   component: Home,

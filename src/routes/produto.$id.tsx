@@ -52,13 +52,15 @@ export const Route = createFileRoute("/produto/$id")({
     await context.queryClient.ensureQueryData(productBlogPromotionsQuery(product?.categoryName ?? null));
     return product;
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const product = loaderData;
     const title = product
       ? `${product.title.slice(0, 38)} | Compare e Compre`
       : "Detalhes do produto | Compare e Compre";
-    const description = product?.description.slice(0, 155)
-      ?? "Veja fotos, ficha técnica e o menor preço encontrado para este produto nas lojas parceiras.";
+    const description = product
+      ? `Confira ${product.title.slice(0, 70)} na ${product.store.slice(0, 30)}. Veja preço, fotos e informações disponíveis; compre no site da loja.`
+      : "Este produto não está disponível no momento. Explore outras ofertas das lojas parceiras no Compare e Compre.";
+    const url = `https://compareecompre.com/produto/${encodeURIComponent(params.id)}`;
     const image = product?.images.find((url) => url.startsWith("https://"));
     const validPrice = product?.price && Number.isFinite(product.price) && product.price > 0
       ? product.price
@@ -111,6 +113,7 @@ export const Route = createFileRoute("/produto/$id")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary_large_image" },
         ...(image
           ? [
@@ -119,6 +122,7 @@ export const Route = createFileRoute("/produto/$id")({
             ]
           : []),
       ],
+      links: [{ rel: "canonical", href: url }],
       scripts: [productSchema, faqSchema].flatMap((schema) =>
         schema
           ? [{
