@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { mergeDiscardReasons } from "./import-discards";
+import { mergeCurrencyDiagnostics } from './awin-currency';
 import { z } from 'zod';
 
 export const getImportStatus = createServerFn({ method: "POST" })
@@ -20,6 +21,7 @@ export const getImportStatus = createServerFn({ method: "POST" })
       indexed: catalog_import_batches.reduce((n, b) => n + b.indexed, 0),
       skipped: catalog_import_batches.reduce((n, b) => n + b.skipped, 0),
       discardReasons: mergeDiscardReasons(catalog_import_batches.map((b) => b.discard_reasons)),
+      currencyDiagnostics: mergeCurrencyDiagnostics(catalog_import_batches.map((b) => b.discard_reasons)),
       reasonsRecorded: catalog_import_batches.length > 0 && catalog_import_batches.every((b) => b.discard_reasons !== null),
     }));
   });

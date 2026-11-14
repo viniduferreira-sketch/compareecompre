@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Diagnóstico de moeda Awin LG
+- [ ] Registrar contagem por currency e três exemplos seguros por execução, sem alterar descartes históricos.
+- [ ] Aceitar somente BRL normalizado por espaços/maiúsculas; testar feed LG sem importar e validar painel.
+
 ## Fotos e tipos de produto Stanley
 - [x] Resolver compartilhado prioriza aw_image_url, merchant_image_url, large_image, alternate_image, aw_thumb_url e merchant_thumb_url; normalização, galeria e prioridade do workflow usam as mesmas alternativas. Feed real tem 122 linhas: aw_image_url/merchant_image_url/alternate_image/aw_thumb_url preenchidas em todas, large_image/merchant_thumb_url vazias; 120 alternate_image_two. Todas as 122 fotos merchant_image_url respondem 410; aw_image_url e aw_thumb_url devolvem placeholder genérico 70x70, não foto real.
 - [x] Tipos explícitos Copo Térmico, Garrafa Térmica, Growler, Caneca Térmica e Cuia Térmica derivados dos títulos quando falta categoria, disponíveis imediatamente nas lojas e persistidos na próxima sincronização. Filtro Copo Térmico retorna só copos, 31 resultados; celular sem overflow. 33 Vitest + 6 Bun passaram, build OK; nenhuma importação ou alteração de registros existentes.

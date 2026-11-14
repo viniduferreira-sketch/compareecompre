@@ -11,6 +11,14 @@ const url='https://productdata.awin.com/datafeed/download/apikey/test-key-1234';
 const csv='merchant_id,merchant_name,product_name,search_price,aw_deep_link,aw_product_id,merchant_category\n77,Loja Nova,Notebook,99,https://awin1.com/x,12,Informática\n';
 afterEach(()=>vi.unstubAllGlobals());
 describe('feeds privados Awin',()=>{
+ it('mostra a moeda real e três exemplos de preço na amostra',async()=>{
+  const text=csv.split('\n')[0]+',currency\n'+(csv.split('\n')[1]+',USD\n').repeat(4);
+  vi.stubGlobal('fetch',()=>Promise.resolve(new Response(gzipSync(text))));
+  const result=await inspectFeed(url);
+  expect(result.currencyDiagnostics.counts).toEqual({USD:4});
+  expect(result.examples).toHaveLength(3);
+  expect(result.examples.map(p=>({price:p.price,currency:p.currency}))).toEqual(Array.from({length:3},()=>({price:'99',currency:'USD'})));
+ });
  it('reconhece gzip mesmo quando o primeiro chunk tem só um byte',async()=>{
   const bytes=gzipSync(csv);
   vi.stubGlobal('fetch',()=>Promise.resolve(new Response(new ReadableStream({start(c){c.enqueue(bytes.subarray(0,1));c.enqueue(bytes.subarray(1));c.close();}}))));

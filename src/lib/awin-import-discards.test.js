@@ -20,7 +20,7 @@ describe("persistência idempotente dos descartes Awin", () => {
     const first = await handleAwinImport("run", input);
     expect(first).toEqual({ indexed: 0, skipped: 12 });
     expect(state.writes).toHaveLength(1);
-    expect(state.writes[0].value.discard_reasons).toEqual({ unsupported_currency: 12 });
+    expect(state.writes[0].value.discard_reasons).toMatchObject({ unsupported_currency: 12 });
     await handleAwinImport("run", input);
     expect(state.writes).toHaveLength(1);
   });
@@ -29,14 +29,14 @@ describe("persistência idempotente dos descartes Awin", () => {
     const rows = [{ aw_product_id: "adult-1", merchant_id: "2", product_name: "Produto", merchant_name: "Monsterpub Sex Toy", search_price: "109", aw_deep_link: "https://awin1.com/p", currency: "BRL" }];
     const result = await handleAwinImport("run", { action: "batch", importId: "job", batch: 0, rows });
     expect(result).toEqual({ indexed: 0, skipped: 1 });
-    expect(state.writes[0].value.discard_reasons).toEqual({ "anunciante não permitido": 1 });
+    expect(state.writes[0].value.discard_reasons).toMatchObject({ "anunciante não permitido": 1 });
   });
 
   it("descarta conteúdo adulto de anunciante permitido", async () => {
     const rows = [{ aw_product_id: "adult-2", merchant_id: "2", product_name: "Masturbador", merchant_name: "KaBuM", search_price: "109", aw_deep_link: "https://awin1.com/p", currency: "BRL" }];
     const result = await handleAwinImport("run", { action: "batch", importId: "job", batch: 0, rows });
     expect(result).toEqual({ indexed: 0, skipped: 1 });
-    expect(state.writes[0].value.discard_reasons).toEqual({ "conteúdo adulto": 1 });
+    expect(state.writes[0].value.discard_reasons).toMatchObject({ "conteúdo adulto": 1 });
   });
 
   it("testa o lote real com categorias vazias sem gravar produtos, histórico ou índice", async () => {

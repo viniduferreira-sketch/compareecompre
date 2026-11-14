@@ -6,6 +6,7 @@ import { isAwinMerchantAllowed } from "./awin-allowlist";
 import { partnerDescription, partnerAttributes } from './product-content';
 import { classifyStoreProduct } from './store-product-filters';
 import { awinImages } from '../../scripts/awin-images.mjs';
+import { normalizeAwinCurrency } from './awin-currency';
 
 export const awinRowSchema = z.record(z.string().max(30000));
 export type AwinRow = z.infer<typeof awinRowSchema>;
@@ -45,7 +46,7 @@ export function awinDiscardReason(row: AwinRow, allowedMerchants?: readonly stri
   if (!httpUrl(row["aw_deep_link"])) return "invalid_affiliate_url";
   const price = amount(row["search_price"]);
   if (!price || price <= 0 || price > 1e9) return "invalid_price";
-  if (row["currency"] && row["currency"].toUpperCase() !== "BRL") return "unsupported_currency";
+  if (normalizeAwinCurrency(row["currency"]) !== "BRL") return "unsupported_currency";
   if (!/^[\w.-]{1,80}$/.test(externalId) || !/^[\w.-]{1,40}$/.test(merchantId)) return "invalid_id";
   return null;
 }

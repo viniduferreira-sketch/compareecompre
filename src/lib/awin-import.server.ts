@@ -6,6 +6,7 @@ import { authorizedAwinWorkflow, awinRowSchema, normalizeAwinProduct, awinDiscar
 import { awinRowPriority, awinRuleDiscard, findAwinRule, MERCHANT_LIMIT_REASON, type AwinMerchantRule } from "./awin-rules";
 import { normalizeAwinMerchantName } from "./awin-allowlist";
 import { addDiscard, type DiscardReasons } from "./import-discards";
+import { addCurrencyDiagnostic, type CurrencyDiagnostics } from './awin-currency';
 import { getAlgoliaIndexingConfig, ensureIdentifierFacets } from "./algolia-indexing.server";
 import { withAlgoliaConnectionRetry } from "./algolia-connection";
 import { enrichPopularity } from "./popularity.server";
@@ -59,13 +60,14 @@ async function readAwinBatchConfiguration(db: SupabaseClient<Database>): Promise
 function evaluateAwinBatch(rows: AwinRow[], configuration: AwinBatchConfiguration) {
   const { allowedMerchants, controls, rules } = configuration;
   const reasons: DiscardReasons = {};
+  const currencyDiagnostics: CurrencyDiagnostics = { counts: {}, examples: [] };
   // Pipeline order: allowlist → adult content → BRL → partner category → per-store limit.
   const candidates: EvaluatedCandidate[] = [];
   const syncedAt = new Date().toISOString();
   for (const row of rows) {
     if (controls.some((store) => storeMatches(store, { source: "awin", store: row["merchant_name"], merchant_id: row["merchant_id"] }) && !store.import_enabled)) { addDiscard(reasons, "merchant_not_allowed"); continue; }
     const reason = awinDiscardReason(row, allowedMerchants) ?? awinRuleDiscard(row, rules);
-    if (reason) { addDiscard(reasons, reason); continue; }
+    if (reason) { addDiscard(reasons, reason); if (reason === 'unsupported_currency') addCurrencyDiagnostic(currencyDiagnostics, row); continue; }
     const product = normalizeAwinProduct(row, syncedAt, allowedMerchants);
     const rule = findAwinRule(row, rules);
     if (!product || !rule) { addDiscard(reasons, "invalid_id"); continue; }
@@ -78,7 +80,7 @@ function evaluateAwinBatch(rows: AwinRow[], configuration: AwinBatchConfiguratio
   const byMerchant = new Map<string, EvaluatedCandidate[]>();
   for (const candidate of unique.values()) byMerchant.set(candidate.rule.merchant, [...(byMerchant.get(candidate.rule.merchant) ?? []), candidate]);
   for (const list of byMerchant.values()) list.sort((a, b) => b.priority - a.priority);
-  return { reasons, duplicates, byMerchant };
+  return { reasons, duplicates, byMerchant, currencyDiagnostics };
 }
 
 function batchCounts(rowCount: number, indexed: number, duplicates: number) {
@@ -104,10 +106,10 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
   }
   if (input.action === "testBatch") {
     const configuration = await readAwinBatchConfiguration(db);
-    const { reasons, duplicates, byMerchant } = evaluateAwinBatch(input.rows, configuration);
+    const { reasons, duplicates, byMerchant, currencyDiagnostics } = evaluateAwinBatch(input.rows, configuration);
     const acceptedByMerchant = Object.fromEntries([...byMerchant].map(([merchant, list]) => [merchant, list.length]));
     const indexed = [...byMerchant.values()].reduce((count, list) => count + list.length, 0);
-    return { dryRun: true as const, batch: input.batch, ...batchCounts(input.rows.length, indexed, duplicates), discardReasons: reasons, acceptedByMerchant };
+    return { dryRun: true as const, batch: input.batch, ...batchCounts(input.rows.length, indexed, duplicates), discardReasons: reasons, acceptedByMerchant, currencyDiagnostics };
   }
   if (input.action === "start") {
     // Clear only abandoned jobs, not catalog records. Workflow concurrency prevents simultaneous downloads.
@@ -171,7 +173,7 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
   if (previous.error) throw new Error("Não foi possível conferir o lote.");
   if (previous.data) return previous.data;
   const configuration = await readAwinBatchConfiguration(db);
-  const { reasons, duplicates, byMerchant } = evaluateAwinBatch(input.rows, configuration);
+  const { reasons, duplicates, byMerchant, currencyDiagnostics } = evaluateAwinBatch(input.rows, configuration);
   const products: AwinProduct[] = [];
   for (const [merchant, list] of byMerchant) {
     // Durable per-import, per-store counter; idempotent for retried batches.
@@ -189,7 +191,7 @@ export async function handleAwinImport(runId: string, input: z.infer<typeof impo
     await withAlgoliaConnectionRetry(({ client }) => client.saveObjects({ indexName, objects: enriched, waitForTasks: true, batchSize: 100 }), getAlgoliaIndexingConfig);
   }
   const counts = batchCounts(input.rows.length, products.length, duplicates);
-  const savedBatch = await db.from("catalog_import_batches").upsert({ import_id: job.id, batch: input.batch, ...counts, discard_reasons: reasons });
+  const savedBatch = await db.from("catalog_import_batches").upsert({ import_id: job.id, batch: input.batch, ...counts, discard_reasons: { ...reasons, currency_diagnostics: currencyDiagnostics } });
   if (savedBatch.error) throw new Error("Não foi possível registrar o progresso.");
   await db.from("catalog_imports").update({ updated_at: new Date().toISOString() }).eq("id", job.id);
   return counts;
