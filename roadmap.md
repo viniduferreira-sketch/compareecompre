@@ -1,8 +1,8 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
 ## Diagnóstico de moeda Awin LG
-- [ ] Registrar contagem por currency e três exemplos seguros por execução, sem alterar descartes históricos.
-- [ ] Aceitar somente BRL normalizado por espaços/maiúsculas; testar feed LG sem importar e validar painel.
+- [x] Registrar contagem por currency e três exemplos seguros nos lotes idempotentes e agregar no histórico administrativo; execuções antigas sem evidência permanecem explicitamente sem diagnóstico, sem inventar contagens.
+- [x] BRL normalizado por espaços/maiúsculas, sem conversão de outras moedas. Testes de moeda e leitor: 40 aprovados. Botão Testar autenticado LG: HTTP 200, gzip, 86 colunas, 200 linhas, USD:200; três exemplos reais search_price 3599.00, 25038.00 e 13510.71, todos currency USD. Resultado visual conferido, nenhuma importação iniciada; amostra atual não prova as 3.361 linhas históricas.
 
 ## Fotos e tipos de produto Stanley
 - [x] Resolver compartilhado prioriza aw_image_url, merchant_image_url, large_image, alternate_image, aw_thumb_url e merchant_thumb_url; normalização, galeria e prioridade do workflow usam as mesmas alternativas. Feed real tem 122 linhas: aw_image_url/merchant_image_url/alternate_image/aw_thumb_url preenchidas em todas, large_image/merchant_thumb_url vazias; 120 alternate_image_two. Todas as 122 fotos merchant_image_url respondem 410; aw_image_url e aw_thumb_url devolvem placeholder genérico 70x70, não foto real.
