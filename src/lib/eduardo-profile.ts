@@ -1,0 +1,3 @@
+export const EDUARDO_AUTHOR_ID = '0b8e75f4-90d1-4535-b9f4-69410d50e647';
+export const EDUARDO_BIO = 'Eduardo Ferreira é o criador do Compare e Compre. Compra quase tudo pela internet e criou o site depois de perder tempo visitando várias lojas para encontrar um produto, como uma camisa polo ou um fone de ouvido.';
+export function isEduardoAuthor(author: {id:string}) { return author.id === EDUARDO_AUTHOR_ID; }

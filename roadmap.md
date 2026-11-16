@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Apresentação e página de Eduardo Ferreira
+- [x] Sobre Nós com história fornecida em primeira pessoa, foto real do cadastro de autor, origem/atualização dos dados, comissão e e-mail preservado.
+- [x] Página do autor com bio cadastrada, artigos públicos paginados e três links por artigo (nome inicial, nome final e bio). Navegador confirmou ida/volta, foto carregada e celular sem overflow; páginas 1/2 e Sobre Nós HTTP 200 com HTML inicial, 11 testes e build OK. Aguarda publicação.
+
 ## Classificação e alternativas por tipo
 - [x] Corrigidos os 42 registros das duas lojas no catálogo e Algolia: 34 para Casa e oito sem categoria compatível; zero restantes em Eletrônicos. Normalizadores Awin/Lomadee usam evidência específica; não houve importação, exclusão ou alteração de links/disponibilidade.
 - [x] Alternativas exigem o mesmo tipo não genérico, ocultando casos incertos; placa MSI real mostrou quatro placas de vídeo, sem RAM/computadores. Desktop/celular sem overflow, 36 testes aprovados e build OK; nova regra de recomendações aguarda publicação.

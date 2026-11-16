@@ -24,6 +24,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SobreNosRouteImport } from './routes/sobre-nos'
 import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AutorEduardoFerreiraRouteImport } from './routes/autor.eduardo-ferreira'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
@@ -126,6 +127,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AutorEduardoFerreiraRoute = AutorEduardoFerreiraRouteImport.update({
+  id: '/autor/eduardo-ferreira',
+  path: '/autor/eduardo-ferreira',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/',
@@ -298,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/autor/eduardo-ferreira': typeof AutorEduardoFerreiraRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/loja/$slug': typeof LojaSlugRoute
@@ -340,6 +347,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
+  '/autor/eduardo-ferreira': typeof AutorEduardoFerreiraRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/loja/$slug': typeof LojaSlugRoute
@@ -385,6 +393,7 @@ export interface FileRoutesById {
   '/sobre-nos': typeof SobreNosRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/autor/eduardo-ferreira': typeof AutorEduardoFerreiraRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/loja/$slug': typeof LojaSlugRoute
@@ -431,6 +440,7 @@ export interface FileRouteTypes {
     | '/sobre-nos'
     | '/termos-de-uso'
     | '/admin'
+    | '/autor/eduardo-ferreira'
     | '/blog/$slug'
     | '/categoria/$slug'
     | '/loja/$slug'
@@ -473,6 +483,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sobre-nos'
     | '/termos-de-uso'
+    | '/autor/eduardo-ferreira'
     | '/blog/$slug'
     | '/categoria/$slug'
     | '/loja/$slug'
@@ -517,6 +528,7 @@ export interface FileRouteTypes {
     | '/sobre-nos'
     | '/termos-de-uso'
     | '/_authenticated/admin'
+    | '/autor/eduardo-ferreira'
     | '/blog/$slug'
     | '/categoria/$slug'
     | '/loja/$slug'
@@ -562,6 +574,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SobreNosRoute: typeof SobreNosRoute
   TermosDeUsoRoute: typeof TermosDeUsoRoute
+  AutorEduardoFerreiraRoute: typeof AutorEduardoFerreiraRoute
   CategoriaSlugRoute: typeof CategoriaSlugRoute
   LojaSlugRoute: typeof LojaSlugRoute
   ProdutoIdRoute: typeof ProdutoIdRoute
@@ -678,6 +691,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/autor/eduardo-ferreira': {
+      id: '/autor/eduardo-ferreira'
+      path: '/autor/eduardo-ferreira'
+      fullPath: '/autor/eduardo-ferreira'
+      preLoaderRoute: typeof AutorEduardoFerreiraRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/blog/': {
       id: '/blog/'
@@ -974,6 +994,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SobreNosRoute: SobreNosRoute,
   TermosDeUsoRoute: TermosDeUsoRoute,
+  AutorEduardoFerreiraRoute: AutorEduardoFerreiraRoute,
   CategoriaSlugRoute: CategoriaSlugRoute,
   LojaSlugRoute: LojaSlugRoute,
   ProdutoIdRoute: ProdutoIdRoute,
