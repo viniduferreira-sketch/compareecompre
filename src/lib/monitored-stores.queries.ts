@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { liteClient } from 'algoliasearch/lite';
+import { publicSearchClient } from './algolia-public';
 import { getPublicStores } from './partner-stores.functions';
 import { monitoredStores } from './monitored-stores';
 
@@ -11,7 +11,7 @@ export const monitoredStoresQuery = () => queryOptions({
     if (!appId || !key) throw new Error('A contagem de produtos está indisponível.');
     const [identities, response] = await Promise.all([
       getPublicStores(),
-      liteClient(appId, key).searchForHits({ requests: [{
+      publicSearchClient(appId, key).searchForHits({ requests: [{
         indexName: 'produtos_mercado_livre', query: '', hitsPerPage: 0, distinct: false,
         facets: ['store'], maxValuesPerFacet: 1000,
         filters: 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected" AND NOT site_hidden:true AND NOT price_review_status:"pending"',

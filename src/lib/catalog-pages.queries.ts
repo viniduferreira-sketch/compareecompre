@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { liteClient } from 'algoliasearch/lite';
+import { publicSearchClient } from './algolia-public';
 import { RELATED_VISIBILITY, relatedOffer, type RelatedHit } from './related-products';
 import { actualDiscount, filterCatalog, orderCatalog, selectCatalog, uniqueCatalog, DEALS_PAGE_SIZE, type CatalogSearch } from './catalog-pages';
 
@@ -9,7 +9,7 @@ async function readCatalog(q: string, deals: boolean) {
   const app = import.meta.env['VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID'];
   const key = import.meta.env['VITE_LOVABLE_CONNECTOR_ALGOLIA_PUBLIC_API_KEY'];
   if (!app || !key) throw new Error('A busca não está configurada.');
-  const client = liteClient(app, key);
+  const client = publicSearchClient(app, key);
   const read = async (min: number, max: number, depth = 0): Promise<RelatedHit[]> => {
     const { results } = await client.searchForHits<RelatedHit>({ requests: [{ indexName: INDEX, query: q.slice(0, 120), distinct: 1, hitsPerPage: 1000, attributesToRetrieve:['objectID','title','price','originalPrice','discountPercent','imageUrl','store','merchant_name','source','categoryName','category','brand','productType','audience','merchant_category','category_name','product_type','category_path','merchant_category_path','popularity_score','group_key','last_synced_at','affiliateUrl','aw_deep_link','storeLogoUrl','freeShipping'], filters: `${RELATED_VISIBILITY} AND price >= ${min} AND price < ${max}${deals ? ' AND discountPercent >= 10' : ''}` }] });
     const result = results[0];

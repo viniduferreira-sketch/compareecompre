@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { liteClient } from 'algoliasearch/lite';
+import { publicSearchClient } from '@/lib/algolia-public';
 import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductImage } from '@/components/marketplace/ProductImage';
@@ -30,7 +30,7 @@ async function fetchBlogOffers(directive: BlogProductDirective): Promise<Offer[]
     ...(directive.category ? [[`categoryName:${directive.category}`]] : []),
     ...(directive.store ? [[`store:${directive.store}`]] : []),
   ];
-  const { results } = await liteClient(app, key).searchForHits<RelatedHit>({ requests: [{
+  const { results } = await publicSearchClient(app, key).searchForHits<RelatedHit>({ requests: [{
     indexName: INDEX, query: directive.query, hitsPerPage: 100, distinct: 1, filters,
     ...(facetFilters.length ? { facetFilters } : {}), attributesToRetrieve: ATTRIBUTES,
   }] });

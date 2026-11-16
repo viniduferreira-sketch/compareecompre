@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Falha na busca e nos produtos do blog
+- [x] Publicado reproduziu HTTP 500 e XMLHttpRequest is not defined antes de consultar Algolia; cliente público compartilhado usa requester Fetch oficial, sem alterar buscas/filtros ou criar proxy.
+- [x] Prévia: air fryer 105 resultados e câmera de segurança 6; 27 testes passaram e build OK. Artigo consulta Algolia com HTTP 200, mas seus quatro filtros específicos (wifi/360/externa e preços) retornam zero produtos; blocos corretamente ocultos, sem ampliar critérios ou inventar resultados. Correção publicada depende de publicação.
+
 ## Diagnóstico de moeda Awin LG
 - [x] Registrar contagem por currency e três exemplos seguros nos lotes idempotentes e agregar no histórico administrativo; execuções antigas sem evidência permanecem explicitamente sem diagnóstico, sem inventar contagens.
 - [x] BRL normalizado por espaços/maiúsculas, sem conversão de outras moedas. Testes de moeda e leitor: 40 aprovados. Botão Testar autenticado LG: HTTP 200, gzip, 86 colunas, 200 linhas, USD:200; três exemplos reais search_price 3599.00, 25038.00 e 13510.71, todos currency USD. Resultado visual conferido, nenhuma importação iniciada; amostra atual não prova as 3.361 linhas históricas.

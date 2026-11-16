@@ -1,4 +1,4 @@
-import { liteClient } from "algoliasearch/lite";
+import { publicSearchClient } from './algolia-public';
 import { z } from "zod";
 import { selectVisibleOffers } from "./offer-freshness";
 import { interleaveByStore } from "./storefront-mix";
@@ -35,7 +35,7 @@ function getAlgoliaConfig() {
   const applicationId = import.meta.env["VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID"];
   const apiKey = import.meta.env["VITE_LOVABLE_CONNECTOR_ALGOLIA_PUBLIC_API_KEY"];
   if (!applicationId || !apiKey) throw new Error("A busca inteligente não está configurada.");
-  const client = liteClient(applicationId, apiKey);
+  const client = publicSearchClient(applicationId, apiKey);
   return {
     indexName: INDEX_NAME,
     client: {

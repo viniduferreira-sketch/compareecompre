@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { liteClient } from 'algoliasearch/lite';
+import { publicSearchClient } from './algolia-public';
 import { publicShowcases } from './home-showcases.functions';
 import { categoryBySlug } from './category-pages';
 import { GAMES_EXCLUDED_TERMS, selectShowcase } from './home-showcases';
@@ -18,7 +18,7 @@ export const homeShowcasesQuery = () => queryOptions({
     const app = import.meta.env['VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID'];
     const key = import.meta.env['VITE_LOVABLE_CONNECTOR_ALGOLIA_PUBLIC_API_KEY'];
     if (!app || !key) return [];
-    const client = liteClient(app, key);
+    const client = publicSearchClient(app, key);
     const filtersFor = (showcase: (typeof showcases)[number]) => RELATED_VISIBILITY + (showcase.min_price !== null ? ` AND price >= ${showcase.min_price}` : '') + (showcase.max_price !== null ? ` AND price <= ${showcase.max_price}` : '');
     const categoriesFor = (showcase: (typeof showcases)[number]) => showcase.category_slug === 'all' ? [] : [`categoryName:${categoryBySlug(showcase.category_slug)?.name ?? ''}`];
     try {

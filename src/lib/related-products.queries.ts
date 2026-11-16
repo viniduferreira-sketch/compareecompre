@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { liteClient } from 'algoliasearch/lite';
+import { publicSearchClient } from './algolia-public';
 import { getPublicStores } from './partner-stores.functions';
 import { selectVisibleOffers } from './offer-freshness';
 import { RELATED_CONFIG, RELATED_VISIBILITY, selectRelated, type RelatedHit } from './related-products';
@@ -9,7 +9,7 @@ function config() {
   const appId = import.meta.env['VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID'];
   const key = import.meta.env['VITE_LOVABLE_CONNECTOR_ALGOLIA_PUBLIC_API_KEY'];
   if (!appId || !key) throw new Error('Produtos relacionados indisponíveis.');
-  return { appId, key, client: liteClient(appId, key) };
+  return { appId, key, client: publicSearchClient(appId, key) };
 }
 export const relatedCurrentQuery = (id: string) => queryOptions({
   queryKey: ['related-current', id], staleTime: 300000,
