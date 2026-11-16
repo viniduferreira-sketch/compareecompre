@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Busca publicada e blocos monitor/cafeteira
+- [x] Logs publicados: Worker exceeded memory limit em ambas as buscas; loader carregava o catálogo inteiro para fallback. Busca agora solicita uma página de 24 e oito populares em cache, preservando filtros/ordenação/URL e sem proxy. Prévia: ambas HTTP 200, página 2, menor preço e loja KaBuM confirmados.
+- [x] Artigos usavam o mesmo cliente Fetch, mas rotina distinta e limitada, sem o carregamento integral. Agora compartilham searchPublicProducts; publicados já retornavam candidatos ao rolar. Prévia confirmou dois blocos/4 links de loja no monitor e dois blocos/8 no cafeteira; termos completos excluem caneleira/cabeceira sem alterar preços/categorias editoriais. Blocos com menos de dois elegíveis continuam ocultos. 24 testes, build OK; correção ao vivo depende de publicação. Aviso preexistente de hidratação provocado por anúncio Google não alterado.
+
 ## Conteúdo público e preferências de cookies
 - [x] Remover seção de alertas da home e link do rodapé sem excluir inscritos; remover menções ao histórico nas introduções de categoria.
 - [x] Atualizar política em 16/11/2026 com AdSense, link oficial e medições Lovable verificadas; painel único com aceitar/recusar/gerenciar, banner inicial e sinais Google conectados, preservando escolhas.

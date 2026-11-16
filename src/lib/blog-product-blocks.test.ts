@@ -40,6 +40,12 @@ describe('blog product directives', () => {
 });
 
 describe('blog offer selection', () => {
+  it('does not show caneleiras or cabeceiras in a cafeteira block', () => {
+    const directive = parseBlogProductDirective('produtos', 'busca="cafeteira" qtd=3');
+    if (!directive) throw new Error('directive');
+    const offers = selectBlogOffers([hit('wrong', 'Nike', 119, 100, 'Caneleira Nike'), hit('bed', 'Móveis', 199, 99, 'Mesa de Cabeceira'), hit('coffee', 'A', 200, 50, 'Cafeteira Elétrica')], directive);
+    expect(offers.map(offer => offer.id)).toEqual(['coffee']);
+  });
   it('sorts by popularity, excludes terms and enforces the default minimum price', () => {
     const directive = parseBlogProductDirective('produtos', 'excluir="capa" qtd=3');
     if (!directive || directive.kind !== 'products') throw new Error('directive');

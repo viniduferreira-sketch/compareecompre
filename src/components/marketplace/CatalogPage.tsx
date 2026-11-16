@@ -11,16 +11,30 @@ import { PRODUCT_CATEGORIES, categorySlug } from '@/lib/category-pages';
 import { relatedOffer } from '@/lib/related-products';
 import { orderCatalog } from '@/lib/catalog-pages';
 import type { OfferSort } from '@/lib/search-offers';
+import { popularSearchProductsQuery, searchPageQuery } from '@/lib/search-page.queries';
+import type { RelatedHit } from '@/lib/related-products';
 
 export function CatalogError() { const router = useRouter(); return <main className="mx-auto max-w-3xl px-5 py-20"><h1 className="text-2xl font-bold">Não foi possível carregar os produtos</h1><Button className="mt-5" onClick={() => { void router.invalidate(); }}>Tentar novamente</Button></main>; }
 export function CatalogPage({ search, deals, guidePublished=false }: { search: CatalogSearch; deals: boolean; guidePublished?: boolean }) {
-  const navigate = useNavigate();
-  const path = deals ? '/ofertas' : '/busca';
+  return deals ? <DealsCatalogPage search={search} guidePublished={guidePublished}/> : <PagedSearchPage search={search}/>;
+}
+function PagedSearchPage({ search }: { search: CatalogSearch }) {
+  const { data } = useSuspenseQuery(searchPageQuery(search));
+  const { data: popular } = useSuspenseQuery(popularSearchProductsQuery());
+  return <CatalogView search={search} deals={false} data={data} popular={popular}/>;
+}
+function DealsCatalogPage({ search, guidePublished=false }: { search: CatalogSearch; guidePublished?: boolean }) {
+  const deals = true;
   const { data: hits } = useSuspenseQuery(catalogSourceQuery(deals ? '' : search.q ?? '', deals));
   const { data: popular } = useSuspenseQuery(catalogSourceQuery());
   const initial = catalogResult(hits, search, deals);
   const fallback = deals && initial.paging.total === 0;
   const data = fallback ? catalogResult(popular, { pagina: 1, ordem: 'mais-populares' }, false) : initial;
+  return <CatalogView search={search} deals data={data} popular={popular} fallback={fallback} guidePublished={guidePublished}/>;
+}
+function CatalogView({ search, deals, data, popular, fallback=false, guidePublished=false }: { search: CatalogSearch; deals: boolean; data: ReturnType<typeof catalogResult>; popular: RelatedHit[]; fallback?: boolean; guidePublished?: boolean }) {
+  const navigate = useNavigate();
+  const path = deals ? '/ofertas' : '/busca';
   const update = (patch: Partial<CatalogSearch>) => { void navigate({ to: path, search: { ...search, ...patch } }); };
   const active: ActiveFilter[] = ['loja', 'marca', 'frete'].flatMap(key => { const value = search[key as keyof CatalogSearch]; return typeof value === 'string' ? [{id:key==='loja'?'store':key==='marca'?'brand':'freeShipping',value:data.availableFilters.find(f=>f.id===(key==='loja'?'store':'brand'))?.values.find(v=>categorySlug(v.id).replace(/-br$/,'')===categorySlug(value))?.id??value}] : []; });
   const sort = search.ordem === 'menor-preco' ? 'price_asc' : search.ordem === 'maior-desconto' || (deals && !search.ordem) ? 'discount' : 'relevance';

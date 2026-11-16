@@ -88,6 +88,11 @@ export function selectBlogOffers(hits: RelatedHit[], directive: BlogProductDirec
   const ordered = isSingle ? hits : [...hits].sort((a, b) => (b.popularity_score ?? 0) - (a.popularity_score ?? 0));
   for (const hit of ordered) {
     if (isSingle && hit.objectID !== directive.id) continue;
+    if (!isSingle) {
+      const words = normalize(directive.query).match(/[a-z0-9]+/g) ?? [];
+      const titleWords = new Set(normalize(hit.title).match(/[a-z0-9]+/g) ?? []);
+      if (!words.every(word => titleWords.has(word))) continue;
+    }
     if (!visible(hit, minPrice, maxPrice)) continue;
     if (excluded.some(term => normalize(hit.title).includes(term))) continue;
     const offer = relatedOffer(hit);

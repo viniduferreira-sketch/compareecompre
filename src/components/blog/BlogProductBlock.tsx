@@ -1,19 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { publicSearchClient } from '@/lib/algolia-public';
+import { searchPublicProducts, PUBLIC_PRODUCT_INDEX } from '@/lib/public-product-search';
 import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductImage } from '@/components/marketplace/ProductImage';
 import { formatBRL } from '@/components/marketplace/OfferCard';
 import { blogProductBlockVisible, selectBlogOffers, type BlogProductDirective } from '@/lib/blog-product-blocks';
-import { RELATED_VISIBILITY, type RelatedHit } from '@/lib/related-products';
+import { type RelatedHit } from '@/lib/related-products';
 import { recordOutboundClick } from '@/lib/outbound-clicks';
 import type { Offer } from '@/lib/search-offers.functions';
-
-const INDEX = 'produtos_mercado_livre';
-const ATTRIBUTES = ['objectID','title','price','originalPrice','discountPercent','imageUrl','store','merchant_name','loja','source','categoryName','category','brand','popularity_score','group_key','last_synced_at','affiliateUrl','aw_deep_link','storeLogoUrl','merchant_logo','store_logo','freeShipping','status','quality_status','site_hidden','price_review_status'];
-const escapeFilter = (value: string) => value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 
 async function fetchBlogOffers(directive: BlogProductDirective): Promise<Offer[]> {
   const app = import.meta.env['VITE_LOVABLE_CONNECTOR_ALGOLIA_APPLICATION_ID'];
@@ -22,20 +18,15 @@ async function fetchBlogOffers(directive: BlogProductDirective): Promise<Offer[]
   if (directive.kind === 'product') {
     // Only this uncommon directive loads the full client; normal article searches stay on the lite bundle.
     const { algoliasearch } = await import('algoliasearch');
-    const hit = await algoliasearch(app, key).getObject<RelatedHit>({ indexName: INDEX, objectID: directive.id });
+    const hit = await algoliasearch(app, key).getObject<RelatedHit>({ indexName: PUBLIC_PRODUCT_INDEX, objectID: directive.id });
     return selectBlogOffers([hit], directive);
   }
-  const filters = [RELATED_VISIBILITY, `price >= ${directive.minPrice}`, ...(directive.maxPrice !== null ? [`price <= ${directive.maxPrice}`] : [])].join(' AND ');
+  const filters = [`price >= ${directive.minPrice}`, ...(directive.maxPrice !== null ? [`price <= ${directive.maxPrice}`] : [])].join(' AND ');
   const facetFilters = [
     ...(directive.category ? [[`categoryName:${directive.category}`]] : []),
     ...(directive.store ? [[`store:${directive.store}`]] : []),
   ];
-  const { results } = await publicSearchClient(app, key).searchForHits<RelatedHit>({ requests: [{
-    indexName: INDEX, query: directive.query, hitsPerPage: 100, distinct: 1, filters,
-    ...(facetFilters.length ? { facetFilters } : {}), attributesToRetrieve: ATTRIBUTES,
-  }] });
-  const result = results[0];
-  if (!result) throw new Error('Não foi possível carregar os produtos.');
+  const result = await searchPublicProducts({ query: directive.query, limit: 100, filters, facetFilters });
   return selectBlogOffers(result.hits, directive);
 }
 
