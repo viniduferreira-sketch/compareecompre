@@ -14,7 +14,7 @@ export const Route = createFileRoute('/como-comparamos')({
 const steps = [
   { icon: Download, title: 'Reunimos as ofertas', text: 'Recebemos produtos e preços das lojas parceiras por integrações oficiais, como APIs e catálogos de produtos.' },
   { icon: Layers, title: 'Organizamos', text: 'Padronizamos os dados disponíveis de nome, marca, categoria e imagem. Nas lojas com agrupamento ativado, reunimos tamanhos do mesmo produto e cor em um cartão, sem misturar lojas diferentes.' },
-  { icon: ShieldCheck, title: 'Conferimos', text: 'Preços abaixo de R$ 5 ou de 20% da mediana de produtos semelhantes ficam ocultos até revisão. Bloqueamos conteúdo adulto nas importações. No Mercado Livre, revalidamos a disponibilidade; a avaliação extra de reputação, procura e preço ainda funciona como simulação administrativa, não como selo de aprovação.' },
+  { icon: ShieldCheck, title: 'Conferimos', text: 'Preços abaixo de R$ 5 ou de 20% da mediana de produtos semelhantes ficam ocultos até revisão. Bloqueamos conteúdo adulto nas importações. No Mercado Livre, revalidamos a disponibilidade dos produtos.' },
   { icon: ShoppingBag, title: 'Mostramos para você', text: 'Você ordena por Mais populares, Menor preço ou Maior preço. Ao clicar em Ir para a loja, finaliza a compra no site da loja.' },
 ];
 function ComparisonPage() {
