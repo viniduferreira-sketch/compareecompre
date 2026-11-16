@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Acesso direto às páginas de loja
+- [x] Excesso de memória confirmado nos logs publicados em Nike e Mais Mu; lojas agora solicitam 24 hits por página, facetas/contagens sem produtos e guias das categorias predominantes, com cache de cinco minutos, sem carregar catálogo completo.
+- [x] Todas as 125 lojas públicas abriram diretamente com HTTP 200 e HTML inicial na prévia, incluindo os seis endereços relatados. Filtros Adidas por tênis/feminino, Stanley por copo térmico, página 2 e ordens de preço validados; guias ausentes na página 2 e celular sem overflow. 19 testes aprovados e build OK. Confirmação no domínio publicado depende de publicar; nenhuma importação ou alteração de registros.
+
 ## Apresentação e página de Eduardo Ferreira
 - [x] Sobre Nós com história fornecida em primeira pessoa, foto real do cadastro de autor, origem/atualização dos dados, comissão e e-mail preservado.
 - [x] Página do autor com bio cadastrada, artigos públicos paginados e três links por artigo (nome inicial, nome final e bio). Navegador confirmou ida/volta, foto carregada e celular sem overflow; páginas 1/2 e Sobre Nós HTTP 200 com HTML inicial, 11 testes e build OK. Aguarda publicação.
