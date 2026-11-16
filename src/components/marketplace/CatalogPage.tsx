@@ -5,7 +5,8 @@ import { SiteFooter } from './SiteFooter';
 import { SearchResults, type ActiveFilter } from './OfferResults';
 import { OfferCard } from './OfferCard';
 import { Button } from '@/components/ui/button';
-import { catalogSourceQuery, catalogResult } from '@/lib/catalog-pages.queries';
+import type { catalogResult } from '@/lib/catalog-pages.queries';
+import { dealsPageQuery } from '@/lib/deals-page.queries';
 import { catalogHref, type CatalogSearch } from '@/lib/catalog-pages';
 import { PRODUCT_CATEGORIES, categorySlug } from '@/lib/category-pages';
 import { relatedOffer } from '@/lib/related-products';
@@ -24,12 +25,10 @@ function PagedSearchPage({ search }: { search: CatalogSearch }) {
   return <CatalogView search={search} deals={false} data={data} popular={popular}/>;
 }
 function DealsCatalogPage({ search, guidePublished=false }: { search: CatalogSearch; guidePublished?: boolean }) {
-  const deals = true;
-  const { data: hits } = useSuspenseQuery(catalogSourceQuery(deals ? '' : search.q ?? '', deals));
-  const { data: popular } = useSuspenseQuery(catalogSourceQuery());
-  const initial = catalogResult(hits, search, deals);
-  const fallback = deals && initial.paging.total === 0;
-  const data = fallback ? catalogResult(popular, { pagina: 1, ordem: 'mais-populares' }, false) : initial;
+  const { data: initial } = useSuspenseQuery(dealsPageQuery(search));
+  const { data: popular } = useSuspenseQuery(popularSearchProductsQuery());
+  const fallback = initial.paging.total === 0;
+  const data = fallback ? { ...initial, offers: popular.map(relatedOffer), paging: { total: popular.length, limit: 24, offset: 0 } } : initial;
   return <CatalogView search={search} deals data={data} popular={popular} fallback={fallback} guidePublished={guidePublished}/>;
 }
 function CatalogView({ search, deals, data, popular, fallback=false, guidePublished=false }: { search: CatalogSearch; deals: boolean; data: ReturnType<typeof catalogResult>; popular: RelatedHit[]; fallback?: boolean; guidePublished?: boolean }) {

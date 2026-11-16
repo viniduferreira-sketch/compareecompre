@@ -6,3 +6,4 @@
 - Category guide reads use the explicit editorial-category registry and published-date filters, selecting four category posts plus both public general guides in the existing SSR editorial query to avoid separate client fetching.
 - Awin normalization and workflow priority share the ordered six-column image resolver, preserving alternatives; store types use explicit title prefixes when real feed taxonomy is absent.
 - Cookie preferences delegate purpose answers and Google signals to the shared consent module; preserve legacy choices through the existing wrapper and never reset the global consent queue when disabling GA.
+- Offers SSR uses a bounded public-key page and eight cached popular fallback products, never catalogSourceQuery; this keeps direct requests within Worker memory limits.

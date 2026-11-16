@@ -1,13 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { catalogSearch, dealsCanonical } from '@/lib/catalog-pages';
-import { catalogSourceQuery, catalogResult } from '@/lib/catalog-pages.queries';
+import { dealsPageQuery } from '@/lib/deals-page.queries';
+import { popularSearchProductsQuery } from '@/lib/search-page.queries';
+import { relatedOffer } from '@/lib/related-products';
 import { CatalogPage, CatalogError } from '@/components/marketplace/CatalogPage';
 import { getPublicBlogArticle } from '@/lib/blog-public.functions';
 import { useSuspenseQuery, queryOptions } from '@tanstack/react-query';
 const guideQuery=()=>queryOptions({queryKey:['offers-published-guide'],queryFn:async()=>Boolean(await getPublicBlogArticle({data:{slug:'desconto-real'}})),staleTime:300000});
 export const Route = createFileRoute('/ofertas')({
   staticData:{sitemap:true}, validateSearch:catalogSearch, loaderDeps:({search})=>search,
-  loader:async({context,deps})=>{const [hits,popular,guide]=await Promise.all([context.queryClient.ensureQueryData(catalogSourceQuery('',true)),context.queryClient.ensureQueryData(catalogSourceQuery()),context.queryClient.ensureQueryData(guideQuery())]);const result=catalogResult(hits,deps,true);return {offers:result.paging.total?result.offers:catalogResult(popular,{pagina:1},false).offers,guide};},
+  loader:async({context,deps})=>{const [result,popular,guide]=await Promise.all([context.queryClient.ensureQueryData(dealsPageQuery(deps)),context.queryClient.ensureQueryData(popularSearchProductsQuery()),context.queryClient.ensureQueryData(guideQuery())]);return {offers:result.paging.total?result.offers:popular.map(relatedOffer),guide};},
   head:({match,loaderData})=>{const title='Ofertas e descontos em lojas parceiras | Compare e Compre',description='Confira produtos com desconto sobre o preço anterior informado pelas lojas parceiras. Filtre por preço e categoria e vá ao site da loja para comprar.',url=dealsCanonical(match.search);return {meta:[{title},{name:'description',content:description},{property:'og:title',content:title},{property:'og:description',content:description},{property:'og:type',content:'website'},{property:'og:url',content:url},{name:'twitter:card',content:'summary_large_image'}],links:[{rel:'canonical',href:url}],scripts:[{type:'application/ld+json',children:JSON.stringify({'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Início',item:'https://compareecompre.com'},{'@type':'ListItem',position:2,name:'Ofertas',item:'https://compareecompre.com/ofertas'}]})},{type:'application/ld+json',children:JSON.stringify({'@context':'https://schema.org','@type':'ItemList',itemListElement:(loaderData?.offers??[]).map((offer,i)=>({'@type':'ListItem',position:((match.search.pagina??1)-1)*24+i+1,url:`https://compareecompre.com/produto/${encodeURIComponent(offer.id)}`,name:offer.title}))})}]};},
   component:OffersPage,errorComponent:CatalogError,notFoundComponent:CatalogError,
 });

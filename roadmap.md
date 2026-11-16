@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Acesso direto a ofertas
+- [x] Logs publicados confirmaram Worker exceeded memory limit em /ofertas. Leitura integral substituída por 24 candidatos por página, facetas sem produtos e oito populares em cache de cinco minutos, sem alterar registros ou importações.
+- [x] Prévia abriu diretamente /ofertas, página 2, menor preço e Eletrônicos/KaBuM com HTTP 200; primeira página trouxe 24 produtos no HTML inicial (147 KB), celular sem overflow, 14 testes e build OK. Confirmação no domínio publicado depende da publicação.
+
 ## Lojas públicas com produtos
 - [x] Diretório e home usam a mesma seleção com pelo menos um produto visível, facetas distinct e cache de cinco minutos. Páginas vazias continuam HTTP 200 com noindex, follow; sitemap exclui essas lojas automaticamente, sem alteração de registros.
 - [x] Prévia confirmou 41 lojas no diretório/home/sitemap (84 vazias removidas), LG/Mais Mu noindex e fora do XML, Nike/KaBuM preservadas. Seleção vazia por filtro não desindexa loja com produtos; 21 testes aprovados incluem retorno automático com o primeiro produto. Celular sem overflow; nenhuma importação. Mudanças aguardam publicação.
