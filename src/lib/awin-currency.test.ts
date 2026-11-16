@@ -9,7 +9,16 @@ describe('moeda Awin sem conversão', () => {
     expect(awinDiscardReason({ ...row, currency })).toBeNull();
     expect(normalizeAwinProduct({ ...row, currency }, '2026-11-14T00:00:00Z')?.price).toBe(1099.90);
   });
-  it.each(['USD', ' EUR ', '', '  ', 'R$', 'BRL USD'])('descarta %j sem tratar como reais', currency => {
+  it.each(['', '  ', '\t\n'])('preserva moeda vazia %j sem alterar o preço', currency => {
+    expect(awinDiscardReason({ ...row, currency })).toBeNull();
+    expect(normalizeAwinProduct({ ...row, currency }, '2026-11-14T00:00:00Z')?.price).toBe(1099.90);
+  });
+  it('preserva feeds sem coluna currency', () => {
+    const { currency: _currency, ...withoutCurrency } = row;
+    expect(awinDiscardReason(withoutCurrency)).toBeNull();
+    expect(normalizeAwinProduct(withoutCurrency, '2026-11-14T00:00:00Z')?.price).toBe(1099.90);
+  });
+  it.each(['USD', 'usd', ' EUR ', 'R$', 'BRL USD'])('descarta %j sem tratar como reais', currency => {
     expect(awinDiscardReason({ ...row, currency })).toBe('unsupported_currency');
     expect(normalizeAwinProduct({ ...row, currency }, '2026-11-14T00:00:00Z')).toBeNull();
   });

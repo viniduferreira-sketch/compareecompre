@@ -46,7 +46,9 @@ export function awinDiscardReason(row: AwinRow, allowedMerchants?: readonly stri
   if (!httpUrl(row["aw_deep_link"])) return "invalid_affiliate_url";
   const price = amount(row["search_price"]);
   if (!price || price <= 0 || price > 1e9) return "invalid_price";
-  if (normalizeAwinCurrency(row["currency"]) !== "BRL") return "unsupported_currency";
+  // Preserve feeds that omit currency; only an explicit non-BRL value is rejected.
+  const currency = normalizeAwinCurrency(row["currency"]);
+  if (currency && currency !== "BRL") return "unsupported_currency";
   if (!/^[\w.-]{1,80}$/.test(externalId) || !/^[\w.-]{1,40}$/.test(merchantId)) return "invalid_id";
   return null;
 }
