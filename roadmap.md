@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Lojas públicas com produtos
+- [x] Diretório e home usam a mesma seleção com pelo menos um produto visível, facetas distinct e cache de cinco minutos. Páginas vazias continuam HTTP 200 com noindex, follow; sitemap exclui essas lojas automaticamente, sem alteração de registros.
+- [x] Prévia confirmou 41 lojas no diretório/home/sitemap (84 vazias removidas), LG/Mais Mu noindex e fora do XML, Nike/KaBuM preservadas. Seleção vazia por filtro não desindexa loja com produtos; 21 testes aprovados incluem retorno automático com o primeiro produto. Celular sem overflow; nenhuma importação. Mudanças aguardam publicação.
+
 ## Acesso direto às páginas de loja
 - [x] Excesso de memória confirmado nos logs publicados em Nike e Mais Mu; lojas agora solicitam 24 hits por página, facetas/contagens sem produtos e guias das categorias predominantes, com cache de cinco minutos, sem carregar catálogo completo.
 - [x] Todas as 125 lojas públicas abriram diretamente com HTTP 200 e HTML inicial na prévia, incluindo os seis endereços relatados. Filtros Adidas por tênis/feminino, Stanley por copo térmico, página 2 e ordens de preço validados; guias ausentes na página 2 e celular sem overflow. 19 testes aprovados e build OK. Confirmação no domínio publicado depende de publicar; nenhuma importação ou alteração de registros.

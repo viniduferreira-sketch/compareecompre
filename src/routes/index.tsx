@@ -8,8 +8,7 @@ import { HeroCarousel } from "@/components/marketplace/HeroCarousel";
 import { SearchResults, type ActiveFilter } from "@/components/marketplace/OfferResults";
 import {categoryByName,categoryHref} from "@/lib/category-pages";
 import {storeSlug} from '@/lib/store-pages';
-import { catalogSourceQuery } from '@/lib/catalog-pages.queries';
-import { storeProductCounts } from '@/lib/store-product-counts';
+import { monitoredStoresQuery } from '@/lib/monitored-stores.queries';
 import { PopularCategories } from "@/components/marketplace/PopularCategories";
 import { ProductRail } from "@/components/marketplace/ProductRail";
 import { SiteFooter } from "@/components/marketplace/SiteFooter";
@@ -98,9 +97,8 @@ function Home() {
   const homeOffers = useQuery({
     queryKey: ["offers", "home"],
     queryFn: async () => {
-      const [home, products] = await Promise.all([loadHome(), queryClient.ensureQueryData(catalogSourceQuery())]);
-      const counts = storeProductCounts(products);
-      return { ...home, stores: home.stores.map(store => ({ ...store, count: counts.get(store.searchName ?? store.name) ?? 0 })) };
+      const [home, stores] = await Promise.all([loadHome(), queryClient.ensureQueryData(monitoredStoresQuery())]);
+      return { ...home, stores: stores.map(store => ({ ...store, description: store.description ?? '', registered: true })) };
     },
     enabled: !isSearching,
     staleTime: 15 * 60 * 1000,

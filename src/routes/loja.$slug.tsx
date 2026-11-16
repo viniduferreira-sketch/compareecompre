@@ -10,6 +10,7 @@ import { storePageSearch, storeCanonical, storeHref, storeDescription } from '@/
 import { categorySlug } from '@/lib/category-pages';
 import { CategoryEditorial } from '@/components/marketplace/CategoryEditorial';
 import { showCategoryContent } from '@/lib/category-content';
+import { storeHasProducts } from '@/lib/monitored-stores';
 
 export const Route=createFileRoute('/loja/$slug')({
  staticData:{sitemap:true},validateSearch:storePageSearch,loaderDeps:({search})=>search,
@@ -20,7 +21,7 @@ export const Route=createFileRoute('/loja/$slug')({
   let description=`Compare preços e ofertas de ${store.name} com outras lojas. ${count} produtos monitorados, com filtros por categoria e marca. Vá direto ao site da loja para comprar.`;
   if(description.length>160)description=`Compare ofertas de ${store.name}. ${count} produtos monitorados, com filtros por categoria e marca. Compre direto na loja.`;
   const url=storeCanonical(params.slug,match.search),origin='https://compareecompre.com';
-  return {meta:[{title},{name:'description',content:description.slice(0,160)},{property:'og:title',content:title},{property:'og:description',content:description.slice(0,160)},{property:'og:type',content:'website'},{property:'og:url',content:url},{name:'twitter:card',content:'summary_large_image'}],links:[{rel:'canonical',href:url}],scripts:[{type:'application/ld+json',children:JSON.stringify({'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[{name:'Início',item:origin},{name:'Lojas monitoradas',item:origin+'/lojas-monitoradas'},{name:store.name,item:origin+storeHref(params.slug)}].map((item,i)=>({'@type':'ListItem',position:i+1,...item}))})},{type:'application/ld+json',children:JSON.stringify({'@context':'https://schema.org','@type':'ItemList',itemListElement:result.offers.map((o,i)=>({'@type':'ListItem',position:((match.search.pagina??1)-1)*24+i+1,name:o.title,url:origin+'/produto/'+encodeURIComponent(o.id)}))})}]};
+  return {meta:[{title},{name:'description',content:description.slice(0,160)},{property:'og:title',content:title},{property:'og:description',content:description.slice(0,160)},{property:'og:type',content:'website'},{property:'og:url',content:url},{name:'twitter:card',content:'summary_large_image'},...(!storeHasProducts(count)?[{name:'robots',content:'noindex, follow'}]:[])],links:[{rel:'canonical',href:url}],scripts:[{type:'application/ld+json',children:JSON.stringify({'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[{name:'Início',item:origin},{name:'Lojas monitoradas',item:origin+'/lojas-monitoradas'},{name:store.name,item:origin+storeHref(params.slug)}].map((item,i)=>({'@type':'ListItem',position:i+1,...item}))})},{type:'application/ld+json',children:JSON.stringify({'@context':'https://schema.org','@type':'ItemList',itemListElement:result.offers.map((o,i)=>({'@type':'ListItem',position:((match.search.pagina??1)-1)*24+i+1,name:o.title,url:origin+'/produto/'+encodeURIComponent(o.id)}))})}]};
  },
  component:StorePage,
  errorComponent:()=>{const router=useRouter();return <main className="mx-auto max-w-3xl px-5 py-20"><h1 className="text-2xl font-bold">Não foi possível carregar a loja</h1><Button className="mt-5" onClick={()=>{void router.invalidate();}}>Tentar novamente</Button></main>;},

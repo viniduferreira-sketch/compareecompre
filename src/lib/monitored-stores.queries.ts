@@ -12,7 +12,7 @@ export const monitoredStoresQuery = () => queryOptions({
     const [identities, response] = await Promise.all([
       getPublicStores(),
       publicSearchClient(appId, key).searchForHits({ requests: [{
-        indexName: 'produtos_mercado_livre', query: '', hitsPerPage: 0, distinct: false,
+        indexName: 'produtos_mercado_livre', query: '', hitsPerPage: 0, distinct: 1, facetingAfterDistinct: true,
         facets: ['store'], maxValuesPerFacet: 1000,
         filters: 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected" AND NOT site_hidden:true AND NOT price_review_status:"pending"',
       }] }),

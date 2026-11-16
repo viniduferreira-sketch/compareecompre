@@ -9,7 +9,8 @@ import {
 } from "@/lib/sitemap";
 
 import {PRODUCT_CATEGORIES} from '@/lib/category-pages';
-import {storeSlug} from '@/lib/store-pages';
+import { monitoredStores } from '@/lib/monitored-stores';
+import { searchPublicProducts } from '@/lib/public-product-search';
 import { PRODUCT_SEO_ATTRIBUTES, productIndexability } from '@/lib/product-indexability';
 
 const PRODUCT_ROUTE_ID = "/produto/$id";
@@ -25,7 +26,10 @@ export const Route = createFileRoute("/sitemap.xml")({
 
         for(const category of PRODUCT_CATEGORIES)entries.push({path:`/categoria/${category.slug}`});
         const {readPublicStoreIdentities}=await import('@/lib/public-store-identities.server');
-        for(const store of Object.values(await readPublicStoreIdentities()))entries.push({path:`/loja/${storeSlug(store.name)}`});
+        const [storeIdentities, storeCounts] = await Promise.all([
+          readPublicStoreIdentities(), searchPublicProducts({limit:0,facets:['store']}),
+        ]);
+        for(const store of monitoredStores(storeIdentities,storeCounts.facets?.['store']??{}))entries.push({path:store.href});
 
         // Same persisted evidence and availability policy as product SSR metadata.
         const productRoute = router.routesById[PRODUCT_ROUTE_ID];
