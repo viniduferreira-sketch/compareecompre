@@ -37,7 +37,6 @@ export function SiteFooter() {
           <h2 className="mb-4 text-sm font-bold text-footer-foreground">Ajuda e Suporte</h2>
           <ul className="space-y-3">
             <li><Link to="/busca" className={linkClass}>Buscar produtos</Link></li>
-            <li><Link to="/" className={linkClass}>Alerta de preço</Link></li>
             <li><a href="mailto:contato@compareecompre.com.br" className={linkClass}>Fale conosco</a></li>
           </ul>
         </div>

@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CookieConsent } from "@/components/marketplace/CookieConsent";
+import consentDefaults from '@/lib/consent-defaults.js?raw';
 
 function NotFoundComponent() {
   return (
@@ -115,6 +116,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/site.webmanifest" },
     ],
     scripts: [
+      { children: consentDefaults },
       { src: "https://www.dwin1.com/pub.332305.min.js", async: true },
       {
         src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1986579833464428",

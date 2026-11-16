@@ -7,6 +7,7 @@ import type { BlogArticle } from '@/lib/blog-public';
 
 export function CategoryIntroduction({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
+  text = text.replace(/\s+e\s+veja o histórico de preço(?: na página do produto(?: antes de decidir)?| de cada aparelho)\.?/gi, '.').replace(/\s+\./g, '.').replace(/\s{2,}/g, ' ').trim();
   if (!text) return null;
   return <div className="mt-3 max-w-4xl">
     <p id="category-introduction" className={`text-sm leading-6 text-muted-foreground ${expanded ? '' : 'line-clamp-3 md:line-clamp-none'}`}>{text}</p>

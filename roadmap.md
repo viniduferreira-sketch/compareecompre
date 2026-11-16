@@ -1,5 +1,10 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Conteúdo público e preferências de cookies
+- [x] Remover seção de alertas da home e link do rodapé sem excluir inscritos; remover menções ao histórico nas introduções de categoria.
+- [x] Atualizar política em 16/11/2026 com AdSense, link oficial e medições Lovable verificadas; painel único com aceitar/recusar/gerenciar, banner inicial e sinais Google conectados, preservando escolhas.
+- [x] Dez testes aprovados; navegador confirmou rodapé, escolha Estatísticas sem Publicidade, recusa persistente, sete categorias e política. Nenhuma importação; alterações aguardam publicação.
+
 ## Falha na busca e nos produtos do blog
 - [x] Publicado reproduziu HTTP 500 e XMLHttpRequest is not defined antes de consultar Algolia; cliente público compartilhado usa requester Fetch oficial, sem alterar buscas/filtros ou criar proxy.
 - [x] Prévia: air fryer 105 resultados e câmera de segurança 6; 27 testes passaram e build OK. Artigo consulta Algolia com HTTP 200, mas seus quatro filtros específicos (wifi/360/externa e preços) retornam zero produtos; blocos corretamente ocultos, sem ampliar critérios ou inventar resultados. Correção publicada depende de publicação.

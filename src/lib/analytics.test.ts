@@ -4,10 +4,10 @@ import { deleteAnalyticsCookies, syncAnalyticsAudience, trackEvent, trackOutboun
 
 afterEach(() => { syncAnalyticsAudience(false); vi.unstubAllGlobals(); });
 it('sends no Google script until consent, records one page per navigation, gates events and stops on withdrawal', () => {
-  let storage: string | null = null;
-  vi.stubGlobal('localStorage', { getItem: () => storage, setItem: (_: string, v: string) => { storage = v; } });
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, v: string) => { storage.set(key, v); } });
   const appendChild = vi.fn(); const remove = vi.fn();
-  const win = { location: { hostname: 'compareecompre.com', pathname: '/', search: '', origin: 'https://compareecompre.com' }, dataLayer: [] as unknown[] };
+  const win = { dispatchEvent: vi.fn(), location: { hostname: 'compareecompre.com', pathname: '/', search: '', origin: 'https://compareecompre.com' }, dataLayer: [] as unknown[] };
   const doc = { cookie: '', title: 'Ofertas | Compare e Compre', createElement: () => ({ remove }), head: { appendChild } };
   vi.stubGlobal('window', win); vi.stubGlobal('document', doc);
   loadConsent(); syncAnalyticsAudience(true); trackPageView('/'); expect(appendChild).not.toHaveBeenCalled();

@@ -16,7 +16,7 @@ import { SiteFooter } from "@/components/marketplace/SiteFooter";
 import { BlogPromotions } from "@/components/marketplace/BlogPromotions";
 import { HomeShowcases } from "@/components/marketplace/HomeShowcases";
 import { homeShowcasesQuery } from "@/lib/home-showcases.queries";
-import { MonitoredStores, PriceAlertSignup, TrustBanner } from "@/components/marketplace/HomeExperience";
+import { MonitoredStores, TrustBanner } from "@/components/marketplace/HomeExperience";
 import { homeBlogPromotionsQuery } from "@/lib/blog-promotions.queries";
 import { SITE_CATEGORIES } from "@/lib/storefront-mix";
 
@@ -161,7 +161,6 @@ function Home() {
             />
             <TrustBanner />
             <HomeShowcases excludeCategorySlug="casa" />
-            <PriceAlertSignup />
             <BlogPromotions posts={blogPosts} variant="home" />
           </>
         )}

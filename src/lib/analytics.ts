@@ -33,15 +33,14 @@ export function reconcileAnalytics() {
   const disabled = !analyticsAllowed();
   Object.assign(target, { [`ga-disable-${MEASUREMENT_ID}`]: disabled });
   if (disabled) {
-    if (target.dataLayer) target.dataLayer.length = 0;
-    if (configured) command('consent', 'update', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+    command('consent', 'update', consentSignals());
     if (!hasConsent('analytics')) deleteAnalyticsCookies();
     script?.remove(); script = null; lastPage = null;
     return;
   }
   if (!configured) {
-    target.dataLayer = [];
-    target.gtag = function (..._args: unknown[]) { target.dataLayer?.push(arguments); };
+    target.dataLayer ??= [];
+    target.gtag ??= function (..._args: unknown[]) { target.dataLayer?.push(arguments); };
     command('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
     command('set', 'developer_id.dZjgwMW', true);
     command('js', new Date());
