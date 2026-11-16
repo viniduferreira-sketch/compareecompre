@@ -1,1 +1,1 @@
-- Category editorial content is loaded from the public category-content projection only on page one; FAQ structured data uses the same validated answers as the accordion, and guides reuse BlogCard with due-published slug selection.
+- Category and /ofertas editorial copy (intro, Ler mais, checklist, FAQ with [text](/path) links) lives in src/lib/category-copy.ts; the database projection is only a fallback, and FAQ structured data strips link markup from the same answers.
