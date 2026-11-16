@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { toSiteCategory } from "./storefront-mix";
+import { classifyPartnerCategory } from './partner-category';
 import { normalizeGtin, normalizeModel } from "./product-identifiers";
 import { ADULT_CONTENT_REASON, MERCHANT_NOT_ALLOWED_REASON, getAdultContentMatch } from "./content-policy";
 import { isAwinMerchantAllowed } from "./awin-allowlist";
@@ -88,8 +88,7 @@ export function normalizeAwinProduct(row: AwinRow, syncedAt: string, allowedMerc
     originalPrice,
     discountPercent: originalPrice ? Math.round((originalPrice - price) / originalPrice * 100) : null,
     category: text(row["category_name"] || row["merchant_category"], 300) || null,
-    categoryName: toSiteCategory(text(row["category_name"] || row["merchant_category"], 300))
-      ?? toSiteCategory(text(row["merchant_category"], 300)),
+    categoryName: classifyPartnerCategory({ ...row, title, store }),
     brand: text(row["brand_name"], 200) || null,
     gtin: normalizeGtin(row["ean"]) ?? normalizeGtin(row["product_GTIN"]),
     model: normalizeModel(row["product_model"]) ?? normalizeModel(row["model_number"]),

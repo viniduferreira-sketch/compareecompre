@@ -1,5 +1,6 @@
 import type { Offer } from './search-offers.functions';
 import { storefrontIdentity, type StorefrontRecord } from './storefront-record';
+import { classifyStoreProduct } from './store-product-filters';
 
 export type RelatedHit = StorefrontRecord & {
   objectID: string; title: string; price: number; imageUrl?: string | null;
@@ -15,7 +16,15 @@ export const RELATED_CONFIG = { alternativeCount: 4, categoryCount: 8, maxPerBra
 export const RELATED_VISIBILITY = 'price > 0 AND NOT status:"unavailable" AND NOT quality_status:"rejected" AND NOT site_hidden:true AND NOT price_review_status:"pending"';
 const normalize = (text: string) => text.trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-export function selectRelated(hits: RelatedHit[], current: RelatedHit, options: { limit: number; brandLimit?: number; min?: number; max?: number; exclude?: string[]; excludeGroups?: string[] }) {
+export function alternativeProductType(hit: RelatedHit) {
+  const type = classifyStoreProduct(hit).productType;
+  // These catch-all families do not prove that two products are the same type.
+  return type && !['Acessórios', 'Brinquedos'].includes(type) ? type : null;
+}
+
+export function selectRelated(hits: RelatedHit[], current: RelatedHit, options: { limit: number; brandLimit?: number; min?: number; max?: number; exclude?: string[]; excludeGroups?: string[]; sameType?: boolean }) {
+  const currentType = options.sameType ? alternativeProductType(current) : null;
+  if (options.sameType && !currentType) return [];
   const seen = new Set([current.objectID, ...(options.exclude ?? [])]);
   const groups = new Set([...(current.group_key ? [current.group_key] : []), ...(options.excludeGroups ?? [])]);
   const brands = new Map<string, number>();
@@ -23,6 +32,7 @@ export function selectRelated(hits: RelatedHit[], current: RelatedHit, options: 
   for (const hit of [...hits].sort((a,b) => (b.popularity_score ?? 0) - (a.popularity_score ?? 0))) {
     if (seen.has(hit.objectID) || (hit.group_key && groups.has(hit.group_key))) continue;
     if ((hit.categoryName ?? hit.category) !== (current.categoryName ?? current.category)) continue;
+    if (options.sameType && alternativeProductType(hit) !== currentType) continue;
     if (!Number.isFinite(hit.price) || hit.price <= 0 || hit.status === 'unavailable' || hit.quality_status === 'rejected' || hit.site_hidden || hit.price_review_status === 'pending') continue;
     if (hit.price < (options.min ?? 0) || hit.price > (options.max ?? Infinity)) continue;
     const brand = normalize(hit.brand ?? '');

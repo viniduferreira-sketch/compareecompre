@@ -2,7 +2,7 @@ import { queryOptions } from '@tanstack/react-query';
 import { publicSearchClient } from './algolia-public';
 import { getPublicStores } from './partner-stores.functions';
 import { selectVisibleOffers } from './offer-freshness';
-import { RELATED_CONFIG, RELATED_VISIBILITY, selectRelated, type RelatedHit } from './related-products';
+import { RELATED_CONFIG, RELATED_VISIBILITY, selectRelated, alternativeProductType, type RelatedHit } from './related-products';
 
 const indexName = 'produtos_mercado_livre';
 function config() {
@@ -33,14 +33,18 @@ export async function candidates(current: RelatedHit, min = 0, max = Infinity, q
   return selectVisibleOffers((response.results[0]?.hits ?? []).filter(hit => Object.hasOwn(stores, hit.store ?? hit.merchant_name ?? hit.loja ?? '')));
 }
 export const alternativesQuery = (current: RelatedHit) => queryOptions({
-  queryKey: ['related-alternatives', current.objectID, current.price], staleTime: 300000,
+  queryKey: ['related-alternatives', 'same-type-v2', current.objectID, current.price], staleTime: 300000,
   queryFn: async () => {
+    const type = alternativeProductType(current);
+    if (!type) return [];
+    let best: RelatedHit[] = [];
     for (const [lower, upper] of RELATED_CONFIG.priceRanges) {
       const min = current.price * lower, max = current.price * upper;
-      const selected = selectRelated(await candidates(current, min, max), current, { limit: 4, brandLimit: 2, min, max });
+      const selected = selectRelated(await candidates(current, min, max, type), current, { limit: 4, brandLimit: 2, min, max, sameType: true });
       if (selected.length === 4) return selected;
+      if (selected.length > best.length) best = selected;
     }
-    return [];
+    return best;
   },
 });
 export const categoryRelatedQuery = (current: RelatedHit, exclude: string[], excludeGroups: string[]) => queryOptions({

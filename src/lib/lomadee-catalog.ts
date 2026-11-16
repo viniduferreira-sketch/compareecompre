@@ -1,4 +1,4 @@
-import { toSiteCategory } from "./storefront-mix";
+import { classifyPartnerCategory } from './partner-category';
 import { normalizeGtin } from "./product-identifiers";
 import { ADULT_CONTENT_REASON, getAdultContentMatch } from "./content-policy";
 import { classifyStoreProduct } from './store-product-filters';
@@ -85,7 +85,7 @@ export function normalizeLomadeeProduct(
   if (!store || !link) return null;
   const originalPrice = Number.isFinite(best.list) && best.list > best.price ? best.list : null;
   const rawCategories = (product.categories ?? []).map((c) => text(c.name, 120).replace(/_/g, " ")).filter(Boolean);
-  const categoryName = rawCategories.map((c) => toSiteCategory(c)).find(Boolean) ?? null;
+  const categoryName = classifyPartnerCategory({ title, store, category_path: rawCategories.join(' > ') });
   const brandName = (best.option.brands ?? []).map((b) => (typeof b === "string" ? b : b.name ?? "")).map((b) => text(b, 120)).find(Boolean) ?? null;
   const unavailable = product.available === false || !availableOffers.length;
   const images = (product.images ?? []).flatMap((i) => { const u = httpsUrl(i.url); return u ? [u] : []; }).slice(0, 8);

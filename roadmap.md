@@ -1,5 +1,9 @@
 # Roadmap — Filtro de qualidade Mercado Livre
 
+## Classificação e alternativas por tipo
+- [x] Corrigidos os 42 registros das duas lojas no catálogo e Algolia: 34 para Casa e oito sem categoria compatível; zero restantes em Eletrônicos. Normalizadores Awin/Lomadee usam evidência específica; não houve importação, exclusão ou alteração de links/disponibilidade.
+- [x] Alternativas exigem o mesmo tipo não genérico, ocultando casos incertos; placa MSI real mostrou quatro placas de vídeo, sem RAM/computadores. Desktop/celular sem overflow, 36 testes aprovados e build OK; nova regra de recomendações aguarda publicação.
+
 ## Busca publicada e blocos monitor/cafeteira
 - [x] Logs publicados: Worker exceeded memory limit em ambas as buscas; loader carregava o catálogo inteiro para fallback. Busca agora solicita uma página de 24 e oito populares em cache, preservando filtros/ordenação/URL e sem proxy. Prévia: ambas HTTP 200, página 2, menor preço e loja KaBuM confirmados.
 - [x] Artigos usavam o mesmo cliente Fetch, mas rotina distinta e limitada, sem o carregamento integral. Agora compartilham searchPublicProducts; publicados já retornavam candidatos ao rolar. Prévia confirmou dois blocos/4 links de loja no monitor e dois blocos/8 no cafeteira; termos completos excluem caneleira/cabeceira sem alterar preços/categorias editoriais. Blocos com menos de dois elegíveis continuam ocultos. 24 testes, build OK; correção ao vivo depende de publicação. Aviso preexistente de hidratação provocado por anúncio Google não alterado.
