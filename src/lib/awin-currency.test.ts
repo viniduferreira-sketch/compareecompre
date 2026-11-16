@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { awinDiscardReason, normalizeAwinProduct } from './awin-catalog';
-import { addCurrencyDiagnostic, mergeCurrencyDiagnostics, type CurrencyDiagnostics } from './awin-currency';
+import { addCurrencyDiagnostic, mergeCurrencyDiagnostics, normalizeAwinCurrency, type CurrencyDiagnostics } from './awin-currency';
 import { mergeDiscardReasons } from './import-discards';
 
 const row = { aw_product_id: '1', merchant_id: '2', merchant_name: 'LG BR', product_name: 'Monitor LG', search_price: '1099.90', aw_deep_link: 'https://awin1.com/p', currency: 'BRL' };
@@ -10,17 +10,30 @@ describe('moeda Awin sem conversão', () => {
     expect(normalizeAwinProduct({ ...row, currency }, '2026-11-14T00:00:00Z')?.price).toBe(1099.90);
   });
   it.each(['', '  ', '\t\n'])('preserva moeda vazia %j sem alterar o preço', currency => {
+    expect(normalizeAwinCurrency(currency)).toBe('BRL');
     expect(awinDiscardReason({ ...row, currency })).toBeNull();
     expect(normalizeAwinProduct({ ...row, currency }, '2026-11-14T00:00:00Z')?.price).toBe(1099.90);
   });
   it('preserva feeds sem coluna currency', () => {
     const { currency: _currency, ...withoutCurrency } = row;
+    expect(normalizeAwinCurrency(undefined)).toBe('BRL');
     expect(awinDiscardReason(withoutCurrency)).toBeNull();
     expect(normalizeAwinProduct(withoutCurrency, '2026-11-14T00:00:00Z')?.price).toBe(1099.90);
   });
   it.each(['USD', 'usd', ' EUR ', 'R$', 'BRL USD'])('descarta %j sem tratar como reais', currency => {
-    expect(awinDiscardReason({ ...row, currency })).toBe('unsupported_currency');
-    expect(normalizeAwinProduct({ ...row, currency }, '2026-11-14T00:00:00Z')).toBeNull();
+    const foreignRow = { ...row, merchant_name: 'Outra loja', currency };
+    expect(awinDiscardReason(foreignRow)).toBe('unsupported_currency');
+    expect(normalizeAwinProduct(foreignRow, '2026-11-14T00:00:00Z')).toBeNull();
+  });
+  it.each(['USD', ' usd ', '\tUsd\n'])('trata %j da LG BR como BRL sem converter o preço', currency => {
+    expect(normalizeAwinCurrency(currency, ' LG BR ')).toBe('BRL');
+    expect(awinDiscardReason({ ...row, currency })).toBeNull();
+    expect(normalizeAwinProduct({ ...row, currency }, '2026-11-14T00:00:00Z')?.price).toBe(1099.90);
+  });
+  it.each(['EUR', 'LG', 'LG BR outlet'])('não estende a exceção para %j', value => {
+    const excluded = value === 'EUR' ? { ...row, currency: value } : { ...row, merchant_name: value, currency: 'USD' };
+    expect(awinDiscardReason(excluded)).toBe('unsupported_currency');
+    expect(normalizeAwinProduct(excluded, '2026-11-14T00:00:00Z')).toBeNull();
   });
   it('soma 3361 USD e mantém três exemplos e contadores separados', () => {
     const a: CurrencyDiagnostics = { counts: {}, examples: [] };

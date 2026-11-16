@@ -1,5 +1,9 @@
-export function normalizeAwinCurrency(value: string | undefined) {
-  return (value ?? '').trim().toUpperCase();
+export function normalizeAwinCurrency(value: string | undefined, merchantName?: string) {
+  const currency = (value ?? '').trim().toUpperCase();
+  const merchant = (merchantName ?? '').trim().replace(/\s+/g, ' ').toUpperCase();
+  // LG BR labels its real-denominated prices USD; do not convert the amount.
+  if (!currency || (merchant === 'LG BR' && currency === 'USD')) return 'BRL';
+  return currency;
 }
 
 export type CurrencyDiagnostics = {
