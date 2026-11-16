@@ -1,3 +1,5 @@
+import { refineSiteCategory } from "./partner-category";
+import type { SiteCategory } from "./storefront-mix";
 import { getAlgoliaIndexingConfig, CATALOG_FACETS } from "@/lib/algolia-indexing.server";
 import { mercadoLivreIdentifiers } from "./product-identifiers";
 import { fetchQA_MercadoLivre, type PartnerQA } from "@/lib/partner-qa.server";
@@ -200,7 +202,7 @@ export async function syncOffersToAlgolia(options: SyncOptions = {}): Promise<Sy
         freeShipping: Boolean(cheapest.shipping?.free_shipping),
         affiliateUrl: withAffiliate(cheapest.permalink ?? `https://www.mercadolivre.com.br/p/${product.id}`),
         category: cheapest.category_id ?? product.domain_id ?? null,
-        categoryName,
+        categoryName: refineSiteCategory(product.name, categoryName as SiteCategory) ?? categoryName,
         brand,
         ...identifiers,
         comparison_variant: comparisonVariant(product.attributes),
